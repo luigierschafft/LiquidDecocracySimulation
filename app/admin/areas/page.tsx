@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { CrudTable } from '@/components/admin/CrudTable'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminAreasPage() {
   const supabase = createClient()
   const [{ data: areas }, { data: units }] = await Promise.all([

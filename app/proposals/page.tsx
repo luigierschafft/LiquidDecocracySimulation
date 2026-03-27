@@ -4,6 +4,8 @@ import Link from 'next/link'
 import type { Issue, IssueStatus } from '@/lib/types'
 import { Plus } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 const STATUS_FILTERS: { value: IssueStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'admission', label: 'Admission' },

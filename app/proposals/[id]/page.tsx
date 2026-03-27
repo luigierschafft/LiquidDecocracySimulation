@@ -10,6 +10,8 @@ import type { Issue, Initiative, VoteValue } from '@/lib/types'
 import { Calendar, User } from 'lucide-react'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 
+export const dynamic = 'force-dynamic'
+
 const statusVariants: Record<string, 'default' | 'sand' | 'green' | 'blue' | 'purple'> = {
   admission: 'sand',
   discussion: 'blue',

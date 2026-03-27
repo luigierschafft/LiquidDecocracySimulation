@@ -4,6 +4,8 @@ import { ProfileForm } from '@/components/profile/ProfileForm'
 import { formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ProfilePage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

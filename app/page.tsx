@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { ArrowRight, Vote, Users, GitBranch, Shield } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LandingPage() {
   const supabase = createClient()
   const { count: issueCount } = await supabase.from('issue').select('*', { count: 'exact', head: true })

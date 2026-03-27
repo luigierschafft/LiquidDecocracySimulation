@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import type { Issue } from '@/lib/types'
 
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: { unitId: string; areaId: string }
 }

@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { UserActions } from '@/components/admin/UserActions'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminUsersPage() {
   const supabase = createClient()
   const { data: members } = await supabase

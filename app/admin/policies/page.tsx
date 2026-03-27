@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { CrudTable } from '@/components/admin/CrudTable'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminPoliciesPage() {
   const supabase = createClient()
   const { data: policies } = await supabase.from('policy').select('*').order('name')

@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 export default async function UnitsPage() {
   const supabase = createClient()
   const { data: units } = await supabase

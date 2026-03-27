@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { DelegationManager } from '@/components/delegation/DelegationManager'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DelegationPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
