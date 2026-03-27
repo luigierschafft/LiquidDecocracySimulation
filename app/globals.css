@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #faf9f7;
+  --foreground: #1a0f00;
+  --accent: #c2650a;
+  --accent-light: #f4a256;
+  --auro-green: #5a7a4a;
+  --sand: #e8ddd0;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl border border-sand shadow-sm p-6;
+  }
+
+  .btn-primary {
+    @apply bg-accent hover:bg-accent/90 text-white font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-sand hover:bg-sand/70 text-foreground font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .btn-ghost {
+    @apply hover:bg-sand/50 text-foreground font-medium px-4 py-2 rounded-lg transition-colors;
+  }
+
+  .input {
+    @apply w-full border border-sand rounded-lg px-3 py-2 bg-white text-foreground placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent;
+  }
+}
