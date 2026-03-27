@@ -29,6 +29,10 @@ yarn-error.log*
 .env*.local
 .env
 
+# Old VM files
+*.ova
+LQFB_VM*/
+
 # vercel
 .vercel
 
