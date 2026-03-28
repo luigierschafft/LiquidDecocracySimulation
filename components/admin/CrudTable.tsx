@@ -17,10 +17,10 @@ interface Props {
   table: string
   items: any[]
   fields: FieldDef[]
-  displayField?: (item: any) => string
+  displayKey?: string
 }
 
-export function CrudTable({ table, items: initial, fields, displayField }: Props) {
+export function CrudTable({ table, items: initial, fields, displayKey }: Props) {
   const [items, setItems] = useState<any[]>(initial)
   const [editing, setEditing] = useState<string | null>(null)
   const [showNew, setShowNew] = useState(false)
@@ -125,7 +125,7 @@ export function CrudTable({ table, items: initial, fields, displayField }: Props
             ) : (
               <div className="flex items-center justify-between px-4 py-3 hover:bg-sand/20">
                 <span className="text-sm font-medium">
-                  {displayField ? displayField(item) : item.name}
+                  {displayKey ? item[displayKey] : item.name}
                 </span>
                 <div className="flex gap-2">
                   <button

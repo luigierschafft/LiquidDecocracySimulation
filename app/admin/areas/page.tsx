@@ -10,12 +10,17 @@ export default async function AdminAreasPage() {
     supabase.from('unit').select('id, name').order('name'),
   ])
 
+  const enrichedAreas = (areas ?? []).map((a: any) => ({
+    ...a,
+    _label: `${a.unit?.name ?? ''} › ${a.name}`,
+  }))
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-6">
       <h1 className="text-3xl font-bold">Areas</h1>
       <CrudTable
         table="area"
-        items={areas ?? []}
+        items={enrichedAreas}
         fields={[
           { key: 'name', label: 'Name', required: true },
           { key: 'description', label: 'Description' },
@@ -27,7 +32,7 @@ export default async function AdminAreasPage() {
             options: (units ?? []).map((u: any) => ({ value: u.id, label: u.name })),
           },
         ]}
-        displayField={(item) => `${item.unit?.name ?? ''} › ${item.name}`}
+        displayKey="_label"
       />
     </div>
   )
