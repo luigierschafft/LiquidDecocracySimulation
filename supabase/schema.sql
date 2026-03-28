@@ -206,50 +206,36 @@ CREATE POLICY "policies_admin_write" ON public.policy FOR ALL USING (
   EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_admin = true)
 );
 
--- Issue: public read, approved members write
+-- Issue: public read, authenticated users write
 CREATE POLICY "issues_public_read" ON public.issue FOR SELECT USING (true);
-CREATE POLICY "issues_approved_write" ON public.issue FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
-);
+CREATE POLICY "issues_auth_write" ON public.issue FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "issues_admin_update" ON public.issue FOR UPDATE USING (
   EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_admin = true)
 );
 
--- Initiative: public read, approved members write
+-- Initiative: public read, authenticated users write
 CREATE POLICY "initiatives_public_read" ON public.initiative FOR SELECT USING (true);
-CREATE POLICY "initiatives_approved_write" ON public.initiative FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
-);
+CREATE POLICY "initiatives_auth_write" ON public.initiative FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
--- Vote: read own votes, approved members write
+-- Vote: public read, authenticated users write
 CREATE POLICY "votes_public_read" ON public.vote FOR SELECT USING (true);
-CREATE POLICY "votes_approved_write" ON public.vote FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
-);
-CREATE POLICY "votes_self_update" ON public.vote FOR UPDATE USING (
-  member_id = auth.uid() AND
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
-);
+CREATE POLICY "votes_auth_write" ON public.vote FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "votes_self_update" ON public.vote FOR UPDATE USING (member_id = auth.uid());
 CREATE POLICY "votes_self_delete" ON public.vote FOR DELETE USING (member_id = auth.uid());
 
--- Opinion: public read, approved members write
+-- Opinion: public read, authenticated users write
 CREATE POLICY "opinions_public_read" ON public.opinion FOR SELECT USING (true);
-CREATE POLICY "opinions_approved_write" ON public.opinion FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
-);
+CREATE POLICY "opinions_auth_write" ON public.opinion FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 
--- Supporter: public read, approved members write
+-- Supporter: public read, authenticated users write
 CREATE POLICY "supporters_public_read" ON public.supporter FOR SELECT USING (true);
-CREATE POLICY "supporters_approved_write" ON public.supporter FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
-);
+CREATE POLICY "supporters_auth_write" ON public.supporter FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
 CREATE POLICY "supporters_self_delete" ON public.supporter FOR DELETE USING (member_id = auth.uid());
 
 -- Delegation: own delegations
 CREATE POLICY "delegations_public_read" ON public.delegation FOR SELECT USING (true);
 CREATE POLICY "delegations_self_write" ON public.delegation FOR INSERT WITH CHECK (
-  from_member_id = auth.uid() AND
-  EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
+  from_member_id = auth.uid()
 );
 CREATE POLICY "delegations_self_delete" ON public.delegation FOR DELETE USING (from_member_id = auth.uid());
 

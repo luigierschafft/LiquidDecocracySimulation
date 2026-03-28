@@ -11,11 +11,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
 
-  const { data: member } = await supabase.from('member').select('is_approved').eq('id', user.id).single()
-  if (!member?.is_approved) {
-    return NextResponse.json({ error: 'Not approved' }, { status: 403 })
-  }
-
   const { data, error } = await supabase
     .from('vote')
     .upsert({ initiative_id, member_id: user.id, value }, { onConflict: 'initiative_id,member_id' })

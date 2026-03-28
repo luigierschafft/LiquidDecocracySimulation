@@ -38,14 +38,6 @@ export default function NewProposalPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/login'); return }
 
-    // Check approval
-    const { data: member } = await supabase.from('member').select('is_approved').eq('id', user.id).single()
-    if (!member?.is_approved) {
-      setError('Your account needs admin approval before submitting proposals.')
-      setLoading(false)
-      return
-    }
-
     // Create issue
     const { data: issue, error: issueErr } = await supabase
       .from('issue')
