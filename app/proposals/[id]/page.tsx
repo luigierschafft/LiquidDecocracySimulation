@@ -3,25 +3,51 @@ import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
 import { VoteBar } from '@/components/proposals/VoteBar'
 import { VoteButton } from '@/components/proposals/VoteButton'
+import { AddProposalForm } from '@/components/proposals/AddProposalForm'
+import { DelegationStatus } from '@/components/proposals/DelegationStatus'
+import { AcceptButton } from '@/components/proposals/AcceptButton'
 import { countVotes } from '@/lib/voting/approval'
-import { formatDate, statusLabel } from '@/lib/utils'
+import { formatDate, statusLabel, getStatusVariant, getMemberDisplayName } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
-import type { Issue, Initiative, VoteValue } from '@/lib/types'
-import { Calendar, User } from 'lucide-react'
+import type { Issue, Initiative, Opinion, VoteValue } from '@/lib/types'
+import { Calendar, User, FileText, Trophy, Clock, CheckCircle2, FileEdit } from 'lucide-react'
+import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
+import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
+import { getAppSetting } from '@/lib/data/settings'
 
 export const dynamic = 'force-dynamic'
 
-const statusVariants: Record<string, 'default' | 'sand' | 'green' | 'blue' | 'purple'> = {
-  admission: 'sand',
-  discussion: 'blue',
-  verification: 'purple',
-  voting: 'green',
-  closed: 'sand',
-}
-
 interface Props {
   params: { id: string }
+}
+
+type DelegationScope = 'issue' | 'area' | 'unit' | 'global'
+
+function findEffectiveDelegation(
+  delegations: any[],
+  issueId: string,
+  areaId: string | null,
+  unitId: string | null
+): { to_member: any; scope: DelegationScope; scopeLabel: string } | null {
+  const check = (pred: (d: any) => boolean, scope: DelegationScope, scopeLabel: string) => {
+    const d = delegations.find(pred)
+    if (d) return { to_member: d.to_member, scope, scopeLabel }
+    return null
+  }
+  return (
+    check((d) => d.issue_id === issueId, 'issue', 'this topic') ??
+    (areaId ? check((d) => d.area_id === areaId, 'area', 'this area') : null) ??
+    (unitId ? check((d) => d.unit_id === unitId, 'unit', 'this unit') : null) ??
+    check((d) => !d.issue_id && !d.area_id && !d.unit_id, 'global', 'all topics') ??
+    null
+  )
+}
+
+function daysUntil(dateStr: string | null): number | null {
+  if (!dateStr) return null
+  const diff = new Date(dateStr).getTime() - Date.now()
+  return Math.ceil(diff / (1000 * 60 * 60 * 24))
 }
 
 export default async function ProposalDetailPage({ params }: Props) {
@@ -32,6 +58,7 @@ export default async function ProposalDetailPage({ params }: Props) {
     .select(`
       *,
       area(*, unit(*)),
+      policy(*),
       author:member!issue_author_id_fkey(*),
       initiatives:initiative(
         *,
@@ -45,9 +72,56 @@ export default async function ProposalDetailPage({ params }: Props) {
 
   if (!issue) notFound()
 
-  const { data: { user } } = await supabase.auth.getUser()
-
   const typedIssue = issue as unknown as Issue
+  const areaId = typedIssue.area_id
+  const unitId = typedIssue.area?.unit?.id ?? null
+
+  const [topicOpinionsResult, { data: { user } }, proposalCreation] = await Promise.all([
+    supabase
+      .from('opinion')
+      .select('*, author:member!opinion_author_id_fkey(*)')
+      .eq('issue_id', params.id)
+      .is('initiative_id', null)
+      .order('created_at', { ascending: true }),
+    supabase.auth.getUser(),
+    getAppSetting('proposal_creation'),
+  ])
+
+  // User data: delegations + admin status
+  let userDelegations: any[] = []
+  let isAdmin = false
+  if (user) {
+    const [delegResult, memberResult] = await Promise.all([
+      supabase
+        .from('delegation')
+        .select('*, to_member:member!delegation_to_member_id_fkey(id, display_name, email)')
+        .eq('from_member_id', user.id),
+      supabase.from('member').select('is_admin').eq('id', user.id).single(),
+    ])
+    userDelegations = delegResult.data ?? []
+    isAdmin = memberResult.data?.is_admin ?? false
+  }
+
+  const effectiveDelegation = user
+    ? findEffectiveDelegation(userDelegations, typedIssue.id, areaId, unitId)
+    : null
+
+  const canSubmitProposal = user
+    ? (proposalCreation ?? 'all_members') === 'all_members' || isAdmin
+    : false
+
+  const initiatives = typedIssue.initiatives ?? []
+  const quorum = (typedIssue as any).policy?.quorum as number | undefined
+
+  // Accepted initiative (formal or derived)
+  const acceptedId = typedIssue.accepted_initiative_id
+
+  const votingDeadlineDays = typedIssue.status === 'voting' ? daysUntil(typedIssue.voting_at) : null
+
+  // Find accepted initiative object for the banner
+  const acceptedInitiative = acceptedId
+    ? initiatives.find((i: Initiative) => i.id === acceptedId) ?? null
+    : null
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
@@ -55,11 +129,11 @@ export default async function ProposalDetailPage({ params }: Props) {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-bold leading-tight">{typedIssue.title}</h1>
-          <Badge variant={statusVariants[typedIssue.status] ?? 'sand'} className="flex-shrink-0 mt-1">
+          <Badge variant={getStatusVariant(typedIssue.status)} className="flex-shrink-0 mt-1">
             {statusLabel(typedIssue.status)}
           </Badge>
         </div>
-        <div className="flex items-center gap-4 text-sm text-foreground/50">
+        <div className="flex items-center gap-4 text-sm text-foreground/50 flex-wrap">
           {typedIssue.area && (
             <span>{typedIssue.area.unit?.name} · {typedIssue.area.name}</span>
           )}
@@ -70,56 +144,153 @@ export default async function ProposalDetailPage({ params }: Props) {
           {typedIssue.author && (
             <span className="flex items-center gap-1">
               <User className="w-3.5 h-3.5" />
-              {typedIssue.author.display_name ?? typedIssue.author.email}
+              {getMemberDisplayName(typedIssue.author)}
+            </span>
+          )}
+          {votingDeadlineDays !== null && (
+            <span className={`flex items-center gap-1 font-medium ${votingDeadlineDays <= 1 ? 'text-red-500' : 'text-amber-600'}`}>
+              <Clock className="w-3.5 h-3.5" />
+              {votingDeadlineDays <= 0
+                ? 'Voting ends today'
+                : `${votingDeadlineDays} day${votingDeadlineDays !== 1 ? 's' : ''} left to vote`}
             </span>
           )}
         </div>
       </div>
 
-      {/* Initiatives */}
-      {typedIssue.initiatives?.map((initiative: Initiative) => {
-        const votes = countVotes(initiative.votes ?? [])
-        const userVote = initiative.votes?.find((v) => v.member_id === user?.id)?.value as VoteValue | undefined
-
-        return (
-          <div key={initiative.id} className="card space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold mb-1">{initiative.title}</h2>
-              <p className="text-xs text-foreground/40">
-                by {initiative.author?.display_name ?? initiative.author?.email} · {formatDate(initiative.created_at)}
+      {/* Accepted proposal banner */}
+      {acceptedInitiative && (
+        <div className="rounded-xl border border-auro-green/40 bg-green-50/50 px-5 py-4 space-y-2">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2 text-auro-green font-semibold text-sm">
+                <CheckCircle2 className="w-4 h-4" />
+                Accepted Proposal
+              </div>
+              <p className="font-medium">{acceptedInitiative.title}</p>
+              <p className="text-xs text-foreground/50">
+                by {getMemberDisplayName(acceptedInitiative.author)} · Accepted on {formatDate(typedIssue.closed_at)}
               </p>
             </div>
+            <Link
+              href={`/proposals/${typedIssue.id}/elaboration`}
+              className="flex items-center gap-1.5 text-sm font-medium text-accent border border-accent/30 hover:bg-accent/5 px-3 py-1.5 rounded-lg transition-colors flex-shrink-0"
+            >
+              <FileEdit className="w-4 h-4" />
+              View Elaboration
+            </Link>
+          </div>
+        </div>
+      )}
 
-            <div className="prose prose-sm max-w-none text-foreground/80">
-              <ReactMarkdown>{initiative.content}</ReactMarkdown>
-            </div>
+      {/* Topic-level discussion */}
+      <TopicDiscussion
+        issueId={typedIssue.id}
+        opinions={(topicOpinionsResult.data ?? []) as unknown as Opinion[]}
+        userId={user?.id ?? null}
+      />
 
-            {/* Voting */}
-            <div className="border-t border-sand pt-5 space-y-4">
-              <VoteBar votes={votes} />
-              {typedIssue.status === 'voting' && (
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
-                  <VoteButton
-                    initiativeId={initiative.id}
-                    currentVote={userVote ?? null}
-                  />
-                  {!user && (
-                    <p className="text-xs text-foreground/40">Sign in to vote</p>
+      {/* Proposals section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <FileText className="w-5 h-5 text-accent" />
+            Proposals
+            <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
+          </h2>
+          {canSubmitProposal && typedIssue.status !== 'closed' && (
+            <AddProposalForm issueId={typedIssue.id} userId={user!.id} />
+          )}
+        </div>
+
+        {initiatives.length === 0 && (
+          <div className="card text-center py-10 text-foreground/40">
+            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No proposals yet.</p>
+            {canSubmitProposal && (
+              <p className="text-xs mt-1">Be the first to submit a proposal above.</p>
+            )}
+          </div>
+        )}
+
+        {initiatives.map((initiative: Initiative) => {
+          const votes = countVotes(initiative.votes ?? [])
+          const userVote = initiative.votes?.find((v) => v.member_id === user?.id)?.value as VoteValue | undefined
+          const isAccepted = acceptedId === initiative.id
+
+          return (
+            <div
+              key={initiative.id}
+              id={`initiative-${initiative.id}`}
+              className={`card space-y-6 ${isAccepted ? 'border-auro-green/40 bg-green-50/20' : ''}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">{initiative.title}</h3>
+                  <p className="text-xs text-foreground/40">
+                    by {getMemberDisplayName(initiative.author)} · {formatDate(initiative.created_at)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {isAccepted && (
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-auro-green bg-green-100 px-2.5 py-1 rounded-full">
+                      <Trophy className="w-3.5 h-3.5" />
+                      Accepted
+                    </div>
+                  )}
+                  {isAdmin && typedIssue.status === 'voting' && (
+                    <AcceptButton
+                      issueId={typedIssue.id}
+                      initiativeId={initiative.id}
+                      isAlreadyAccepted={isAccepted}
+                    />
                   )}
                 </div>
-              )}
-            </div>
+              </div>
 
-            {/* Opinions */}
-            <OpinionSection
-              initiativeId={initiative.id}
-              opinions={initiative.opinions ?? []}
-              userId={user?.id ?? null}
-            />
-          </div>
-        )
-      })}
+              <div className="prose prose-sm max-w-none text-foreground/80">
+                <ReactMarkdown>{initiative.content}</ReactMarkdown>
+              </div>
+
+              {/* Voting */}
+              <div className="border-t border-sand pt-5 space-y-4">
+                <VoteBar
+                  votes={votes}
+                  quorum={quorum}
+                  showLowResistance={typedIssue.status === 'voting'}
+                />
+
+                {typedIssue.status === 'voting' && (
+                  <div className="space-y-3">
+                    {user ? (
+                      <>
+                        <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
+                        <VoteButton
+                          initiativeId={initiative.id}
+                          currentVote={userVote ?? null}
+                        />
+                        <DelegationStatus
+                          delegation={effectiveDelegation}
+                          hasDirectVote={!!userVote}
+                        />
+                      </>
+                    ) : (
+                      <p className="text-xs text-foreground/40">Sign in to vote</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Proposal-specific comments */}
+              <OpinionSection
+                initiativeId={initiative.id}
+                opinions={initiative.opinions ?? []}
+                userId={user?.id ?? null}
+              />
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

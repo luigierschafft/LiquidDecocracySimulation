@@ -1,10 +1,10 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { countVotes } from '@/lib/voting/approval'
 
 const PHASE_ORDER = ['admission', 'discussion', 'verification', 'voting', 'closed'] as const
 
 export async function POST(request: Request) {
-  // Verify cron secret or admin token
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
@@ -13,7 +13,6 @@ export async function POST(request: Request) {
 
   const supabase = createAdminClient()
 
-  // Get all non-closed issues with their policies
   const { data: issues } = await supabase
     .from('issue')
     .select('*, policy:policy(*)')
@@ -29,7 +28,6 @@ export async function POST(request: Request) {
     const currentIdx = PHASE_ORDER.indexOf(issue.status)
     if (currentIdx < 0 || currentIdx >= PHASE_ORDER.length - 1) continue
 
-    // Determine deadline for current phase
     const phaseStart = getPhaseStart(issue)
     if (!phaseStart) continue
 
@@ -41,9 +39,20 @@ export async function POST(request: Request) {
       const nextStatus = PHASE_ORDER[currentIdx + 1]
       const tsField = `${nextStatus}_at`
 
+      const updatePayload: Record<string, unknown> = {
+        status: nextStatus,
+        [tsField]: now.toISOString(),
+      }
+
+      // When closing voting: determine and record the winning initiative
+      if (issue.status === 'voting') {
+        const winnerId = await determineWinner(supabase, issue.id)
+        if (winnerId) updatePayload.accepted_initiative_id = winnerId
+      }
+
       const { error } = await supabase
         .from('issue')
-        .update({ status: nextStatus, [tsField]: now.toISOString() })
+        .update(updatePayload)
         .eq('id', issue.id)
 
       if (!error) transitioned.push(`${issue.id} → ${nextStatus}`)
@@ -51,6 +60,27 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ transitioned, count: transitioned.length })
+}
+
+async function determineWinner(supabase: any, issueId: string): Promise<string | null> {
+  const { data: initiatives } = await supabase
+    .from('initiative')
+    .select('id, votes:vote(*)')
+    .eq('issue_id', issueId)
+
+  if (!initiatives?.length) return null
+
+  const ranked = initiatives
+    .map((i: any) => ({ id: i.id, votes: countVotes(i.votes ?? []) }))
+    .filter((i: any) => i.votes.total > 0)
+    .sort((a: any, b: any) => {
+      if (b.votes.approvalPercent !== a.votes.approvalPercent) {
+        return b.votes.approvalPercent - a.votes.approvalPercent
+      }
+      return b.votes.approve - a.votes.approve
+    })
+
+  return ranked[0]?.id ?? null
 }
 
 function getPhaseStart(issue: any): string | null {

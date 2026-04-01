@@ -39,3 +39,20 @@ export function statusColor(status: string): string {
 export function truncate(text: string, length = 120): string {
   return text.length > length ? text.slice(0, length) + '…' : text
 }
+
+export function getStatusVariant(status: string): 'default' | 'sand' | 'green' | 'blue' | 'purple' {
+  const variants: Record<string, 'default' | 'sand' | 'green' | 'blue' | 'purple'> = {
+    admission: 'sand',
+    discussion: 'blue',
+    verification: 'purple',
+    voting: 'green',
+    closed: 'sand',
+  }
+  return variants[status] ?? 'sand'
+}
+
+export function getMemberDisplayName(
+  member: { display_name?: string | null; email?: string | null } | null | undefined
+): string {
+  return member?.display_name ?? member?.email ?? '?'
+}

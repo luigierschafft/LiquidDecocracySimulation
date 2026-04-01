@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Member } from '@/lib/types'
 import { Trash2, Plus } from 'lucide-react'
+import { getMemberDisplayName } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
 
 interface Props {
@@ -75,7 +76,7 @@ export function DelegationManager({ userId, delegations: initial, members, units
               <div key={d.id} className="py-3 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">
-                    → {d.to_member?.display_name ?? d.to_member?.email}
+                    → {getMemberDisplayName(d.to_member)}
                   </p>
                   <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
                 </div>
@@ -104,7 +105,7 @@ export function DelegationManager({ userId, delegations: initial, members, units
               <option value="">Select member…</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.display_name ?? m.email}
+                  {getMemberDisplayName(m)}
                 </option>
               ))}
             </select>

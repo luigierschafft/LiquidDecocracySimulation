@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 
 export const dynamic = 'force-dynamic'
@@ -29,7 +29,7 @@ export default async function ProfilePage() {
       <div className="card space-y-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-xl font-semibold text-accent">
-            {(member?.display_name ?? user.email ?? '?')[0].toUpperCase()}
+            {getMemberDisplayName(member ?? { email: user.email })[0].toUpperCase()}
           </div>
           <div>
             <p className="font-medium">{member?.display_name ?? 'No display name set'}</p>

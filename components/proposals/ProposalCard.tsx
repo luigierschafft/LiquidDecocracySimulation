@@ -3,19 +3,11 @@ import type { Issue } from '@/lib/types'
 import { Badge } from '@/components/ui/Badge'
 import { VoteBar } from './VoteBar'
 import { countVotes } from '@/lib/voting/approval'
-import { formatDate, statusLabel, truncate } from '@/lib/utils'
+import { formatDate, statusLabel, truncate, getStatusVariant } from '@/lib/utils'
 import { MessageSquare, ThumbsUp } from 'lucide-react'
 
 interface ProposalCardProps {
   issue: Issue
-}
-
-const statusVariants: Record<string, 'default' | 'sand' | 'green' | 'blue' | 'purple'> = {
-  admission: 'sand',
-  discussion: 'blue',
-  verification: 'purple',
-  voting: 'green',
-  closed: 'sand',
 }
 
 export function ProposalCard({ issue }: ProposalCardProps) {
@@ -32,7 +24,7 @@ export function ProposalCard({ issue }: ProposalCardProps) {
               <p className="text-xs text-foreground/50 mt-0.5">{issue.area.unit?.name} · {issue.area.name}</p>
             )}
           </div>
-          <Badge variant={statusVariants[issue.status] ?? 'sand'}>
+          <Badge variant={getStatusVariant(issue.status)}>
             {statusLabel(issue.status)}
           </Badge>
         </div>

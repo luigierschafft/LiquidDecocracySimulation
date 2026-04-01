@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion } from '@/lib/types'
-import { formatDate } from '@/lib/utils'
+import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { MessageSquare, Send } from 'lucide-react'
 
 interface OpinionSectionProps {
@@ -47,11 +47,11 @@ export function OpinionSection({ initiativeId, opinions: initial, userId }: Opin
         {opinions.map((op) => (
           <div key={op.id} className="flex gap-3">
             <div className="w-7 h-7 rounded-full bg-sand flex items-center justify-center text-xs font-medium flex-shrink-0">
-              {(op.author?.display_name ?? op.author?.email ?? '?')[0].toUpperCase()}
+              {getMemberDisplayName(op.author)[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
-                <span className="text-xs font-medium">{op.author?.display_name ?? op.author?.email}</span>
+                <span className="text-xs font-medium">{getMemberDisplayName(op.author)}</span>
                 <span className="text-xs text-foreground/40">{formatDate(op.created_at)}</span>
               </div>
               <p className="text-sm text-foreground/70 mt-0.5 break-words">{op.content}</p>

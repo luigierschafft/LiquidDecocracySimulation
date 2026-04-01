@@ -1,5 +1,7 @@
 export type IssueStatus = 'admission' | 'discussion' | 'verification' | 'voting' | 'closed'
 export type VoteValue = 'approve' | 'oppose' | 'abstain'
+export type TopicCreationSetting = 'all_members' | 'admin_only'
+export type ProposalCreationSetting = 'all_members' | 'admin_only'
 
 export interface Member {
   id: string
@@ -43,6 +45,7 @@ export interface Issue {
   status: IssueStatus
   area_id: string | null
   policy_id: string | null
+  accepted_initiative_id: string | null
   author_id: string
   admission_at: string | null
   discussion_at: string | null
@@ -80,11 +83,14 @@ export interface Vote {
 
 export interface Opinion {
   id: string
-  initiative_id: string
+  initiative_id: string | null
+  issue_id: string | null
+  parent_id: string | null
   author_id: string
   content: string
   created_at: string
   author?: Member
+  replies?: Opinion[]
 }
 
 export interface Supporter {
@@ -103,6 +109,43 @@ export interface Delegation {
   created_at: string
   from_member?: Member
   to_member?: Member
+}
+
+export interface Elaboration {
+  id: string
+  issue_id: string
+  created_by: string
+  created_at: string
+  sections?: ElaborationSection[]
+  editors?: ElaborationEditor[]
+}
+
+export interface ElaborationSection {
+  id: string
+  elaboration_id: string
+  title: string
+  content: string
+  sort_order: number
+  updated_by: string | null
+  updated_at: string | null
+  created_at: string
+  updater?: Member
+}
+
+export interface ElaborationEditor {
+  elaboration_id: string
+  member_id: string
+  created_at: string
+  member?: Member
+}
+
+export interface ElaborationComment {
+  id: string
+  section_id: string
+  author_id: string
+  content: string
+  created_at: string
+  author?: Member
 }
 
 export interface VoteCount {
