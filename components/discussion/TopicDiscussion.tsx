@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
-import { MessageSquare, Send, CornerDownRight } from 'lucide-react'
+import { MessageSquare, Send, Reply } from 'lucide-react'
 
 interface Props {
   issueId: string
@@ -60,6 +60,17 @@ export function TopicDiscussion({ issueId, opinions: initial, userId }: Props) {
     setReplyLoading(false)
   }
 
+  function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
+    const cls = size === 'sm'
+      ? 'w-6 h-6 text-xs'
+      : 'w-8 h-8 text-sm'
+    return (
+      <div className={`${cls} rounded-full bg-accent/10 text-accent flex items-center justify-center font-semibold flex-shrink-0`}>
+        {name[0]?.toUpperCase()}
+      </div>
+    )
+  }
+
   return (
     <div className="card space-y-5">
       <h2 className="font-semibold text-lg flex items-center gap-2">
@@ -69,7 +80,7 @@ export function TopicDiscussion({ issueId, opinions: initial, userId }: Props) {
       </h2>
 
       {/* Comment list */}
-      <div className="space-y-4">
+      <div className="space-y-5">
         {topLevel.length === 0 && (
           <p className="text-sm text-foreground/40">No comments yet. Start the discussion.</p>
         )}
@@ -78,38 +89,40 @@ export function TopicDiscussion({ issueId, opinions: initial, userId }: Props) {
           <div key={op.id} className="space-y-3">
             {/* Top-level comment */}
             <div className="flex gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/10 text-accent flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                {getMemberDisplayName(op.author)[0].toUpperCase()}
-              </div>
+              <Avatar name={getMemberDisplayName(op.author)} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-sm font-medium">{getMemberDisplayName(op.author)}</span>
+                  <span className="text-sm font-semibold">{getMemberDisplayName(op.author)}</span>
                   <span className="text-xs text-foreground/40">{formatDate(op.created_at)}</span>
                 </div>
-                <p className="text-sm text-foreground/80 mt-0.5 break-words">{op.content}</p>
+                <p className="text-sm text-foreground/80 mt-1 break-words leading-relaxed">{op.content}</p>
                 {userId && (
                   <button
-                    onClick={() => setReplyingTo(replyingTo === op.id ? null : op.id)}
-                    className="text-xs text-foreground/40 hover:text-accent mt-1 transition-colors"
+                    onClick={() => {
+                      setReplyingTo(replyingTo === op.id ? null : op.id)
+                      setReplyText('')
+                    }}
+                    className="flex items-center gap-1 text-xs text-foreground/40 hover:text-accent mt-1.5 transition-colors font-medium"
                   >
+                    <Reply className="w-3.5 h-3.5" />
                     Reply
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Replies */}
+            {/* Replies thread */}
             {replies(op.id).length > 0 && (
-              <div className="ml-11 space-y-3 border-l-2 border-sand pl-4">
+              <div className="ml-11 space-y-3 border-l-2 border-accent/20 pl-4">
                 {replies(op.id).map((reply) => (
-                  <div key={reply.id} className="flex gap-3">
-                    <CornerDownRight className="w-3.5 h-3.5 text-foreground/20 flex-shrink-0 mt-1" />
+                  <div key={reply.id} className="flex gap-2.5">
+                    <Avatar name={getMemberDisplayName(reply.author)} size="sm" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="text-sm font-medium">{getMemberDisplayName(reply.author)}</span>
+                        <span className="text-sm font-semibold">{getMemberDisplayName(reply.author)}</span>
                         <span className="text-xs text-foreground/40">{formatDate(reply.created_at)}</span>
                       </div>
-                      <p className="text-sm text-foreground/80 mt-0.5 break-words">{reply.content}</p>
+                      <p className="text-sm text-foreground/80 mt-0.5 break-words leading-relaxed">{reply.content}</p>
                     </div>
                   </div>
                 ))}
@@ -126,12 +139,16 @@ export function TopicDiscussion({ issueId, opinions: initial, userId }: Props) {
                   placeholder="Write a reply…"
                   className="input flex-1 text-sm py-1.5"
                   autoFocus
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addReply(op.id) } }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addReply(op.id) }
+                    if (e.key === 'Escape') setReplyingTo(null)
+                  }}
                 />
                 <button
                   onClick={() => addReply(op.id)}
                   disabled={replyLoading || !replyText.trim()}
                   className="btn-primary px-3 py-1.5"
+                  title="Send reply"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -155,6 +172,7 @@ export function TopicDiscussion({ issueId, opinions: initial, userId }: Props) {
             type="submit"
             disabled={loading || !text.trim()}
             className="btn-primary px-3 py-1.5"
+            title="Post comment"
           >
             <Send className="w-4 h-4" />
           </button>

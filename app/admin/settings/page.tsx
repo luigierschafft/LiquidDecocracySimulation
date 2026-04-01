@@ -1,6 +1,7 @@
 import { getAppSetting, setAppSetting } from '@/lib/data/settings'
 import type { TopicCreationSetting, ProposalCreationSetting } from '@/lib/types'
 import { revalidatePath } from 'next/cache'
+import { Info } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,8 @@ export default async function AdminSettingsPage() {
     getAppSetting('topic_creation').then((v) => (v ?? 'all_members') as TopicCreationSetting),
     getAppSetting('proposal_creation').then((v) => (v ?? 'all_members') as ProposalCreationSetting),
   ])
+
+  const governanceMode = process.env.GOVERNANCE_MODE ?? 'v1'
 
   async function updateSettings(formData: FormData) {
     'use server'
@@ -77,6 +80,31 @@ export default async function AdminSettingsPage() {
 
         <button type="submit" className="btn-primary">Save Settings</button>
       </form>
+
+      {/* Governance Mode Info */}
+      <div className="card space-y-3 border-accent/20 bg-accent/5">
+        <h2 className="font-semibold text-lg flex items-center gap-2">
+          <Info className="w-5 h-5 text-accent" />
+          Governance Mode
+        </h2>
+        <div className="flex items-center gap-3">
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+            governanceMode === 'v2'
+              ? 'bg-purple-100 text-purple-700'
+              : 'bg-blue-100 text-blue-700'
+          }`}>
+            {governanceMode === 'v2' ? 'V2 — Simplified' : 'V1 — Full Process'}
+          </span>
+          <p className="text-sm text-foreground/60">
+            {governanceMode === 'v2'
+              ? 'Verification phase is skipped. Phases: Admission → Discussion → Voting → Closed.'
+              : 'Full 4-phase process. Phases: Admission → Discussion → Verification → Voting → Closed.'}
+          </p>
+        </div>
+        <p className="text-xs text-foreground/40">
+          To change the governance mode, set the <code className="bg-sand px-1 rounded">GOVERNANCE_MODE</code> environment variable to <code className="bg-sand px-1 rounded">v1</code> or <code className="bg-sand px-1 rounded">v2</code> and redeploy.
+        </p>
+      </div>
     </div>
   )
 }

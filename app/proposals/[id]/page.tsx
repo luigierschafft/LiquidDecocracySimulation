@@ -6,10 +6,12 @@ import { VoteButton } from '@/components/proposals/VoteButton'
 import { AddProposalForm } from '@/components/proposals/AddProposalForm'
 import { DelegationStatus } from '@/components/proposals/DelegationStatus'
 import { AcceptButton } from '@/components/proposals/AcceptButton'
+import { ArgumentSection } from '@/components/proposals/ArgumentSection'
+import { RankedVoteForm } from '@/components/proposals/RankedVoteForm'
 import { countVotes } from '@/lib/voting/approval'
 import { formatDate, statusLabel, getStatusVariant, getMemberDisplayName } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
-import type { Issue, Initiative, Opinion, VoteValue } from '@/lib/types'
+import type { Issue, Initiative, Opinion, VoteValue, RankedVote } from '@/lib/types'
 import { Calendar, User, FileText, Trophy, Clock, CheckCircle2, FileEdit } from 'lucide-react'
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
@@ -64,7 +66,8 @@ export default async function ProposalDetailPage({ params }: Props) {
         *,
         author:member!initiative_author_id_fkey(*),
         votes:vote(*),
-        opinions:opinion(*, author:member!opinion_author_id_fkey(*))
+        opinions:opinion(*, author:member!opinion_author_id_fkey(*)),
+        arguments:argument(*, author:member!argument_author_id_fkey(*))
       )
     `)
     .eq('id', params.id)
@@ -75,6 +78,8 @@ export default async function ProposalDetailPage({ params }: Props) {
   const typedIssue = issue as unknown as Issue
   const areaId = typedIssue.area_id
   const unitId = typedIssue.area?.unit?.id ?? null
+  const policy = typedIssue.policy
+  const isSchulze = policy?.voting_method === 'schulze'
 
   const [topicOpinionsResult, { data: { user } }, proposalCreation] = await Promise.all([
     supabase
@@ -87,19 +92,28 @@ export default async function ProposalDetailPage({ params }: Props) {
     getAppSetting('proposal_creation'),
   ])
 
-  // User data: delegations + admin status
+  // User data: delegations + admin status + ranked votes
   let userDelegations: any[] = []
   let isAdmin = false
+  let userRankedVotes: RankedVote[] = []
   if (user) {
-    const [delegResult, memberResult] = await Promise.all([
+    const [delegResult, memberResult, rankedResult] = await Promise.all([
       supabase
         .from('delegation')
         .select('*, to_member:member!delegation_to_member_id_fkey(id, display_name, email)')
         .eq('from_member_id', user.id),
       supabase.from('member').select('is_admin').eq('id', user.id).single(),
+      isSchulze
+        ? supabase
+            .from('ranked_vote')
+            .select('*')
+            .eq('issue_id', params.id)
+            .eq('member_id', user.id)
+        : Promise.resolve({ data: [] }),
     ])
     userDelegations = delegResult.data ?? []
     isAdmin = memberResult.data?.is_admin ?? false
+    userRankedVotes = (rankedResult.data ?? []) as RankedVote[]
   }
 
   const effectiveDelegation = user
@@ -113,12 +127,10 @@ export default async function ProposalDetailPage({ params }: Props) {
   const initiatives = typedIssue.initiatives ?? []
   const quorum = (typedIssue as any).policy?.quorum as number | undefined
 
-  // Accepted initiative (formal or derived)
   const acceptedId = typedIssue.accepted_initiative_id
 
   const votingDeadlineDays = typedIssue.status === 'voting' ? daysUntil(typedIssue.voting_at) : null
 
-  // Find accepted initiative object for the banner
   const acceptedInitiative = acceptedId
     ? initiatives.find((i: Initiative) => i.id === acceptedId) ?? null
     : null
@@ -190,6 +202,21 @@ export default async function ProposalDetailPage({ params }: Props) {
         userId={user?.id ?? null}
       />
 
+      {/* Schulze ranked voting (shown above individual proposals) */}
+      {isSchulze && typedIssue.status === 'voting' && user && initiatives.length > 0 && (
+        <RankedVoteForm
+          issueId={typedIssue.id}
+          initiatives={initiatives}
+          userId={user.id}
+          existingVotes={userRankedVotes}
+        />
+      )}
+      {isSchulze && typedIssue.status === 'voting' && !user && (
+        <div className="card text-center py-6 text-foreground/40 text-sm">
+          Sign in to rank the proposals (Schulze voting).
+        </div>
+      )}
+
       {/* Proposals section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -252,34 +279,43 @@ export default async function ProposalDetailPage({ params }: Props) {
                 <ReactMarkdown>{initiative.content}</ReactMarkdown>
               </div>
 
-              {/* Voting */}
-              <div className="border-t border-sand pt-5 space-y-4">
-                <VoteBar
-                  votes={votes}
-                  quorum={quorum}
-                  showLowResistance={typedIssue.status === 'voting'}
-                />
+              {/* Arguments (Pro/Contra) */}
+              <ArgumentSection
+                initiativeId={initiative.id}
+                arguments={(initiative as any).arguments ?? []}
+                userId={user?.id ?? null}
+              />
 
-                {typedIssue.status === 'voting' && (
-                  <div className="space-y-3">
-                    {user ? (
-                      <>
-                        <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
-                        <VoteButton
-                          initiativeId={initiative.id}
-                          currentVote={userVote ?? null}
-                        />
-                        <DelegationStatus
-                          delegation={effectiveDelegation}
-                          hasDirectVote={!!userVote}
-                        />
-                      </>
-                    ) : (
-                      <p className="text-xs text-foreground/40">Sign in to vote</p>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Voting — only approval voting per-proposal; Schulze is shown at topic level */}
+              {!isSchulze && (
+                <div className="border-t border-sand pt-5 space-y-4">
+                  <VoteBar
+                    votes={votes}
+                    quorum={quorum}
+                    showLowResistance={typedIssue.status === 'voting'}
+                  />
+
+                  {typedIssue.status === 'voting' && (
+                    <div className="space-y-3">
+                      {user ? (
+                        <>
+                          <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
+                          <VoteButton
+                            initiativeId={initiative.id}
+                            currentVote={userVote ?? null}
+                          />
+                          <DelegationStatus
+                            delegation={effectiveDelegation}
+                            hasDirectVote={!!userVote}
+                          />
+                        </>
+                      ) : (
+                        <p className="text-xs text-foreground/40">Sign in to vote</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Proposal-specific comments */}
               <OpinionSection

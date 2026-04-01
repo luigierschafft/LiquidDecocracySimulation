@@ -36,6 +36,10 @@ export interface Policy {
   verification_days: number
   voting_days: number
   quorum: number
+  voting_method: 'approval' | 'schulze'
+  close_by_quorum: boolean
+  close_by_consensus: boolean
+  consensus_threshold: number
   created_at: string
 }
 
@@ -69,6 +73,7 @@ export interface Initiative {
   author?: Member
   votes?: Vote[]
   opinions?: Opinion[]
+  arguments?: Argument[]
   _vote_count?: VoteCount
 }
 
@@ -154,4 +159,22 @@ export interface VoteCount {
   abstain: number
   total: number
   approvalPercent: number
+}
+
+export interface Argument {
+  id: string
+  initiative_id: string
+  author_id: string
+  stance: 'pro' | 'contra'
+  content: string
+  created_at: string
+  author?: Member
+}
+
+export interface RankedVote {
+  issue_id: string
+  initiative_id: string
+  member_id: string
+  rank: number
+  created_at: string
 }
