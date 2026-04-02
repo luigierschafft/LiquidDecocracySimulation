@@ -35,7 +35,7 @@ export function Navbar() {
     <nav className="border-b border-sand bg-white/80 backdrop-blur-sm sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="font-semibold text-accent text-lg tracking-tight">
-          Liquid Democracy
+          Flow Democracy
           <span className="text-foreground/50 font-normal text-sm ml-2">Auroville</span>
         </Link>
 

@@ -4,6 +4,16 @@ import { ArrowRight, Vote, Users, GitBranch, Shield } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
+const FLOW_STEPS = [
+  { step: '1', label: 'Start a Topic',       desc: 'Raise a question or challenge the community should address together.' },
+  { step: '2', label: 'Discuss',             desc: 'Members share perspectives, ask questions, and refine the problem.' },
+  { step: '3', label: 'Propose Initiatives', desc: 'Anyone can submit a concrete initiative as a possible solution.' },
+  { step: '4', label: 'Improve Together',    desc: 'Initiatives are debated, compared and strengthened collectively.' },
+  { step: '5', label: 'Vote',                desc: 'Members vote for the initiative they support most.' },
+  { step: '6', label: 'Approve',             desc: 'The winning initiative is accepted by the community.' },
+  { step: '7', label: 'Elaborate',           desc: 'The accepted initiative is worked out into a concrete plan together.' },
+]
+
 export default async function LandingPage() {
   const supabase = createClient()
   const { count: issueCount } = await supabase.from('issue').select('*', { count: 'exact', head: true })
@@ -19,14 +29,32 @@ export default async function LandingPage() {
             Participatory Governance
           </div>
           <h1 className="text-5xl font-bold text-foreground leading-tight">
-            Liquid Democracy
+            Flow Democracy
             <span className="block text-accent">for Auroville</span>
           </h1>
           <p className="text-xl text-foreground/60 leading-relaxed max-w-2xl mx-auto">
             A transparent, community-driven decision-making platform where every voice counts.
             Vote directly or delegate your trust to someone you believe in.
           </p>
-          <div className="flex items-center justify-center gap-4 pt-4">
+
+          {/* Flow steps */}
+          <div className="flex flex-wrap justify-center gap-2 pt-2">
+            {FLOW_STEPS.map((s, i) => (
+              <div key={s.step} className="flex items-center gap-2">
+                <div className="flex flex-col items-center">
+                  <div className="w-7 h-7 rounded-full bg-accent/15 text-accent text-xs font-bold flex items-center justify-center">
+                    {s.step}
+                  </div>
+                  <span className="text-xs font-medium text-foreground/70 mt-1 whitespace-nowrap">{s.label}</span>
+                </div>
+                {i < FLOW_STEPS.length - 1 && (
+                  <ArrowRight className="w-3.5 h-3.5 text-foreground/25 mb-4 flex-shrink-0" />
+                )}
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center justify-center gap-4 pt-2">
             <Link href="/proposals" className="btn-primary flex items-center gap-2 text-base px-6 py-3">
               Browse Topics
               <ArrowRight className="w-4 h-4" />
