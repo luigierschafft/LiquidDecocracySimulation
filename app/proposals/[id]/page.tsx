@@ -62,7 +62,7 @@ export default async function ProposalDetailPage({ params }: Props) {
       area(*, unit(*)),
       policy(*),
       author:member!issue_author_id_fkey(*),
-      initiatives:initiative(
+      initiatives:initiative!initiative_issue_id_fkey(
         *,
         author:member!initiative_author_id_fkey(*),
         votes:vote(*),

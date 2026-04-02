@@ -22,7 +22,7 @@ export default async function ElaborationPage({ params }: Props) {
   const [{ data: issue }, { data: { user } }] = await Promise.all([
     supabase
       .from('issue')
-      .select('id, title, status, accepted_initiative_id, initiatives:initiative(id, title)')
+      .select('id, title, status, accepted_initiative_id, initiatives:initiative!initiative_issue_id_fkey(id, title)')
       .eq('id', params.id)
       .single(),
     supabase.auth.getUser(),

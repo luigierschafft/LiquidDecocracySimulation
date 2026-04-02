@@ -20,7 +20,7 @@ export default async function AreaPage({ params }: Props) {
       *,
       area(*, unit(*)),
       author:member!issue_author_id_fkey(*),
-      initiatives:initiative(*, votes:vote(*))
+      initiatives:initiative!initiative_issue_id_fkey(*, votes:vote(*))
     `).eq('area_id', params.areaId).order('created_at', { ascending: false }),
   ])
 
