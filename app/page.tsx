@@ -38,18 +38,17 @@ export default async function LandingPage() {
           </p>
 
           {/* Flow steps */}
-          <div className="flex flex-wrap justify-center gap-2 pt-2">
-            {FLOW_STEPS.map((s, i) => (
-              <div key={s.step} className="flex items-center gap-2">
-                <div className="flex flex-col items-center">
-                  <div className="w-7 h-7 rounded-full bg-accent/15 text-accent text-xs font-bold flex items-center justify-center">
-                    {s.step}
-                  </div>
-                  <span className="text-xs font-medium text-foreground/70 mt-1 whitespace-nowrap">{s.label}</span>
+          <div className="relative flex justify-between items-start pt-4 px-2">
+            {/* Connecting line behind the circles */}
+            <div className="absolute top-[30px] left-6 right-6 h-px bg-accent/20" />
+            {FLOW_STEPS.map((s) => (
+              <div key={s.step} className="relative z-10 flex flex-col items-center gap-2" style={{ width: `${100 / FLOW_STEPS.length}%` }}>
+                <div className="w-9 h-9 rounded-full bg-sand border-2 border-accent/30 text-accent text-sm font-bold flex items-center justify-center shadow-sm">
+                  {s.step}
                 </div>
-                {i < FLOW_STEPS.length - 1 && (
-                  <ArrowRight className="w-3.5 h-3.5 text-foreground/25 mb-4 flex-shrink-0" />
-                )}
+                <span className="text-[11px] font-medium text-foreground/65 text-center leading-tight px-0.5">
+                  {s.label}
+                </span>
               </div>
             ))}
           </div>
