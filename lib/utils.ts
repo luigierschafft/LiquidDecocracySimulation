@@ -16,8 +16,8 @@ export function formatDate(date: string | null): string {
 
 export function statusLabel(status: string): string {
   const labels: Record<string, string> = {
-    admission: 'Admission',
-    discussion: 'Discussion',
+    admission: 'Discussion',
+    discussion: 'Proposal',
     verification: 'Verification',
     voting: 'Voting',
     closed: 'Closed',
@@ -27,8 +27,8 @@ export function statusLabel(status: string): string {
 
 export function statusColor(status: string): string {
   const colors: Record<string, string> = {
-    admission: 'bg-sand text-amber-800',
-    discussion: 'bg-blue-100 text-blue-800',
+    admission: 'bg-blue-100 text-blue-800',
+    discussion: 'bg-amber-100 text-amber-800',
     verification: 'bg-purple-100 text-purple-800',
     voting: 'bg-green-100 text-green-800',
     closed: 'bg-stone-100 text-stone-600',
@@ -42,8 +42,8 @@ export function truncate(text: string, length = 120): string {
 
 export function getStatusVariant(status: string): 'default' | 'sand' | 'green' | 'blue' | 'purple' {
   const variants: Record<string, 'default' | 'sand' | 'green' | 'blue' | 'purple'> = {
-    admission: 'sand',
-    discussion: 'blue',
+    admission: 'blue',
+    discussion: 'sand',
     verification: 'purple',
     voting: 'green',
     closed: 'sand',

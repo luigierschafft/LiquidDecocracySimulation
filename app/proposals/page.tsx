@@ -8,9 +8,8 @@ export const dynamic = 'force-dynamic'
 
 const STATUS_FILTERS: { value: IssueStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
-  { value: 'admission', label: 'Admission' },
-  { value: 'discussion', label: 'Discussion' },
-  { value: 'verification', label: 'Verification' },
+  { value: 'admission', label: 'Discussion' },
+  { value: 'discussion', label: 'Proposal' },
   { value: 'voting', label: 'Voting' },
   { value: 'closed', label: 'Closed' },
 ]

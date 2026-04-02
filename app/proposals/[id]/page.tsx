@@ -16,6 +16,7 @@ import { Calendar, User, FileText, Trophy, Clock, CheckCircle2, FileEdit } from 
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
+import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
 
 export const dynamic = 'force-dynamic'
@@ -168,6 +169,14 @@ export default async function ProposalDetailPage({ params }: Props) {
             </span>
           )}
         </div>
+      </div>
+
+      {/* Phase progress */}
+      <div className="card py-4 px-5">
+        <PhaseProgress
+          currentStatus={typedIssue.status}
+          hasElaboration={!!acceptedId}
+        />
       </div>
 
       {/* Accepted proposal banner */}
