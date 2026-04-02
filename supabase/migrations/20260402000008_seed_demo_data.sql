@@ -126,7 +126,7 @@ INSERT INTO issue (id, title, status, area_id, policy_id, author_id,
    NOW() - INTERVAL '25 days', NOW() - INTERVAL '18 days', NOW() - INTERVAL '3 days',
    NULL, NULL, NULL, NOW() - INTERVAL '26 days'),
 
-  -- CLOSED (accepted)
+  -- CLOSED (accepted — accepted_initiative_id set via UPDATE below)
   ('e0e0e0e0-0000-0000-0000-000000000005',
    'Organic Farm Expansion Programme',
    'closed',
@@ -135,7 +135,7 @@ INSERT INTO issue (id, title, status, area_id, policy_id, author_id,
    'a0a0a0a0-0000-0000-0000-000000000005',
    NOW() - INTERVAL '60 days', NOW() - INTERVAL '53 days', NOW() - INTERVAL '39 days', NOW() - INTERVAL '32 days',
    NOW() - INTERVAL '25 days',
-   'f0f0f0f0-0000-0000-0000-000000000010',
+   NULL,
    NOW() - INTERVAL '61 days'),
 
   -- ADMISSION
@@ -168,7 +168,7 @@ INSERT INTO issue (id, title, status, area_id, policy_id, author_id,
    NOW() - INTERVAL '10 days', NOW() - INTERVAL '7 days', NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day',
    NULL, NULL, NOW() - INTERVAL '11 days'),
 
-  -- CLOSED (accepted)
+  -- CLOSED (accepted — accepted_initiative_id set via UPDATE below)
   ('e0e0e0e0-0000-0000-0000-000000000009',
    'Zero-Waste Community Initiative',
    'closed',
@@ -177,7 +177,7 @@ INSERT INTO issue (id, title, status, area_id, policy_id, author_id,
    'a0a0a0a0-0000-0000-0000-000000000001',
    NOW() - INTERVAL '75 days', NOW() - INTERVAL '68 days', NOW() - INTERVAL '54 days', NOW() - INTERVAL '47 days',
    NOW() - INTERVAL '40 days',
-   'f0f0f0f0-0000-0000-0000-000000000018',
+   NULL,
    NOW() - INTERVAL '76 days'),
 
   -- DISCUSSION
@@ -578,3 +578,13 @@ INSERT INTO delegation (id, from_member_id, to_member_id, unit_id, area_id, issu
   -- Meera delegates Energy area to Priya
   (gen_random_uuid(),'a0a0a0a0-0000-0000-0000-000000000008','a0a0a0a0-0000-0000-0000-000000000001',NULL,'c0c0c0c0-0000-0000-0000-000000000009',NULL, NOW()-INTERVAL '1 month')
 ;
+
+-- ============================================================
+-- 13. SET accepted_initiative_id on closed issues
+--     (must run after initiatives are inserted)
+-- ============================================================
+UPDATE issue SET accepted_initiative_id = 'f0f0f0f0-0000-0000-0000-000000000010'
+  WHERE id = 'e0e0e0e0-0000-0000-0000-000000000005';
+
+UPDATE issue SET accepted_initiative_id = 'f0f0f0f0-0000-0000-0000-000000000018'
+  WHERE id = 'e0e0e0e0-0000-0000-0000-000000000009';
