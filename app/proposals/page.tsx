@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 const STATUS_FILTERS: { value: IssueStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'admission', label: 'Discussion' },
-  { value: 'discussion', label: 'Proposal' },
+  { value: 'discussion', label: 'Proposition' },
   { value: 'voting', label: 'Voting' },
   { value: 'closed', label: 'Closed' },
 ]
@@ -50,12 +50,12 @@ export default async function ProposalsPage({ searchParams }: Props) {
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Proposals</h1>
+          <h1 className="text-3xl font-bold">Topics</h1>
           <p className="text-foreground/60 mt-1">Community decisions in progress</p>
         </div>
         <Link href="/proposals/new" className="btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" />
-          New Proposal
+          New Topic
         </Link>
       </div>
 
@@ -85,9 +85,9 @@ export default async function ProposalsPage({ searchParams }: Props) {
         </div>
       ) : (
         <div className="text-center py-20 text-foreground/40">
-          <p className="text-lg">No proposals yet.</p>
+          <p className="text-lg">No topics yet.</p>
           <Link href="/proposals/new" className="text-accent hover:underline text-sm mt-2 inline-block">
-            Be the first to submit one
+            Be the first to create one
           </Link>
         </div>
       )}

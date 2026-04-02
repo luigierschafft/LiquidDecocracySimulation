@@ -8,7 +8,7 @@ import type { User } from '@supabase/supabase-js'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
-  { href: '/proposals', label: 'Proposals' },
+  { href: '/proposals', label: 'Topics' },
   { href: '/units', label: 'Areas' },
   { href: '/delegation', label: 'Delegation' },
 ]

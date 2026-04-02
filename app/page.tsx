@@ -28,7 +28,7 @@ export default async function LandingPage() {
           </p>
           <div className="flex items-center justify-center gap-4 pt-4">
             <Link href="/proposals" className="btn-primary flex items-center gap-2 text-base px-6 py-3">
-              Browse Proposals
+              Browse Topics
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link href="/auth/login" className="btn-secondary text-base px-6 py-3">
@@ -42,7 +42,7 @@ export default async function LandingPage() {
       <section className="border-y border-sand bg-white/50 py-12 px-4">
         <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { value: issueCount ?? 0, label: 'Active Proposals' },
+            { value: issueCount ?? 0, label: 'Active Topics' },
             { value: memberCount ?? 0, label: 'Community Members' },
             { value: '4', label: 'Governance Areas' },
             { value: '100%', label: 'Transparent' },
@@ -73,8 +73,8 @@ export default async function LandingPage() {
               },
               {
                 icon: <Users className="w-6 h-6 text-accent" />,
-                title: 'Community Proposals',
-                description: 'Any approved member can submit a proposal. Initiatives pass through structured phases: admission → discussion → voting.',
+                title: 'Community Topics',
+                description: 'Any approved member can open a topic. It passes through structured phases: Discussion → Proposition → Voting → Elaboration.',
               },
               {
                 icon: <Shield className="w-6 h-6 text-accent" />,

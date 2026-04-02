@@ -49,7 +49,7 @@ export function AddProposalForm({ issueId, userId }: Props) {
         className="btn-primary flex items-center gap-2"
       >
         <Plus className="w-4 h-4" />
-        Submit Proposal
+        Submit Proposition
       </button>
     )
   }
@@ -57,20 +57,20 @@ export function AddProposalForm({ issueId, userId }: Props) {
   return (
     <form onSubmit={handleSubmit} className="card space-y-4 border-accent/30">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Submit a Proposal</h3>
+        <h3 className="font-semibold">Submit a Proposition</h3>
         <button type="button" onClick={() => setOpen(false)} className="text-foreground/40 hover:text-foreground transition-colors">
           <X className="w-4 h-4" />
         </button>
       </div>
 
       <div>
-        <label className="block text-sm font-medium mb-1.5">Proposal Title *</label>
+        <label className="block text-sm font-medium mb-1.5">Proposition Title *</label>
         <input
           type="text"
           required
           value={form.title}
           onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-          placeholder="Name your proposal"
+          placeholder="Name your proposition"
           className="input"
           autoFocus
         />
@@ -83,7 +83,7 @@ export function AddProposalForm({ issueId, userId }: Props) {
           value={form.content}
           onChange={(e) => setForm((f) => ({ ...f, content: e.target.value }))}
           rows={6}
-          placeholder="Describe your proposal in detail. Markdown is supported."
+          placeholder="Describe your proposition in detail. Markdown is supported."
           className="input resize-none font-mono text-sm"
         />
       </div>

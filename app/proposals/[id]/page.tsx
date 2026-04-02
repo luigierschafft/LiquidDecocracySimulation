@@ -186,7 +186,7 @@ export default async function ProposalDetailPage({ params }: Props) {
             <div className="space-y-0.5">
               <div className="flex items-center gap-2 text-auro-green font-semibold text-sm">
                 <CheckCircle2 className="w-4 h-4" />
-                Accepted Proposal
+                Accepted Proposition
               </div>
               <p className="font-medium">{acceptedInitiative.title}</p>
               <p className="text-xs text-foreground/50">
@@ -222,7 +222,7 @@ export default async function ProposalDetailPage({ params }: Props) {
       )}
       {isSchulze && typedIssue.status === 'voting' && !user && (
         <div className="card text-center py-6 text-foreground/40 text-sm">
-          Sign in to rank the proposals (Schulze voting).
+          Sign in to rank the propositions (Schulze voting).
         </div>
       )}
 
@@ -231,7 +231,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <FileText className="w-5 h-5 text-accent" />
-            Proposals
+            Propositions
             <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
           </h2>
           {canSubmitProposal && typedIssue.status !== 'closed' && (
@@ -242,9 +242,9 @@ export default async function ProposalDetailPage({ params }: Props) {
         {initiatives.length === 0 && (
           <div className="card text-center py-10 text-foreground/40">
             <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No proposals yet.</p>
+            <p className="text-sm">No propositions yet.</p>
             {canSubmitProposal && (
-              <p className="text-xs mt-1">Be the first to submit a proposal above.</p>
+              <p className="text-xs mt-1">Be the first to submit a proposition above.</p>
             )}
           </div>
         )}

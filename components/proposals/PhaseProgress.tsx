@@ -2,7 +2,7 @@ import { CheckCircle2, Circle } from 'lucide-react'
 
 const PHASES = [
   { key: 'admission',    label: 'Discussion' },
-  { key: 'discussion',   label: 'Proposal' },
+  { key: 'discussion',   label: 'Proposition' },
   { key: 'voting',       label: 'Voting' },
   { key: 'closed',       label: 'Closed' },
   { key: 'elaboration',  label: 'Elaboration' },
