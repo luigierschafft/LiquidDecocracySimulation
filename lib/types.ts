@@ -70,6 +70,8 @@ export interface Initiative {
   content: string
   author_id: string
   created_at: string
+  is_draft?: boolean
+  forked_from_id?: string | null
   author?: Member
   votes?: Vote[]
   opinions?: Opinion[]

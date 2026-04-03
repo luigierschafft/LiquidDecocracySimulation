@@ -9,9 +9,10 @@ import { Plus, X } from 'lucide-react'
 interface Props {
   issueId: string
   userId: string
+  draftEnabled?: boolean
 }
 
-export function AddProposalForm({ issueId, userId }: Props) {
+export function AddProposalForm({ issueId, userId, draftEnabled = false }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [open, setOpen] = useState(false)
@@ -19,8 +20,8 @@ export function AddProposalForm({ issueId, userId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [form, setForm] = useState({ title: '', content: '' })
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(isDraft: boolean) {
+    if (!form.title.trim() || !form.content.trim()) return
     setLoading(true)
     setError(null)
 
@@ -29,6 +30,7 @@ export function AddProposalForm({ issueId, userId }: Props) {
       title: form.title,
       content: form.content,
       author_id: userId,
+      is_draft: isDraft,
     })
 
     if (err) {
@@ -55,7 +57,10 @@ export function AddProposalForm({ issueId, userId }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="card space-y-4 border-accent/30">
+    <form
+      onSubmit={(e) => { e.preventDefault(); handleSubmit(false) }}
+      className="card space-y-4 border-accent/30"
+    >
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Submit a Proposition</h3>
         <button type="button" onClick={() => setOpen(false)} className="text-foreground/40 hover:text-foreground transition-colors">
@@ -94,6 +99,16 @@ export function AddProposalForm({ issueId, userId }: Props) {
         <button type="button" onClick={() => setOpen(false)} className="btn-secondary">
           Cancel
         </button>
+        {draftEnabled && (
+          <button
+            type="button"
+            disabled={loading || !form.title.trim() || !form.content.trim()}
+            onClick={() => handleSubmit(true)}
+            className="btn-secondary"
+          >
+            Save as Draft
+          </button>
+        )}
         <Button type="submit" loading={loading}>
           Submit
         </Button>

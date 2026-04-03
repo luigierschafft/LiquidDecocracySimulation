@@ -248,7 +248,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
             </h2>
             {modules.proposal_creation && canSubmitProposal && typedIssue.status !== 'closed' && (
-              <AddProposalForm issueId={typedIssue.id} userId={user!.id} />
+              <AddProposalForm issueId={typedIssue.id} userId={user!.id} draftEnabled={modules.proposal_status} />
             )}
           </div>
 
@@ -262,7 +262,13 @@ export default async function ProposalDetailPage({ params }: Props) {
             </div>
           )}
 
-          {initiatives.map((initiative: Initiative) => {
+          {initiatives
+            .filter((initiative: Initiative) => {
+              if (!modules.proposal_status) return true
+              if (!initiative.is_draft) return true
+              return initiative.author_id === user?.id
+            })
+            .map((initiative: Initiative) => {
             const votes = countVotes(initiative.votes ?? [])
             const userVote = initiative.votes?.find((v) => v.member_id === user?.id)?.value as VoteValue | undefined
             const isAccepted = acceptedId === initiative.id
@@ -275,6 +281,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 isAdmin={isAdmin}
                 userId={user?.id ?? null}
                 editingEnabled={modules.proposal_editing}
+                draftEnabled={modules.proposal_status}
               >
                 {/* Admin accept button */}
                 {isAdmin && typedIssue.status === 'voting' && (
