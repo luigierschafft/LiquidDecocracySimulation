@@ -6,15 +6,17 @@ import type { Opinion } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { MessageSquare, Send, Reply } from 'lucide-react'
 import { PostVoteButton } from '@/components/discussion/PostVoteButton'
+import { ReportButton } from '@/components/moderation/ReportButton'
 
 interface OpinionSectionProps {
   initiativeId: string
   opinions: Opinion[]
   userId: string | null
   postVotingEnabled?: boolean
+  reportingEnabled?: boolean
 }
 
-export function OpinionSection({ initiativeId, opinions: initial, userId, postVotingEnabled = false }: OpinionSectionProps) {
+export function OpinionSection({ initiativeId, opinions: initial, userId, postVotingEnabled = false, reportingEnabled = false }: OpinionSectionProps) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
@@ -103,6 +105,9 @@ export function OpinionSection({ initiativeId, opinions: initial, userId, postVo
                       <Reply className="w-3 h-3" />
                       Reply
                     </button>
+                  )}
+                  {reportingEnabled && userId && userId !== op.author_id && (
+                    <ReportButton targetType="opinion" targetId={op.id} userId={userId} />
                   )}
                 </div>
               </div>

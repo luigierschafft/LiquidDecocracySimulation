@@ -8,6 +8,7 @@ import { MessageSquare, Send, Reply, Quote } from 'lucide-react'
 import { PostVoteButton } from './PostVoteButton'
 import { IntentBadge, IntentPicker } from './IntentBadge'
 import { QuoteBlock } from './QuoteBlock'
+import { ReportButton } from '@/components/moderation/ReportButton'
 
 interface Props {
   issueId: string
@@ -17,6 +18,7 @@ interface Props {
   intentEnabled?: boolean
   questionsTaggingEnabled?: boolean
   referencingEnabled?: boolean
+  reportingEnabled?: boolean
 }
 
 export function TopicDiscussion({
@@ -27,6 +29,7 @@ export function TopicDiscussion({
   intentEnabled = false,
   questionsTaggingEnabled = false,
   referencingEnabled = false,
+  reportingEnabled = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
@@ -162,6 +165,9 @@ export function TopicDiscussion({
                       <Quote className="w-3.5 h-3.5" />
                       Quote
                     </button>
+                  )}
+                  {reportingEnabled && userId && userId !== op.author_id && (
+                    <ReportButton targetType="opinion" targetId={op.id} userId={userId} />
                   )}
                 </div>
               </div>

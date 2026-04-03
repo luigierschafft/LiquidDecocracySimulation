@@ -261,6 +261,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           intentEnabled={modules.intention_display}
           questionsTaggingEnabled={modules.questions_tagging}
           referencingEnabled={modules.referencing}
+          reportingEnabled={modules.reporting_system}
         />
       )}
 
@@ -412,6 +413,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                     opinions={initiative.opinions ?? []}
                     userId={user?.id ?? null}
                     postVotingEnabled={modules.post_voting}
+                    reportingEnabled={modules.reporting_system}
                   />
                 )}
               </PropositionCard>
