@@ -3,12 +3,17 @@ import { DelegationNetwork } from '@/components/delegation/DelegationNetwork'
 import Link from 'next/link'
 import { ArrowLeft, Network } from 'lucide-react'
 import type { Delegation } from '@/lib/types'
+import { getEffectiveModules } from '@/lib/modules'
+import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
 export default async function DelegationNetworkPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  const modules = await getEffectiveModules(user?.id)
+  if (!modules.delegation_network) notFound()
 
   // Fetch only global delegations (no unit/area/issue scope)
   const { data: delegations } = await supabase
