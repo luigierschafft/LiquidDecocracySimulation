@@ -210,13 +210,15 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Topic-level discussion — Module 8 */}
+      {/* Topic-level discussion — Module 8/11/13/15 */}
       {modules.comments_replies && (
         <TopicDiscussion
           issueId={typedIssue.id}
           opinions={(topicOpinionsResult.data ?? []) as unknown as Opinion[]}
           userId={user?.id ?? null}
           postVotingEnabled={modules.post_voting}
+          intentEnabled={modules.intention_display}
+          questionsTaggingEnabled={modules.questions_tagging}
         />
       )}
 

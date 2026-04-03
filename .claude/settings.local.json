@@ -67,7 +67,8 @@
       "Bash(start http://localhost:3000)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -40)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -30)",
-      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -20)"
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1)"
     ]
   }
 }

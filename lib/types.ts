@@ -86,6 +86,8 @@ export interface Vote {
   member?: Member
 }
 
+export type OpinionIntent = 'support' | 'concern' | 'question' | 'info'
+
 export interface Opinion {
   id: string
   initiative_id: string | null
@@ -93,6 +95,7 @@ export interface Opinion {
   parent_id: string | null
   author_id: string
   content: string
+  intent?: OpinionIntent | null
   created_at: string
   author?: Member
   replies?: Opinion[]
