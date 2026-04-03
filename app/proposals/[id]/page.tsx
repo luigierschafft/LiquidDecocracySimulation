@@ -305,40 +305,47 @@ export default async function ProposalDetailPage({ params }: Props) {
                   />
                 )}
 
-                {/* Voting — Modules 25/26/28/30 */}
-                {!isSchulze && (modules.results_display || modules.basic_voting) && (
-                  <div className="border-t border-sand pt-5 space-y-4">
-                    {modules.results_display && (
-                      <VoteBar
-                        votes={votes}
-                        quorum={quorum}
-                        showLowResistance={typedIssue.status === 'voting'}
-                      />
-                    )}
+                {/* Voting — Modules 25/26/28/30/31 */}
+                {!isSchulze && (modules.results_display || modules.basic_voting) && (() => {
+                  const showVotingUi = typedIssue.status === 'voting' ||
+                    (modules.continuous_voting && typedIssue.status === 'discussion')
+                  const isIndicative = showVotingUi && typedIssue.status !== 'voting'
+                  return (
+                    <div className="border-t border-sand pt-5 space-y-4">
+                      {modules.results_display && (
+                        <VoteBar
+                          votes={votes}
+                          quorum={quorum}
+                          showLowResistance={typedIssue.status === 'voting'}
+                        />
+                      )}
 
-                    {modules.basic_voting && typedIssue.status === 'voting' && (
-                      <div className="space-y-3">
-                        {user ? (
-                          <>
-                            <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
-                            <VoteButton
-                              initiativeId={initiative.id}
-                              currentVote={userVote ?? null}
-                            />
-                            {modules.delegation && (
-                              <DelegationStatus
-                                delegation={effectiveDelegation}
-                                hasDirectVote={!!userVote}
+                      {modules.basic_voting && showVotingUi && (
+                        <div className="space-y-3">
+                          {user ? (
+                            <>
+                              <p className="text-sm font-medium text-foreground/70">
+                                {isIndicative ? 'Indicative vote (discussion phase)' : 'Cast your vote:'}
+                              </p>
+                              <VoteButton
+                                initiativeId={initiative.id}
+                                currentVote={userVote ?? null}
                               />
-                            )}
-                          </>
-                        ) : (
-                          <p className="text-xs text-foreground/40">Sign in to vote</p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
+                              {modules.delegation && !isIndicative && (
+                                <DelegationStatus
+                                  delegation={effectiveDelegation}
+                                  hasDirectVote={!!userVote}
+                                />
+                              )}
+                            </>
+                          ) : (
+                            <p className="text-xs text-foreground/40">Sign in to vote</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* Proposition comments — Module 19 */}
                 {modules.proposal_feedback && (
