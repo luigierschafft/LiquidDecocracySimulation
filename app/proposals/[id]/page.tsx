@@ -18,6 +18,7 @@ import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { ScaleVoteBar } from '@/components/proposals/ScaleVoteBar'
 import { AlignmentMeter } from '@/components/proposals/AlignmentMeter'
+import { TagList } from '@/components/proposals/TagList'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
 import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
@@ -98,6 +99,16 @@ export default async function ProposalDetailPage({ params }: Props) {
   ])
 
   const modules = await getEffectiveModules(user?.id)
+
+  // Tags — Module 62
+  let issueTags: { id: string; name: string; color: string }[] = []
+  if (modules.tagging_system) {
+    const { data: tagRows } = await supabase
+      .from('issue_tag')
+      .select('tag:tag(*)')
+      .eq('issue_id', params.id)
+    issueTags = (tagRows ?? []).map((r: any) => r.tag).filter(Boolean)
+  }
 
   // User data: delegations + admin status + ranked votes
   let userDelegations: any[] = []
@@ -195,6 +206,15 @@ export default async function ProposalDetailPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {/* Tags — Module 62 */}
+      {modules.tagging_system && (
+        <TagList
+          issueId={typedIssue.id}
+          initialTags={issueTags}
+          canEdit={isAdmin || typedIssue.author_id === user?.id}
+        />
+      )}
 
       {/* Phase progress — Module 68 */}
       {modules.phase_system && (

@@ -49,6 +49,22 @@ export default async function ProposalsPage({ searchParams }: Props) {
 
   const { data: issues } = await query
 
+  // Tags per issue — Module 62
+  type TagMap = Record<string, { id: string; name: string; color: string }[]>
+  let tagMap: TagMap = {}
+  if (modules.tagging_system && issues && issues.length > 0) {
+    const issueIds = issues.map((i: any) => i.id)
+    const { data: tagRows } = await supabase
+      .from('issue_tag')
+      .select('issue_id, tag:tag(id, name, color)')
+      .in('issue_id', issueIds)
+    for (const row of tagRows ?? []) {
+      const r = row as any
+      if (!tagMap[r.issue_id]) tagMap[r.issue_id] = []
+      if (r.tag) tagMap[r.issue_id].push(r.tag)
+    }
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
@@ -85,7 +101,7 @@ export default async function ProposalsPage({ searchParams }: Props) {
       {issues && issues.length > 0 ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {issues.map((issue) => (
-            <ProposalCard key={issue.id} issue={issue as unknown as Issue} />
+            <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[(issue as any).id]} />
           ))}
         </div>
       ) : (

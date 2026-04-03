@@ -6,11 +6,18 @@ import { countVotes } from '@/lib/voting/approval'
 import { formatDate, statusLabel, truncate, getStatusVariant } from '@/lib/utils'
 import { MessageSquare, ThumbsUp } from 'lucide-react'
 
-interface ProposalCardProps {
-  issue: Issue
+interface TagItem {
+  id: string
+  name: string
+  color: string
 }
 
-export function ProposalCard({ issue }: ProposalCardProps) {
+interface ProposalCardProps {
+  issue: Issue
+  tags?: TagItem[]
+}
+
+export function ProposalCard({ issue, tags }: ProposalCardProps) {
   const initiative = issue.initiatives?.[0]
   const votes = initiative?.votes ? countVotes(initiative.votes) : null
 
@@ -33,6 +40,20 @@ export function ProposalCard({ issue }: ProposalCardProps) {
           <p className="text-sm text-foreground/60 line-clamp-2 flex-1">
             {truncate(initiative.content.replace(/[#*`]/g, ''), 120)}
           </p>
+        )}
+
+        {tags && tags.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {tags.map((tag) => (
+              <span
+                key={tag.id}
+                className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                style={{ backgroundColor: tag.color }}
+              >
+                {tag.name}
+              </span>
+            ))}
+          </div>
         )}
 
         {votes && issue.status === 'voting' && (
