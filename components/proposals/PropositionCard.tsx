@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 import { EditPropositionForm } from './EditPropositionForm'
+import { ForkButton } from './ForkButton'
 import type { Initiative } from '@/lib/types'
 import { getMemberDisplayName, formatDate } from '@/lib/utils'
-import { CheckCircle2, Trophy, FileEdit } from 'lucide-react'
+import { CheckCircle2, Trophy, FileEdit, GitFork } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
@@ -16,10 +17,22 @@ interface Props {
   userId: string | null
   editingEnabled?: boolean
   draftEnabled?: boolean
+  forkingEnabled?: boolean
+  versioningEnabled?: boolean
   children: React.ReactNode
 }
 
-export function PropositionCard({ initiative, isAccepted, isAdmin, userId, editingEnabled = true, draftEnabled = false, children }: Props) {
+export function PropositionCard({
+  initiative,
+  isAccepted,
+  isAdmin,
+  userId,
+  editingEnabled = true,
+  draftEnabled = false,
+  forkingEnabled = false,
+  versioningEnabled = false,
+  children,
+}: Props) {
   const [title, setTitle] = useState(initiative.title)
   const [content, setContent] = useState(initiative.content)
   const [publishing, setPublishing] = useState(false)
@@ -29,6 +42,7 @@ export function PropositionCard({ initiative, isAccepted, isAdmin, userId, editi
   const canEdit = editingEnabled && userId === initiative.author_id
   const isDraft = initiative.is_draft ?? false
   const canPublish = draftEnabled && isDraft && userId === initiative.author_id
+  const canFork = forkingEnabled && !!userId && userId !== initiative.author_id && !isDraft
 
   async function handlePublish() {
     setPublishing(true)
@@ -49,12 +63,27 @@ export function PropositionCard({ initiative, isAccepted, isAdmin, userId, editi
             <p className="text-xs text-foreground/40">
               by {getMemberDisplayName(initiative.author)} · {formatDate(initiative.created_at)}
             </p>
+            {forkingEnabled && initiative.forked_from_id && (
+              <span className="flex items-center gap-1 text-xs text-foreground/40">
+                <GitFork className="w-3 h-3" />
+                Forked
+              </span>
+            )}
             {canEdit && (
               <EditPropositionForm
                 initiativeId={initiative.id}
                 initialTitle={title}
                 initialContent={content}
                 onSaved={(t, c) => { setTitle(t); setContent(c) }}
+              />
+            )}
+            {canFork && (
+              <ForkButton
+                initiativeId={initiative.id}
+                issueId={initiative.issue_id}
+                title={title}
+                content={content}
+                userId={userId!}
               />
             )}
           </div>
