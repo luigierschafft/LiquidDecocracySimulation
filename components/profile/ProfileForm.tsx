@@ -7,10 +7,24 @@ import { Button } from '@/components/ui/Button'
 interface ProfileFormProps {
   memberId: string
   currentName: string
+  currentBio?: string | null
+  currentInterests?: string[] | null
+  currentLocation?: string | null
+  userProfilesEnabled?: boolean
 }
 
-export function ProfileForm({ memberId, currentName }: ProfileFormProps) {
+export function ProfileForm({
+  memberId,
+  currentName,
+  currentBio,
+  currentInterests,
+  currentLocation,
+  userProfilesEnabled = false,
+}: ProfileFormProps) {
   const [name, setName] = useState(currentName)
+  const [bio, setBio] = useState(currentBio ?? '')
+  const [interests, setInterests] = useState((currentInterests ?? []).join(', '))
+  const [location, setLocation] = useState(currentLocation ?? '')
   const [loading, setLoading] = useState(false)
   const [saved, setSaved] = useState(false)
   const supabase = createClient()
@@ -18,15 +32,26 @@ export function ProfileForm({ memberId, currentName }: ProfileFormProps) {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    await supabase.from('member').update({ display_name: name }).eq('id', memberId)
+
+    const updates: Record<string, unknown> = { display_name: name }
+
+    if (userProfilesEnabled) {
+      updates.bio = bio || null
+      updates.interests = interests
+        ? interests.split(',').map((s) => s.trim()).filter(Boolean)
+        : null
+      updates.location = location || null
+    }
+
+    await supabase.from('member').update(updates).eq('id', memberId)
     setSaved(true)
     setLoading(false)
     setTimeout(() => setSaved(false), 2000)
   }
 
   return (
-    <form onSubmit={handleSave} className="flex gap-3 items-end border-t border-sand pt-4">
-      <div className="flex-1">
+    <form onSubmit={handleSave} className="space-y-4 border-t border-sand pt-4">
+      <div>
         <label className="block text-sm font-medium mb-1.5">Display Name</label>
         <input
           type="text"
@@ -36,9 +61,50 @@ export function ProfileForm({ memberId, currentName }: ProfileFormProps) {
           className="input"
         />
       </div>
-      <Button type="submit" loading={loading} variant={saved ? 'secondary' : 'primary'}>
-        {saved ? 'Saved!' : 'Save'}
-      </Button>
+
+      {userProfilesEnabled && (
+        <>
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Location</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Auroville, India"
+              className="input"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Bio</label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="A short description about yourself"
+              rows={3}
+              className="input resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1.5">Interests</label>
+            <input
+              type="text"
+              value={interests}
+              onChange={(e) => setInterests(e.target.value)}
+              placeholder="e.g. ecology, education, governance (comma-separated)"
+              className="input"
+            />
+            <p className="text-xs text-foreground/40 mt-1">Separate interests with commas</p>
+          </div>
+        </>
+      )}
+
+      <div className="flex justify-end">
+        <Button type="submit" loading={loading} variant={saved ? 'secondary' : 'primary'}>
+          {saved ? 'Saved!' : 'Save'}
+        </Button>
+      </div>
     </form>
   )
 }

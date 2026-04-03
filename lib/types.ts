@@ -10,6 +10,10 @@ export interface Member {
   is_admin: boolean
   is_approved: boolean
   created_at: string
+  bio?: string | null
+  interests?: string[] | null
+  location?: string | null
+  avatar_url?: string | null
 }
 
 export interface Unit {

@@ -2,9 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
 import { ModuleSettings } from '@/components/profile/ModuleSettings'
-import { getUserConfigurableModules } from '@/lib/modules'
+import { getUserConfigurableModules, getEffectiveModules } from '@/lib/modules'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
+import { MapPin } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,8 +16,9 @@ export default async function ProfilePage() {
 
   const { data: member } = await supabase.from('member').select('*').eq('id', user.id).single()
 
-  const [configurableModules, votesResult] = await Promise.all([
+  const [configurableModules, modules, votesResult] = await Promise.all([
     getUserConfigurableModules(user.id),
+    getEffectiveModules(user.id),
     supabase
       .from('vote')
       .select('*, initiative:initiative(title, issue:issue(id, title))')
@@ -26,6 +28,7 @@ export default async function ProfilePage() {
   ])
 
   const votes = votesResult.data
+  const userProfilesEnabled = modules.user_profiles === true
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
@@ -41,6 +44,12 @@ export default async function ProfilePage() {
           </div>
           <div>
             <p className="font-medium">{member?.display_name ?? 'No display name set'}</p>
+            {userProfilesEnabled && member?.location && (
+              <p className="text-sm text-foreground/50 flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3.5 h-3.5" />
+                {member.location}
+              </p>
+            )}
             <div className="flex gap-2 mt-1">
               {member?.is_approved ? (
                 <Badge variant="green">Approved</Badge>
@@ -52,7 +61,33 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        <ProfileForm memberId={user.id} currentName={member?.display_name ?? ''} />
+        {/* Bio — shown when user_profiles module is on */}
+        {userProfilesEnabled && member?.bio && (
+          <p className="text-sm text-foreground/70 leading-relaxed">{member.bio}</p>
+        )}
+
+        {/* Interests — shown when user_profiles module is on */}
+        {userProfilesEnabled && member?.interests && member.interests.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {member.interests.map((interest: string) => (
+              <span
+                key={interest}
+                className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs font-medium"
+              >
+                {interest}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <ProfileForm
+          memberId={user.id}
+          currentName={member?.display_name ?? ''}
+          currentBio={member?.bio}
+          currentInterests={member?.interests}
+          currentLocation={member?.location}
+          userProfilesEnabled={userProfilesEnabled}
+        />
       </div>
 
       {/* User-configurable module settings */}
