@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
+import { ModuleSettings } from '@/components/profile/ModuleSettings'
+import { getUserConfigurableModules } from '@/lib/modules'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 
@@ -12,12 +14,18 @@ export default async function ProfilePage() {
   if (!user) redirect('/auth/login')
 
   const { data: member } = await supabase.from('member').select('*').eq('id', user.id).single()
-  const { data: votes } = await supabase
-    .from('vote')
-    .select('*, initiative:initiative(title, issue:issue(id, title))')
-    .eq('member_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(20)
+
+  const [configurableModules, votesResult] = await Promise.all([
+    getUserConfigurableModules(user.id),
+    supabase
+      .from('vote')
+      .select('*, initiative:initiative(title, issue:issue(id, title))')
+      .eq('member_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(20),
+  ])
+
+  const votes = votesResult.data
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-10 space-y-8">
@@ -46,6 +54,11 @@ export default async function ProfilePage() {
 
         <ProfileForm memberId={user.id} currentName={member?.display_name ?? ''} />
       </div>
+
+      {/* User-configurable module settings */}
+      {configurableModules.length > 0 && (
+        <ModuleSettings modules={configurableModules} userId={user.id} />
+      )}
 
       <div className="card space-y-4">
         <h2 className="font-semibold text-lg">Vote History</h2>

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, MapPin, Settings, SlidersHorizontal } from 'lucide-react'
+import { Users, MapPin, Settings, SlidersHorizontal, Puzzle } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,6 +24,7 @@ export default async function AdminPage() {
     { href: '/admin/areas', icon: <MapPin className="w-5 h-5" />, label: 'Areas', desc: 'Manage sub-areas per unit' },
     { href: '/admin/policies', icon: <Settings className="w-5 h-5" />, label: 'Policies', desc: 'Configure lifecycle timings' },
     { href: '/admin/settings', icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Settings', desc: 'Platform-wide configuration' },
+    { href: '/admin/modules', icon: <Puzzle className="w-5 h-5" />, label: 'Modules', desc: 'Enable/disable platform modules' },
   ]
 
   return (
