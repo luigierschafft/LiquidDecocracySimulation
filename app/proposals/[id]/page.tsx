@@ -17,6 +17,7 @@ import { Calendar, User, FileText, Clock, CheckCircle2, FileEdit } from 'lucide-
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { ScaleVoteBar } from '@/components/proposals/ScaleVoteBar'
+import { AlignmentMeter } from '@/components/proposals/AlignmentMeter'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
 import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
@@ -333,11 +334,16 @@ export default async function ProposalDetailPage({ params }: Props) {
                   return (
                     <div className="border-t border-sand pt-5 space-y-4">
                       {modules.results_display && (
-                        <VoteBar
-                          votes={votes}
-                          quorum={quorum}
-                          showLowResistance={typedIssue.status === 'voting'}
-                        />
+                        <div className="flex items-start gap-4">
+                          <div className="flex-1">
+                            <VoteBar
+                              votes={votes}
+                              quorum={quorum}
+                              showLowResistance={typedIssue.status === 'voting'}
+                            />
+                          </div>
+                          {modules.alignment_meter && <AlignmentMeter votes={votes} />}
+                        </div>
                       )}
 
                       {modules.basic_voting && showVotingUi && (
