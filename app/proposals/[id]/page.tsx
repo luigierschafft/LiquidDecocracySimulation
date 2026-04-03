@@ -216,6 +216,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           issueId={typedIssue.id}
           opinions={(topicOpinionsResult.data ?? []) as unknown as Opinion[]}
           userId={user?.id ?? null}
+          postVotingEnabled={modules.post_voting}
         />
       )}
 
@@ -333,6 +334,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                     initiativeId={initiative.id}
                     opinions={initiative.opinions ?? []}
                     userId={user?.id ?? null}
+                    postVotingEnabled={modules.post_voting}
                   />
                 )}
               </PropositionCard>

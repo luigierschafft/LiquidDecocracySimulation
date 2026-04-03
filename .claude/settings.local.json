@@ -66,7 +66,8 @@
       "Bash(curl -s \"https://utskycikzhimasfeixcs.supabase.co/rest/v1/opinion?select=issue_id&initiative_id=is.null\" \\\\\n  -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t5Y2lremhpbWFzZmVpeGNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTU5NTksImV4cCI6MjA5MDE3MTk1OX0.t-j2fzvSitHo5M4Icp_X4zO32joC6RLgcl1xyN_4WjI\" \\\\\n  -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t5Y2lremhpbWFzZmVpeGNzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1OTU5NTksImV4cCI6MjA5MDE3MTk1OX0.t-j2fzvSitHo5M4Icp_X4zO32joC6RLgcl1xyN_4WjI\" | python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); from collections import Counter; c=Counter\\(x['issue_id'] for x in d\\); [print\\(k,v\\) for k,v in sorted\\(c.items\\(\\)\\)]\")",
       "Bash(start http://localhost:3000)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -40)",
-      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -30)"
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -20)"
     ]
   }
 }

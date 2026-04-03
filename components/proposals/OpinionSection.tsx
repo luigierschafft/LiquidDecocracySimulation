@@ -5,14 +5,16 @@ import { createClient } from '@/lib/supabase/browser'
 import type { Opinion } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { MessageSquare, Send, Reply } from 'lucide-react'
+import { PostVoteButton } from '@/components/discussion/PostVoteButton'
 
 interface OpinionSectionProps {
   initiativeId: string
   opinions: Opinion[]
   userId: string | null
+  postVotingEnabled?: boolean
 }
 
-export function OpinionSection({ initiativeId, opinions: initial, userId }: OpinionSectionProps) {
+export function OpinionSection({ initiativeId, opinions: initial, userId, postVotingEnabled = false }: OpinionSectionProps) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
@@ -80,18 +82,29 @@ export function OpinionSection({ initiativeId, opinions: initial, userId }: Opin
                   <span className="text-xs text-foreground/40">{formatDate(op.created_at)}</span>
                 </div>
                 <p className="text-sm text-foreground/70 mt-0.5 break-words leading-relaxed">{op.content}</p>
-                {userId && (
-                  <button
-                    onClick={() => {
-                      setReplyingTo(replyingTo === op.id ? null : op.id)
-                      setReplyText('')
-                    }}
-                    className="flex items-center gap-1 text-xs text-foreground/40 hover:text-accent mt-1 transition-colors font-medium"
-                  >
-                    <Reply className="w-3 h-3" />
-                    Reply
-                  </button>
-                )}
+                <div className="flex items-center gap-3 mt-1">
+                  {postVotingEnabled && (
+                    <PostVoteButton
+                      targetType="opinion"
+                      targetId={op.id}
+                      initialCount={(op as any)._vote_count ?? 0}
+                      initialVoted={(op as any)._user_voted ?? false}
+                      userId={userId}
+                    />
+                  )}
+                  {userId && (
+                    <button
+                      onClick={() => {
+                        setReplyingTo(replyingTo === op.id ? null : op.id)
+                        setReplyText('')
+                      }}
+                      className="flex items-center gap-1 text-xs text-foreground/40 hover:text-accent transition-colors font-medium"
+                    >
+                      <Reply className="w-3 h-3" />
+                      Reply
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
