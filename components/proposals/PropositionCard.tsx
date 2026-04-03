@@ -3,9 +3,10 @@
 import { useState } from 'react'
 import { EditPropositionForm } from './EditPropositionForm'
 import { ForkButton } from './ForkButton'
+import { VersionHistory } from './VersionHistory'
 import type { Initiative } from '@/lib/types'
 import { getMemberDisplayName, formatDate } from '@/lib/utils'
-import { CheckCircle2, Trophy, FileEdit, GitFork } from 'lucide-react'
+import { Trophy, FileEdit, GitFork } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
@@ -75,6 +76,8 @@ export function PropositionCard({
                 initialTitle={title}
                 initialContent={content}
                 onSaved={(t, c) => { setTitle(t); setContent(c) }}
+                versioningEnabled={versioningEnabled}
+                userId={userId}
               />
             )}
             {canFork && (
@@ -85,6 +88,9 @@ export function PropositionCard({
                 content={content}
                 userId={userId!}
               />
+            )}
+            {versioningEnabled && (
+              <VersionHistory initiativeId={initiative.id} />
             )}
           </div>
         </div>

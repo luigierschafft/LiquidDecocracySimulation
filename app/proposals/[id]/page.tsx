@@ -283,6 +283,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 editingEnabled={modules.proposal_editing}
                 draftEnabled={modules.proposal_status}
                 forkingEnabled={modules.forking}
+                versioningEnabled={modules.versioning}
               >
                 {/* Admin accept button */}
                 {isAdmin && typedIssue.status === 'voting' && (
