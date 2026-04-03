@@ -8,11 +8,12 @@ import { DelegationStatus } from '@/components/proposals/DelegationStatus'
 import { AcceptButton } from '@/components/proposals/AcceptButton'
 import { ArgumentSection } from '@/components/proposals/ArgumentSection'
 import { RankedVoteForm } from '@/components/proposals/RankedVoteForm'
+import { PropositionCard } from '@/components/proposals/PropositionCard'
 import { countVotes } from '@/lib/voting/approval'
 import { formatDate, statusLabel, getStatusVariant, getMemberDisplayName } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import type { Issue, Initiative, Opinion, VoteValue, RankedVote } from '@/lib/types'
-import { Calendar, User, FileText, Trophy, Clock, CheckCircle2, FileEdit } from 'lucide-react'
+import { Calendar, User, FileText, Clock, CheckCircle2, FileEdit } from 'lucide-react'
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
@@ -255,38 +256,23 @@ export default async function ProposalDetailPage({ params }: Props) {
           const isAccepted = acceptedId === initiative.id
 
           return (
-            <div
+            <PropositionCard
               key={initiative.id}
-              id={`initiative-${initiative.id}`}
-              className={`card space-y-6 ${isAccepted ? 'border-auro-green/40 bg-green-50/20' : ''}`}
+              initiative={initiative}
+              isAccepted={isAccepted}
+              isAdmin={isAdmin}
+              userId={user?.id ?? null}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h3 className="text-lg font-semibold mb-1">{initiative.title}</h3>
-                  <p className="text-xs text-foreground/40">
-                    by {getMemberDisplayName(initiative.author)} · {formatDate(initiative.created_at)}
-                  </p>
+              {/* Admin accept button */}
+              {isAdmin && typedIssue.status === 'voting' && (
+                <div className="flex justify-end -mt-4">
+                  <AcceptButton
+                    issueId={typedIssue.id}
+                    initiativeId={initiative.id}
+                    isAlreadyAccepted={isAccepted}
+                  />
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {isAccepted && (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-auro-green bg-green-100 px-2.5 py-1 rounded-full">
-                      <Trophy className="w-3.5 h-3.5" />
-                      Accepted
-                    </div>
-                  )}
-                  {isAdmin && typedIssue.status === 'voting' && (
-                    <AcceptButton
-                      issueId={typedIssue.id}
-                      initiativeId={initiative.id}
-                      isAlreadyAccepted={isAccepted}
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="prose prose-sm max-w-none text-foreground/80">
-                <ReactMarkdown>{initiative.content}</ReactMarkdown>
-              </div>
+              )}
 
               {/* Arguments (Pro/Contra) */}
               <ArgumentSection
@@ -332,7 +318,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 opinions={initiative.opinions ?? []}
                 userId={user?.id ?? null}
               />
-            </div>
+            </PropositionCard>
           )
         })}
       </div>
