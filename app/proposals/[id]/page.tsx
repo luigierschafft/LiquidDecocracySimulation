@@ -219,6 +219,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           postVotingEnabled={modules.post_voting}
           intentEnabled={modules.intention_display}
           questionsTaggingEnabled={modules.questions_tagging}
+          referencingEnabled={modules.referencing}
         />
       )}
 

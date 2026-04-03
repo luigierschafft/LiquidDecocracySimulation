@@ -93,6 +93,8 @@ export interface Opinion {
   initiative_id: string | null
   issue_id: string | null
   parent_id: string | null
+  referenced_opinion_id?: string | null
+  referenced_opinion?: Pick<Opinion, 'id' | 'content' | 'author'> | null
   author_id: string
   content: string
   intent?: OpinionIntent | null

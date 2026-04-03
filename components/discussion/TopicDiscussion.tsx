@@ -4,9 +4,10 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion, OpinionIntent } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
-import { MessageSquare, Send, Reply } from 'lucide-react'
+import { MessageSquare, Send, Reply, Quote } from 'lucide-react'
 import { PostVoteButton } from './PostVoteButton'
 import { IntentBadge, IntentPicker } from './IntentBadge'
+import { QuoteBlock } from './QuoteBlock'
 
 interface Props {
   issueId: string
@@ -15,6 +16,7 @@ interface Props {
   postVotingEnabled?: boolean
   intentEnabled?: boolean
   questionsTaggingEnabled?: boolean
+  referencingEnabled?: boolean
 }
 
 export function TopicDiscussion({
@@ -24,12 +26,14 @@ export function TopicDiscussion({
   postVotingEnabled = false,
   intentEnabled = false,
   questionsTaggingEnabled = false,
+  referencingEnabled = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
   const [intent, setIntent] = useState<OpinionIntent | null>(null)
   const [loading, setLoading] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
+  const [quotingOpinion, setQuotingOpinion] = useState<Opinion | null>(null)
   const [replyText, setReplyText] = useState('')
   const [replyLoading, setReplyLoading] = useState(false)
   const supabase = createClient()
@@ -69,7 +73,13 @@ export function TopicDiscussion({
 
     const { data, error } = await supabase
       .from('opinion')
-      .insert({ issue_id: issueId, author_id: userId, content: replyText.trim(), parent_id: parentId })
+      .insert({
+        issue_id: issueId,
+        author_id: userId,
+        content: replyText.trim(),
+        parent_id: parentId,
+        referenced_opinion_id: quotingOpinion?.id ?? null,
+      })
       .select('*, author:member!opinion_author_id_fkey(*)')
       .single()
 
@@ -77,6 +87,7 @@ export function TopicDiscussion({
       setOpinions((prev) => [...prev, data as unknown as Opinion])
       setReplyText('')
       setReplyingTo(null)
+      setQuotingOpinion(null)
     }
     setReplyLoading(false)
   }
@@ -130,12 +141,26 @@ export function TopicDiscussion({
                     <button
                       onClick={() => {
                         setReplyingTo(replyingTo === op.id ? null : op.id)
+                        setQuotingOpinion(null)
                         setReplyText('')
                       }}
                       className="flex items-center gap-1 text-xs text-foreground/40 hover:text-accent transition-colors font-medium"
                     >
                       <Reply className="w-3.5 h-3.5" />
                       Reply
+                    </button>
+                  )}
+                  {referencingEnabled && userId && (
+                    <button
+                      onClick={() => {
+                        setReplyingTo(op.id)
+                        setQuotingOpinion(op)
+                        setReplyText('')
+                      }}
+                      className="flex items-center gap-1 text-xs text-foreground/40 hover:text-accent transition-colors font-medium"
+                    >
+                      <Quote className="w-3.5 h-3.5" />
+                      Quote
                     </button>
                   )}
                 </div>
@@ -152,6 +177,11 @@ export function TopicDiscussion({
                         <span className="text-sm font-semibold">{getMemberDisplayName(reply.author)}</span>
                         <span className="text-xs text-foreground/40">{formatDate(reply.created_at)}</span>
                       </div>
+                      {referencingEnabled && reply.referenced_opinion && (
+                        <div className="mt-1">
+                          <QuoteBlock opinion={reply.referenced_opinion} />
+                        </div>
+                      )}
                       <p className="text-sm text-foreground/80 mt-0.5 break-words leading-relaxed">{reply.content}</p>
                     </div>
                   </div>
@@ -160,27 +190,32 @@ export function TopicDiscussion({
             )}
 
             {replyingTo === op.id && (
-              <div className="ml-11 flex gap-2">
-                <input
-                  type="text"
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Write a reply…"
-                  className="input flex-1 text-sm py-1.5"
-                  autoFocus
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addReply(op.id) }
-                    if (e.key === 'Escape') setReplyingTo(null)
-                  }}
-                />
-                <button
-                  onClick={() => addReply(op.id)}
-                  disabled={replyLoading || !replyText.trim()}
-                  className="btn-primary px-3 py-1.5"
-                  title="Send reply"
-                >
-                  <Send className="w-4 h-4" />
-                </button>
+              <div className="ml-11 space-y-1.5">
+                {referencingEnabled && quotingOpinion && quotingOpinion.id === op.id && (
+                  <QuoteBlock opinion={quotingOpinion} />
+                )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Write a reply…"
+                    className="input flex-1 text-sm py-1.5"
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addReply(op.id) }
+                      if (e.key === 'Escape') { setReplyingTo(null); setQuotingOpinion(null) }
+                    }}
+                  />
+                  <button
+                    onClick={() => addReply(op.id)}
+                    disabled={replyLoading || !replyText.trim()}
+                    className="btn-primary px-3 py-1.5"
+                    title="Send reply"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             )}
           </div>
