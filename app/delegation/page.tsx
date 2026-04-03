@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
+import { redirect, notFound } from 'next/navigation'
 import { DelegationManager } from '@/components/delegation/DelegationManager'
 import Link from 'next/link'
 import { Network } from 'lucide-react'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,9 @@ export default async function DelegationPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
+
+  const modules = await getEffectiveModules(user.id)
+  if (!modules.delegation) notFound()
 
   const [{ data: delegations }, { data: members }, { data: units }] = await Promise.all([
     supabase.from('delegation').select('*, to_member:member!delegation_to_member_id_fkey(*), unit(*), area(*), issue(title)').eq('from_member_id', user.id),

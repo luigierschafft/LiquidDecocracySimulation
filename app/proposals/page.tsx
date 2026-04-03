@@ -3,6 +3,7 @@ import { ProposalCard } from '@/components/proposals/ProposalCard'
 import Link from 'next/link'
 import type { Issue, IssueStatus } from '@/lib/types'
 import { Plus } from 'lucide-react'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,6 +21,8 @@ interface Props {
 
 export default async function ProposalsPage({ searchParams }: Props) {
   const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  const modules = await getEffectiveModules(user?.id)
   const rawStatus = searchParams.status
   const validStatuses: string[] = ['admission', 'discussion', 'verification', 'voting', 'closed']
   const filterByStatus = rawStatus && validStatuses.includes(rawStatus)
@@ -53,10 +56,12 @@ export default async function ProposalsPage({ searchParams }: Props) {
           <h1 className="text-3xl font-bold">Topics</h1>
           <p className="text-foreground/60 mt-1">Community decisions in progress</p>
         </div>
-        <Link href="/proposals/new" className="btn-primary flex items-center gap-2">
-          <Plus className="w-4 h-4" />
-          New Topic
-        </Link>
+        {modules.proposal_creation && (
+          <Link href="/proposals/new" className="btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" />
+            New Topic
+          </Link>
+        )}
       </div>
 
       {/* Status filter */}

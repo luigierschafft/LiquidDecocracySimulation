@@ -19,6 +19,7 @@ import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
 import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,6 +94,8 @@ export default async function ProposalDetailPage({ params }: Props) {
     supabase.auth.getUser(),
     getAppSetting('proposal_creation'),
   ])
+
+  const modules = await getEffectiveModules(user?.id)
 
   // User data: delegations + admin status + ranked votes
   let userDelegations: any[] = []
@@ -172,13 +175,15 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       </div>
 
-      {/* Phase progress */}
-      <div className="card py-4 px-5">
-        <PhaseProgress
-          currentStatus={typedIssue.status}
-          hasElaboration={!!acceptedId}
-        />
-      </div>
+      {/* Phase progress — Module 68 */}
+      {modules.phase_system && (
+        <div className="card py-4 px-5">
+          <PhaseProgress
+            currentStatus={typedIssue.status}
+            hasElaboration={!!acceptedId}
+          />
+        </div>
+      )}
 
       {/* Accepted proposal banner */}
       {acceptedInitiative && (
@@ -205,15 +210,17 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       )}
 
-      {/* Topic-level discussion */}
-      <TopicDiscussion
-        issueId={typedIssue.id}
-        opinions={(topicOpinionsResult.data ?? []) as unknown as Opinion[]}
-        userId={user?.id ?? null}
-      />
+      {/* Topic-level discussion — Module 8 */}
+      {modules.comments_replies && (
+        <TopicDiscussion
+          issueId={typedIssue.id}
+          opinions={(topicOpinionsResult.data ?? []) as unknown as Opinion[]}
+          userId={user?.id ?? null}
+        />
+      )}
 
-      {/* Schulze ranked voting (shown above individual proposals) */}
-      {isSchulze && typedIssue.status === 'voting' && user && initiatives.length > 0 && (
+      {/* Schulze ranked voting — Module 27 */}
+      {modules.ranking_voting && isSchulze && typedIssue.status === 'voting' && user && initiatives.length > 0 && (
         <RankedVoteForm
           issueId={typedIssue.id}
           initiatives={initiatives}
@@ -221,107 +228,118 @@ export default async function ProposalDetailPage({ params }: Props) {
           existingVotes={userRankedVotes}
         />
       )}
-      {isSchulze && typedIssue.status === 'voting' && !user && (
+      {modules.ranking_voting && isSchulze && typedIssue.status === 'voting' && !user && (
         <div className="card text-center py-6 text-foreground/40 text-sm">
           Sign in to rank the propositions (Schulze voting).
         </div>
       )}
 
-      {/* Proposals section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <FileText className="w-5 h-5 text-accent" />
-            Propositions
-            <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
-          </h2>
-          {canSubmitProposal && typedIssue.status !== 'closed' && (
-            <AddProposalForm issueId={typedIssue.id} userId={user!.id} />
-          )}
-        </div>
-
-        {initiatives.length === 0 && (
-          <div className="card text-center py-10 text-foreground/40">
-            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">No propositions yet.</p>
-            {canSubmitProposal && (
-              <p className="text-xs mt-1">Be the first to submit a proposition above.</p>
+      {/* Propositions section — Module 16 */}
+      {modules.thread_system && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold flex items-center gap-2">
+              <FileText className="w-5 h-5 text-accent" />
+              Propositions
+              <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
+            </h2>
+            {modules.proposal_creation && canSubmitProposal && typedIssue.status !== 'closed' && (
+              <AddProposalForm issueId={typedIssue.id} userId={user!.id} />
             )}
           </div>
-        )}
 
-        {initiatives.map((initiative: Initiative) => {
-          const votes = countVotes(initiative.votes ?? [])
-          const userVote = initiative.votes?.find((v) => v.member_id === user?.id)?.value as VoteValue | undefined
-          const isAccepted = acceptedId === initiative.id
+          {initiatives.length === 0 && (
+            <div className="card text-center py-10 text-foreground/40">
+              <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+              <p className="text-sm">No propositions yet.</p>
+              {modules.proposal_creation && canSubmitProposal && (
+                <p className="text-xs mt-1">Be the first to submit a proposition above.</p>
+              )}
+            </div>
+          )}
 
-          return (
-            <PropositionCard
-              key={initiative.id}
-              initiative={initiative}
-              isAccepted={isAccepted}
-              isAdmin={isAdmin}
-              userId={user?.id ?? null}
-            >
-              {/* Admin accept button */}
-              {isAdmin && typedIssue.status === 'voting' && (
-                <div className="flex justify-end -mt-4">
-                  <AcceptButton
-                    issueId={typedIssue.id}
+          {initiatives.map((initiative: Initiative) => {
+            const votes = countVotes(initiative.votes ?? [])
+            const userVote = initiative.votes?.find((v) => v.member_id === user?.id)?.value as VoteValue | undefined
+            const isAccepted = acceptedId === initiative.id
+
+            return (
+              <PropositionCard
+                key={initiative.id}
+                initiative={initiative}
+                isAccepted={isAccepted}
+                isAdmin={isAdmin}
+                userId={user?.id ?? null}
+                editingEnabled={modules.proposal_editing}
+              >
+                {/* Admin accept button */}
+                {isAdmin && typedIssue.status === 'voting' && (
+                  <div className="flex justify-end -mt-4">
+                    <AcceptButton
+                      issueId={typedIssue.id}
+                      initiativeId={initiative.id}
+                      isAlreadyAccepted={isAccepted}
+                    />
+                  </div>
+                )}
+
+                {/* Arguments — Module 10 */}
+                {modules.pro_contra_arguments && (
+                  <ArgumentSection
                     initiativeId={initiative.id}
-                    isAlreadyAccepted={isAccepted}
+                    arguments={(initiative as any).arguments ?? []}
+                    userId={user?.id ?? null}
                   />
-                </div>
-              )}
+                )}
 
-              {/* Arguments (Pro/Contra) */}
-              <ArgumentSection
-                initiativeId={initiative.id}
-                arguments={(initiative as any).arguments ?? []}
-                userId={user?.id ?? null}
-              />
+                {/* Voting — Modules 25/26/28/30 */}
+                {!isSchulze && (modules.results_display || modules.basic_voting) && (
+                  <div className="border-t border-sand pt-5 space-y-4">
+                    {modules.results_display && (
+                      <VoteBar
+                        votes={votes}
+                        quorum={quorum}
+                        showLowResistance={typedIssue.status === 'voting'}
+                      />
+                    )}
 
-              {/* Voting — only approval voting per-proposal; Schulze is shown at topic level */}
-              {!isSchulze && (
-                <div className="border-t border-sand pt-5 space-y-4">
-                  <VoteBar
-                    votes={votes}
-                    quorum={quorum}
-                    showLowResistance={typedIssue.status === 'voting'}
+                    {modules.basic_voting && typedIssue.status === 'voting' && (
+                      <div className="space-y-3">
+                        {user ? (
+                          <>
+                            <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
+                            <VoteButton
+                              initiativeId={initiative.id}
+                              currentVote={userVote ?? null}
+                            />
+                            {modules.delegation && (
+                              <DelegationStatus
+                                delegation={effectiveDelegation}
+                                hasDirectVote={!!userVote}
+                              />
+                            )}
+                          </>
+                        ) : (
+                          <p className="text-xs text-foreground/40">Sign in to vote</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Proposition comments — Module 19 */}
+                {modules.proposal_feedback && (
+                  <OpinionSection
+                    initiativeId={initiative.id}
+                    opinions={initiative.opinions ?? []}
+                    userId={user?.id ?? null}
                   />
-
-                  {typedIssue.status === 'voting' && (
-                    <div className="space-y-3">
-                      {user ? (
-                        <>
-                          <p className="text-sm font-medium text-foreground/70">Cast your vote:</p>
-                          <VoteButton
-                            initiativeId={initiative.id}
-                            currentVote={userVote ?? null}
-                          />
-                          <DelegationStatus
-                            delegation={effectiveDelegation}
-                            hasDirectVote={!!userVote}
-                          />
-                        </>
-                      ) : (
-                        <p className="text-xs text-foreground/40">Sign in to vote</p>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Proposal-specific comments */}
-              <OpinionSection
-                initiativeId={initiative.id}
-                opinions={initiative.opinions ?? []}
-                userId={user?.id ?? null}
-              />
-            </PropositionCard>
-          )
-        })}
-      </div>
+                )}
+              </PropositionCard>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

@@ -7,13 +7,11 @@ import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { cn } from '@/lib/utils'
 
-const navLinks = [
-  { href: '/proposals', label: 'Topics' },
-  { href: '/units', label: 'Areas' },
-  { href: '/delegation', label: 'Delegation' },
-]
+interface NavbarProps {
+  showDelegation?: boolean
+}
 
-export function Navbar() {
+export function Navbar({ showDelegation = true }: NavbarProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const supabase = createClient()
@@ -40,7 +38,11 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-1">
-          {navLinks.map((link) => (
+          {[
+            { href: '/proposals', label: 'Topics', show: true },
+            { href: '/units', label: 'Areas', show: true },
+            { href: '/delegation', label: 'Delegation', show: showDelegation },
+          ].filter((l) => l.show).map((link) => (
             <Link
               key={link.href}
               href={link.href}

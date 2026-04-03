@@ -12,14 +12,15 @@ interface Props {
   isAccepted: boolean
   isAdmin: boolean
   userId: string | null
+  editingEnabled?: boolean
   children: React.ReactNode
 }
 
-export function PropositionCard({ initiative, isAccepted, isAdmin, userId, children }: Props) {
+export function PropositionCard({ initiative, isAccepted, isAdmin, userId, editingEnabled = true, children }: Props) {
   const [title, setTitle] = useState(initiative.title)
   const [content, setContent] = useState(initiative.content)
 
-  const canEdit = userId === initiative.author_id
+  const canEdit = editingEnabled && userId === initiative.author_id
 
   return (
     <div
