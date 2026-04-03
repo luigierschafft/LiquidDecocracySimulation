@@ -16,6 +16,7 @@ import type { Issue, Initiative, Opinion, VoteValue, RankedVote } from '@/lib/ty
 import { Calendar, User, FileText, Clock, CheckCircle2, FileEdit } from 'lucide-react'
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
+import { ScaleVoteBar } from '@/components/proposals/ScaleVoteBar'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
 import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
@@ -131,6 +132,25 @@ export default async function ProposalDetailPage({ params }: Props) {
 
   const initiatives = typedIssue.initiatives ?? []
   const quorum = (typedIssue as any).policy?.quorum as number | undefined
+
+  // Scale votes — Module 32
+  type ScaleVoteMap = Record<string, { userScore: number | null; average: number | null; count: number }>
+  let scaleVoteMap: ScaleVoteMap = {}
+  if (modules.scale_voting && initiatives.length > 0) {
+    const initiativeIds = initiatives.map((i: Initiative) => i.id)
+    const { data: scaleRows } = await supabase
+      .from('scale_vote')
+      .select('initiative_id, member_id, score')
+      .in('initiative_id', initiativeIds)
+    const rows = scaleRows ?? []
+    for (const init of initiatives) {
+      const iRows = rows.filter((r: any) => r.initiative_id === init.id)
+      const scores = iRows.map((r: any) => r.score as number)
+      const avg = scores.length > 0 ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length : null
+      const userScore = user ? (iRows.find((r: any) => r.member_id === user.id)?.score ?? null) : null
+      scaleVoteMap[init.id] = { userScore, average: avg, count: scores.length }
+    }
+  }
 
   const acceptedId = typedIssue.accepted_initiative_id
 
@@ -346,6 +366,18 @@ export default async function ProposalDetailPage({ params }: Props) {
                     </div>
                   )
                 })()}
+
+                {/* Scale voting — Module 32 */}
+                {modules.scale_voting && (
+                  <div className="border-t border-sand pt-5">
+                    <p className="text-sm font-medium text-foreground/70 mb-3">Rate this proposition (1-10):</p>
+                    <ScaleVoteBar
+                      initiativeId={initiative.id}
+                      userId={user?.id ?? null}
+                      initialData={scaleVoteMap[initiative.id] ?? { userScore: null, average: null, count: 0 }}
+                    />
+                  </div>
+                )}
 
                 {/* Proposition comments — Module 19 */}
                 {modules.proposal_feedback && (
