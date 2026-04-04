@@ -362,7 +362,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                             <VoteBar
                               votes={votes}
                               quorum={quorum}
-                              showLowResistance={typedIssue.status === 'voting'}
+                              showLowResistance={modules.low_resistance_indicator || typedIssue.status === 'voting'}
                             />
                           </div>
                           {modules.alignment_meter && <AlignmentMeter votes={votes} />}
