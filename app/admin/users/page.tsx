@@ -19,6 +19,12 @@ export default async function AdminUsersPage() {
         <h1 className="text-3xl font-bold">Members</h1>
         <p className="text-foreground/60 mt-1">Approve new members and manage admin access</p>
       </div>
+      {/* Module 93: Anti-Bot notice */}
+      {modules.anti_bot && (
+        <div className="rounded-lg border border-accent/20 bg-accent/5 px-4 py-3 text-sm text-foreground/70">
+          <span className="font-semibold text-accent">Anti-Bot:</span> Manual member approval is active. Review each new member below before granting access.
+        </div>
+      )}
       <UserActions
         members={membersResult.data ?? []}
         moderatorEnabled={modules.roles_permissions}
