@@ -6,6 +6,7 @@ import { getUserConfigurableModules, getEffectiveModules } from '@/lib/modules'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
+import { LanguageSelector } from '@/components/profile/LanguageSelector'
 import { MapPin, Shield, Star, Clock, Activity, Bell } from 'lucide-react'
 import Link from 'next/link'
 
@@ -23,6 +24,7 @@ export default async function ProfilePage() {
     getEffectiveModules(user.id),
   ])
 
+  const translationEnabled = modules.auto_translation === true
   const userProfilesEnabled = modules.user_profiles === true
   const rolesEnabled = modules.roles_permissions === true
   const verificationEnabled = modules.verification === true
@@ -205,6 +207,11 @@ export default async function ProfilePage() {
           memberId={user.id}
           prefs={member?.notification_preferences ?? { new_opinion: true, phase_change: true, reply: true, mention: true }}
         />
+      )}
+
+      {/* Language preference — Module 95 */}
+      {translationEnabled && (
+        <LanguageSelector memberId={user.id} currentLang={(member as any)?.preferred_language ?? 'en'} />
       )}
 
       {/* User-configurable module settings */}
