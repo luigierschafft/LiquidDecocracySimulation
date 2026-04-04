@@ -10,6 +10,7 @@ import { IntentBadge, IntentPicker } from './IntentBadge'
 import { QuoteBlock } from './QuoteBlock'
 import { ReportButton } from '@/components/moderation/ReportButton'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
+import { ArgumentJourney } from '@/components/ai/ArgumentJourney'
 
 interface Props {
   issueId: string
@@ -23,6 +24,8 @@ interface Props {
   verificationEnabled?: boolean
   anonymityEnabled?: boolean
   mentionsEnabled?: boolean
+  journeyModeEnabled?: boolean
+  aiModerationEnabled?: boolean
 }
 
 export function TopicDiscussion({
@@ -37,6 +40,8 @@ export function TopicDiscussion({
   verificationEnabled = false,
   anonymityEnabled = false,
   mentionsEnabled = false,
+  journeyModeEnabled = false,
+  aiModerationEnabled = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
@@ -86,6 +91,23 @@ export function TopicDiscussion({
     e.preventDefault()
     if (!text.trim() || !userId) return
     setLoading(true)
+
+    // Module 48: AI Moderation — pre-screen content
+    if (aiModerationEnabled) {
+      try {
+        const res = await fetch('/api/ai/moderate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: text.trim() }),
+        })
+        const { approved, reason } = await res.json()
+        if (!approved) {
+          alert(`Your post was flagged by AI moderation: ${reason ?? 'inappropriate content'}`)
+          setLoading(false)
+          return
+        }
+      } catch { /* allow on error */ }
+    }
 
     const { data, error } = await supabase
       .from('opinion')
@@ -268,6 +290,10 @@ export function TopicDiscussion({
 
       {userId ? (
         <form onSubmit={addComment} className="space-y-2 pt-2 border-t border-sand">
+          {/* Module 51: Argument Journey Mode */}
+          {journeyModeEnabled && (
+            <ArgumentJourney onPost={(content) => { setText(content) }} />
+          )}
           {showIntentPicker && (
             <IntentPicker
               value={intent}

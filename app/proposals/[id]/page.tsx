@@ -16,6 +16,12 @@ import type { Issue, Initiative, Opinion, VoteValue, RankedVote } from '@/lib/ty
 import { Calendar, User, FileText, Clock, CheckCircle2, FileEdit } from 'lucide-react'
 import { RevisionForm } from '@/components/proposals/RevisionForm'
 import { IterationButton } from '@/components/proposals/IterationButton'
+import { AiSummary } from '@/components/ai/AiSummary'
+import { AiDiscussionPanel } from '@/components/ai/AiDiscussionPanel'
+import { AiProposalTools } from '@/components/ai/AiProposalTools'
+import { ConsensusHeatmap } from '@/components/ai/ConsensusHeatmap'
+import { DecisionReadiness } from '@/components/ai/DecisionReadiness'
+import { GuidedExploration } from '@/components/ai/GuidedExploration'
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { ScaleVoteBar } from '@/components/proposals/ScaleVoteBar'
@@ -273,6 +279,39 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
       )}
 
+      {/* AI tools row — Modules 43/58/59 */}
+      {(modules.ai_summaries || modules.decision_readiness || modules.guided_exploration) && user && (
+        <div className="flex flex-wrap gap-2">
+          {modules.ai_summaries && <AiSummary issueId={typedIssue.id} />}
+          {modules.guided_exploration && <GuidedExploration issueTitle={typedIssue.title} />}
+        </div>
+      )}
+
+      {/* Decision Readiness — Module 58 */}
+      {modules.decision_readiness && user && (
+        <DecisionReadiness issueId={typedIssue.id} />
+      )}
+
+      {/* Consensus Heatmap — Module 52 */}
+      {modules.consensus_heatmap && initiatives.length > 0 && (
+        <ConsensusHeatmap
+          initiatives={initiatives.map((i: Initiative) => ({ id: i.id, title: i.title, votes: i.votes }))}
+          currentUserId={user?.id ?? null}
+        />
+      )}
+
+      {/* AI Discussion Panel — Modules 44/45/46/49/50 */}
+      {(modules.argument_extraction || modules.pro_con_detection || modules.gap_detection || modules.opinion_clustering || modules.consensus_suggestions) && user && (
+        <AiDiscussionPanel
+          issueId={typedIssue.id}
+          extractionEnabled={modules.argument_extraction}
+          proConEnabled={modules.pro_con_detection}
+          gapDetectionEnabled={modules.gap_detection}
+          clusteringEnabled={modules.opinion_clustering}
+          consensusEnabled={modules.consensus_suggestions}
+        />
+      )}
+
       {/* Accepted proposal banner */}
       {acceptedInitiative && (
         <div className="rounded-xl border border-auro-green/40 bg-green-50/50 px-5 py-4 space-y-2">
@@ -312,6 +351,8 @@ export default async function ProposalDetailPage({ params }: Props) {
           verificationEnabled={modules.verification}
           anonymityEnabled={modules.anonymity}
           mentionsEnabled={modules.mentions}
+          journeyModeEnabled={modules.argument_journey_mode}
+          aiModerationEnabled={modules.ai_moderation}
         />
       )}
 
@@ -395,6 +436,21 @@ export default async function ProposalDetailPage({ params }: Props) {
                     arguments={(initiative as any).arguments ?? []}
                     userId={user?.id ?? null}
                     weightingEnabled={modules.argument_weighting}
+                  />
+                )}
+
+                {/* AI Proposal Tools — Modules 47/53/54/55/56/57/60 */}
+                {user && (modules.ai_proposal_improvement || modules.perspective_switch || modules.auto_debater || modules.truth_layer || modules.argument_merger || modules.bias_breaker_mode || modules.fact_checking) && (
+                  <AiProposalTools
+                    initiativeId={initiative.id}
+                    title={initiative.title}
+                    content={initiative.content}
+                    improvementEnabled={modules.ai_proposal_improvement}
+                    perspectiveEnabled={modules.perspective_switch}
+                    debateEnabled={modules.auto_debater}
+                    factCheckEnabled={modules.truth_layer || modules.fact_checking}
+                    mergeEnabled={modules.argument_merger}
+                    biasEnabled={modules.bias_breaker_mode}
                   />
                 )}
 
