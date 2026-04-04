@@ -14,6 +14,14 @@ export interface Member {
   interests?: string[] | null
   location?: string | null
   avatar_url?: string | null
+  is_moderator?: boolean
+  is_verified?: boolean
+  verified_at?: string | null
+  reputation_score?: number
+  show_vote_history?: boolean
+  show_activity?: boolean
+  max_incoming_delegations?: number | null
+  notification_preferences?: Record<string, boolean> | null
 }
 
 export interface Unit {
@@ -21,6 +29,7 @@ export interface Unit {
   name: string
   description: string | null
   created_at: string
+  default_policy_id?: string | null
 }
 
 export interface Area {
@@ -30,6 +39,7 @@ export interface Area {
   description: string | null
   created_at: string
   unit?: Unit
+  default_policy_id?: string | null
 }
 
 export interface Policy {
@@ -76,6 +86,9 @@ export interface Initiative {
   created_at: string
   is_draft?: boolean
   forked_from_id?: string | null
+  estimated_cost?: string | null
+  implementation_timeline?: string | null
+  affected_areas?: string[] | null
   author?: Member
   votes?: Vote[]
   opinions?: Opinion[]
@@ -104,6 +117,7 @@ export interface Opinion {
   author_id: string
   content: string
   intent?: OpinionIntent | null
+  is_anonymous?: boolean
   created_at: string
   author?: Member
   replies?: Opinion[]

@@ -262,6 +262,8 @@ export default async function ProposalDetailPage({ params }: Props) {
           questionsTaggingEnabled={modules.questions_tagging}
           referencingEnabled={modules.referencing}
           reportingEnabled={modules.reporting_system}
+          verificationEnabled={modules.verification}
+          anonymityEnabled={modules.anonymity}
         />
       )}
 

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Flag } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import { ResolveReportButton } from './ResolveReportButton'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,12 +13,15 @@ export default async function AdminReportsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) notFound()
 
-  const { data: member } = await supabase
-    .from('member')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single()
-  if (!member?.is_admin) notFound()
+  const [memberResult, modules] = await Promise.all([
+    supabase.from('member').select('is_admin, is_moderator').eq('id', user.id).single(),
+    getEffectiveModules(user.id),
+  ])
+
+  const member = memberResult.data
+  // Admins always have access; moderators get access when roles_permissions module is on
+  const canAccess = member?.is_admin || (modules.roles_permissions && member?.is_moderator)
+  if (!canAccess) notFound()
 
   const { data: reports } = await supabase
     .from('content_report')
