@@ -22,6 +22,7 @@ interface Props {
   reportingEnabled?: boolean
   verificationEnabled?: boolean
   anonymityEnabled?: boolean
+  mentionsEnabled?: boolean
 }
 
 export function TopicDiscussion({
@@ -35,6 +36,7 @@ export function TopicDiscussion({
   reportingEnabled = false,
   verificationEnabled = false,
   anonymityEnabled = false,
+  mentionsEnabled = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
@@ -46,6 +48,29 @@ export function TopicDiscussion({
   const [replyText, setReplyText] = useState('')
   const [replyLoading, setReplyLoading] = useState(false)
   const supabase = createClient()
+
+  // Module 87: detect @display_name mentions and send notifications
+  async function sendMentionNotifications(content: string, opinionId: string) {
+    if (!mentionsEnabled) return
+    const handles = content.match(/@([\w.-]+)/g) ?? []
+    if (handles.length === 0) return
+    const names = handles.map((h) => h.slice(1))
+    const { data: mentioned } = await supabase
+      .from('member')
+      .select('id, display_name')
+      .in('display_name', names)
+      .eq('is_approved', true)
+    for (const m of mentioned ?? []) {
+      if (m.id === userId) continue
+      await supabase.from('notification').insert({
+        member_id: m.id,
+        type: 'mention',
+        title: 'You were mentioned in a discussion',
+        body: content.slice(0, 100),
+        link: `/proposals/${issueId}`,
+      })
+    }
+  }
 
   // Show intent picker if either module is on
   const showIntentPicker = intentEnabled || questionsTaggingEnabled
@@ -70,6 +95,7 @@ export function TopicDiscussion({
 
     if (!error && data) {
       setOpinions((prev) => [...prev, { ...(data as unknown as Opinion), replies: [] }])
+      await sendMentionNotifications(text.trim(), (data as any).id)
       setText('')
       setIntent(null)
       setIsAnonymous(false)
@@ -95,6 +121,7 @@ export function TopicDiscussion({
 
     if (!error && data) {
       setOpinions((prev) => [...prev, data as unknown as Opinion])
+      await sendMentionNotifications(replyText.trim(), (data as any).id)
       setReplyText('')
       setReplyingTo(null)
       setQuotingOpinion(null)
