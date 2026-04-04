@@ -31,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           showDelegation={modules.delegation}
           showGovernance={modules.governance_rules}
           showNotifications={modules.notifications}
+          showVotingCycles={modules.voting_cycles}
         />
         <main className="min-h-screen">{children}</main>
       </body>

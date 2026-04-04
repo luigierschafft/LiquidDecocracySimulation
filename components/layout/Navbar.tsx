@@ -12,9 +12,10 @@ interface NavbarProps {
   showDelegation?: boolean
   showGovernance?: boolean
   showNotifications?: boolean
+  showVotingCycles?: boolean
 }
 
-export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false }: NavbarProps) {
+export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false, showVotingCycles = false }: NavbarProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const supabase = createClient()
@@ -45,6 +46,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
             { href: '/proposals', label: 'Topics', show: true },
             { href: '/units', label: 'Areas', show: true },
             { href: '/delegation', label: 'Delegation', show: showDelegation },
+            { href: '/voting-cycles', label: 'Votes', show: showVotingCycles },
             { href: '/governance', label: 'Governance', show: showGovernance },
           ].filter((l) => l.show).map((link) => (
             <Link
