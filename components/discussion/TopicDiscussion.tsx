@@ -9,6 +9,7 @@ import { PostVoteButton } from './PostVoteButton'
 import { IntentBadge, IntentPicker } from './IntentBadge'
 import { QuoteBlock } from './QuoteBlock'
 import { ReportButton } from '@/components/moderation/ReportButton'
+import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 
 interface Props {
   issueId: string
@@ -19,6 +20,8 @@ interface Props {
   questionsTaggingEnabled?: boolean
   referencingEnabled?: boolean
   reportingEnabled?: boolean
+  verificationEnabled?: boolean
+  anonymityEnabled?: boolean
 }
 
 export function TopicDiscussion({
@@ -30,10 +33,13 @@ export function TopicDiscussion({
   questionsTaggingEnabled = false,
   referencingEnabled = false,
   reportingEnabled = false,
+  verificationEnabled = false,
+  anonymityEnabled = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [text, setText] = useState('')
   const [intent, setIntent] = useState<OpinionIntent | null>(null)
+  const [isAnonymous, setIsAnonymous] = useState(false)
   const [loading, setLoading] = useState(false)
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
   const [quotingOpinion, setQuotingOpinion] = useState<Opinion | null>(null)
@@ -58,7 +64,7 @@ export function TopicDiscussion({
 
     const { data, error } = await supabase
       .from('opinion')
-      .insert({ issue_id: issueId, author_id: userId, content: text.trim(), intent: intent ?? null })
+      .insert({ issue_id: issueId, author_id: userId, content: text.trim(), intent: intent ?? null, is_anonymous: isAnonymous })
       .select('*, author:member!opinion_author_id_fkey(*)')
       .single()
 
@@ -66,6 +72,7 @@ export function TopicDiscussion({
       setOpinions((prev) => [...prev, { ...(data as unknown as Opinion), replies: [] }])
       setText('')
       setIntent(null)
+      setIsAnonymous(false)
     }
     setLoading(false)
   }
@@ -117,13 +124,16 @@ export function TopicDiscussion({
           <p className="text-sm text-foreground/40">No comments yet. Start the discussion.</p>
         )}
 
-        {topLevel.map((op) => (
+        {topLevel.map((op) => {
+          const authorName = op.is_anonymous ? 'Anonymous' : getMemberDisplayName(op.author)
+          return (
           <div key={op.id} className="space-y-3">
             <div className="flex gap-3">
-              <Avatar name={getMemberDisplayName(op.author)} />
+              <Avatar name={authorName} />
               <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-2 flex-wrap">
-                  <span className="text-sm font-semibold">{getMemberDisplayName(op.author)}</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-sm font-semibold">{authorName}</span>
+                  {verificationEnabled && !op.is_anonymous && (op.author as any)?.is_verified && <VerifiedBadge />}
                   <span className="text-xs text-foreground/40">{formatDate(op.created_at)}</span>
                   {(intentEnabled || questionsTaggingEnabled) && op.intent && (
                     <IntentBadge intent={op.intent} />
@@ -225,7 +235,8 @@ export function TopicDiscussion({
               </div>
             )}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {userId ? (
@@ -234,10 +245,18 @@ export function TopicDiscussion({
             <IntentPicker
               value={intent}
               onChange={setIntent}
-              // If only questionsTagging, only show 'question' button
-              // We handle this inside by passing options — IntentPicker uses full list
-              // so we gate via the intentOptions filtering (handled implicitly by showing/hiding full picker)
             />
+          )}
+          {anonymityEnabled && (
+            <label className="flex items-center gap-2 cursor-pointer text-xs text-foreground/50">
+              <input
+                type="checkbox"
+                checked={isAnonymous}
+                onChange={(e) => setIsAnonymous(e.target.checked)}
+                className="w-3.5 h-3.5 rounded"
+              />
+              Post anonymously
+            </label>
           )}
           <div className="flex gap-2">
             <input
