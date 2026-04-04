@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, BarChart3 } from 'lucide-react'
 import { getMemberDisplayName } from '@/lib/utils'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,8 @@ export default async function AdminAnalyticsPage() {
     .single()
   if (!member?.is_admin) notFound()
 
+  const modules = await getEffectiveModules(user.id)
+
   const [
     issuesByStatusResult,
     totalVotesResult,
@@ -25,6 +28,7 @@ export default async function AdminAnalyticsPage() {
     totalArgumentsResult,
     topMembersResult,
     topTopicsResult,
+    topReputationResult,
   ] = await Promise.all([
     supabase.from('issue').select('status'),
     supabase.from('vote').select('*', { count: 'exact', head: true }),
@@ -39,6 +43,13 @@ export default async function AdminAnalyticsPage() {
       .select('issue_id, issue:issue!inner(title)')
       .is('initiative_id', null)
       .limit(1000),
+    modules.reputation_system
+      ? supabase
+          .from('member')
+          .select('id, display_name, email, reputation_score')
+          .order('reputation_score', { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [] }),
   ])
 
   const issueStatuses = issuesByStatusResult.data ?? []
@@ -85,6 +96,9 @@ export default async function AdminAnalyticsPage() {
 
   const maxMemberCount = Math.max(...topMembers.map((m) => m.count), 1)
   const maxTopicCount = Math.max(...topTopics.map((t) => t.count), 1)
+
+  const topReputation = (topReputationResult as any).data ?? []
+  const maxRepScore = Math.max(...topReputation.map((m: any) => m.reputation_score ?? 0), 1)
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 space-y-8">
@@ -186,6 +200,34 @@ export default async function AdminAnalyticsPage() {
           </div>
         )}
       </div>
+
+      {/* Top by Reputation — Module 4 */}
+      {modules.reputation_system && (
+        <div className="card space-y-4">
+          <h2 className="font-semibold text-lg">Top by Reputation</h2>
+          {topReputation.length === 0 ? (
+            <p className="text-sm text-foreground/40">No reputation scores yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {topReputation.map((m: any, i: number) => (
+                <div key={m.id} className="flex items-center gap-3">
+                  <span className="text-sm text-foreground/60 w-4 shrink-0">#{i + 1}</span>
+                  <span className="text-sm font-medium flex-1 min-w-0 truncate">
+                    {m.display_name ?? m.email ?? 'Unknown'}
+                  </span>
+                  <div className="w-32 bg-sand rounded-full h-3 overflow-hidden">
+                    <div
+                      className="h-full bg-amber-400 rounded-full"
+                      style={{ width: `${Math.round(((m.reputation_score ?? 0) / maxRepScore) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-sm font-semibold w-10 text-right">{m.reputation_score ?? 0} pts</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
