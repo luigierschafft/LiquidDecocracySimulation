@@ -1,14 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import { UserActions } from '@/components/admin/UserActions'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AdminUsersPage() {
   const supabase = createClient()
-  const { data: members } = await supabase
-    .from('member')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const [membersResult, modules] = await Promise.all([
+    supabase.from('member').select('*').order('created_at', { ascending: false }),
+    getEffectiveModules(user?.id),
+  ])
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10 space-y-6">
@@ -16,7 +19,11 @@ export default async function AdminUsersPage() {
         <h1 className="text-3xl font-bold">Members</h1>
         <p className="text-foreground/60 mt-1">Approve new members and manage admin access</p>
       </div>
-      <UserActions members={members ?? []} />
+      <UserActions
+        members={membersResult.data ?? []}
+        moderatorEnabled={modules.roles_permissions}
+        verificationEnabled={modules.verification}
+      />
     </div>
   )
 }
