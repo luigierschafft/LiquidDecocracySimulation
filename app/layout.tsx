@@ -27,7 +27,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
-        <Navbar showDelegation={modules.delegation} />
+        <Navbar
+          showDelegation={modules.delegation}
+          showGovernance={modules.governance_rules}
+          showNotifications={modules.notifications}
+        />
         <main className="min-h-screen">{children}</main>
       </body>
     </html>

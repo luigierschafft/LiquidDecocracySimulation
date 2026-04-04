@@ -6,12 +6,15 @@ import { createClient } from '@/lib/supabase/browser'
 import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { cn } from '@/lib/utils'
+import { NotificationBell } from './NotificationBell'
 
 interface NavbarProps {
   showDelegation?: boolean
+  showGovernance?: boolean
+  showNotifications?: boolean
 }
 
-export function Navbar({ showDelegation = true }: NavbarProps) {
+export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false }: NavbarProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const supabase = createClient()
@@ -42,6 +45,7 @@ export function Navbar({ showDelegation = true }: NavbarProps) {
             { href: '/proposals', label: 'Topics', show: true },
             { href: '/units', label: 'Areas', show: true },
             { href: '/delegation', label: 'Delegation', show: showDelegation },
+            { href: '/governance', label: 'Governance', show: showGovernance },
           ].filter((l) => l.show).map((link) => (
             <Link
               key={link.href}
@@ -61,6 +65,7 @@ export function Navbar({ showDelegation = true }: NavbarProps) {
         <div className="flex items-center gap-2">
           {user ? (
             <>
+              {showNotifications && <NotificationBell userId={user.id} />}
               <Link href="/profile" className="text-sm text-foreground/70 hover:text-foreground px-2">
                 Profile
               </Link>
