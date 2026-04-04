@@ -1,13 +1,22 @@
 import type { VoteCount } from '@/lib/types'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Weight } from 'lucide-react'
+
+// Module 41: weighted vote counts (delegation weight included)
+export interface WeightedVoteCount {
+  approveWeight: number
+  opposeWeight: number
+  abstainWeight: number
+  totalWeight: number
+}
 
 interface VoteBarProps {
   votes: VoteCount
   quorum?: number
   showLowResistance?: boolean
+  weightedVotes?: WeightedVoteCount
 }
 
-export function VoteBar({ votes, quorum, showLowResistance }: VoteBarProps) {
+export function VoteBar({ votes, quorum, showLowResistance, weightedVotes }: VoteBarProps) {
   const { approve, oppose, abstain, total, approvalPercent } = votes
   const approvePct = total > 0 ? (approve / total) * 100 : 0
   const opposePct = total > 0 ? (oppose / total) * 100 : 0
@@ -54,6 +63,20 @@ export function VoteBar({ votes, quorum, showLowResistance }: VoteBarProps) {
           {oppose} oppose
         </span>
       </div>
+
+      {/* Module 41: Weighted vote totals */}
+      {weightedVotes && weightedVotes.totalWeight > 0 && (
+        <div className="flex items-center gap-2 text-xs text-foreground/50 border-t border-sand pt-2 mt-1">
+          <Weight className="w-3.5 h-3.5 text-accent flex-shrink-0" />
+          <span className="font-medium text-foreground/70">Weighted:</span>
+          <span className="text-auro-green">{weightedVotes.approveWeight} approve</span>
+          <span>·</span>
+          <span className="text-red-400">{weightedVotes.opposeWeight} oppose</span>
+          <span>·</span>
+          <span>{weightedVotes.abstainWeight} abstain</span>
+          <span className="ml-auto">(total {weightedVotes.totalWeight})</span>
+        </div>
+      )}
 
       {/* Quorum indicator */}
       {quorum !== undefined && (

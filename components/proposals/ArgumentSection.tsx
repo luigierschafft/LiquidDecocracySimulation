@@ -4,15 +4,16 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Argument } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
-import { ThumbsUp, ThumbsDown, Plus } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Plus, Star } from 'lucide-react'
 
 interface Props {
   initiativeId: string
   arguments: Argument[]
   userId: string | null
+  weightingEnabled?: boolean
 }
 
-export function ArgumentSection({ initiativeId, arguments: initial, userId }: Props) {
+export function ArgumentSection({ initiativeId, arguments: initial, userId, weightingEnabled = false }: Props) {
   const [args, setArgs] = useState<Argument[]>(initial)
   const [stance, setStance] = useState<'pro' | 'contra'>('pro')
   const [content, setContent] = useState('')
@@ -20,8 +21,18 @@ export function ArgumentSection({ initiativeId, arguments: initial, userId }: Pr
   const [showForm, setShowForm] = useState(false)
   const supabase = createClient()
 
-  const pros = args.filter((a) => a.stance === 'pro')
-  const contras = args.filter((a) => a.stance === 'contra')
+  // Module 42: sort by author reputation when weighting enabled
+  function sortByWeight(list: Argument[]) {
+    if (!weightingEnabled) return list
+    return [...list].sort((a, b) => {
+      const repA = (a.author as any)?.reputation_score ?? 0
+      const repB = (b.author as any)?.reputation_score ?? 0
+      return repB - repA
+    })
+  }
+
+  const pros = sortByWeight(args.filter((a) => a.stance === 'pro'))
+  const contras = sortByWeight(args.filter((a) => a.stance === 'contra'))
 
   async function addArgument(e: React.FormEvent) {
     e.preventDefault()
@@ -43,8 +54,16 @@ export function ArgumentSection({ initiativeId, arguments: initial, userId }: Pr
   }
 
   function ArgCard({ arg }: { arg: Argument }) {
+    const rep = (arg.author as any)?.reputation_score as number | undefined
+    const isHighRep = weightingEnabled && rep != null && rep >= 50
     return (
-      <div className="rounded-lg border border-sand bg-background p-3 space-y-1.5">
+      <div className={`rounded-lg border bg-background p-3 space-y-1.5 ${isHighRep ? 'border-accent/30' : 'border-sand'}`}>
+        {isHighRep && (
+          <div className="flex items-center gap-1 text-[10px] text-accent font-medium">
+            <Star className="w-3 h-3 fill-accent" />
+            High rep · {rep}
+          </div>
+        )}
         <p className="text-sm text-foreground/80 leading-relaxed">{arg.content}</p>
         <p className="text-xs text-foreground/40">
           {getMemberDisplayName(arg.author)} · {formatDate(arg.created_at)}

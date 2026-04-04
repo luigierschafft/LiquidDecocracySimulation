@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/Badge'
-import { VoteBar } from '@/components/proposals/VoteBar'
+import { VoteBar, type WeightedVoteCount } from '@/components/proposals/VoteBar'
 import { VoteButton } from '@/components/proposals/VoteButton'
 import { AddProposalForm } from '@/components/proposals/AddProposalForm'
 import { DelegationStatus } from '@/components/proposals/DelegationStatus'
@@ -14,6 +14,8 @@ import { formatDate, statusLabel, getStatusVariant, getMemberDisplayName } from 
 import ReactMarkdown from 'react-markdown'
 import type { Issue, Initiative, Opinion, VoteValue, RankedVote } from '@/lib/types'
 import { Calendar, User, FileText, Clock, CheckCircle2, FileEdit } from 'lucide-react'
+import { RevisionForm } from '@/components/proposals/RevisionForm'
+import { IterationButton } from '@/components/proposals/IterationButton'
 import Link from 'next/link'
 import { OpinionSection } from '@/components/proposals/OpinionSection'
 import { ScaleVoteBar } from '@/components/proposals/ScaleVoteBar'
@@ -164,6 +166,45 @@ export default async function ProposalDetailPage({ params }: Props) {
     }
   }
 
+  // Module 41: Vote weighting — compute delegation-weighted vote counts
+  type WeightedVoteMap = Record<string, WeightedVoteCount>
+  let weightedVoteMap: WeightedVoteMap = {}
+  if (modules.vote_weighting && initiatives.length > 0) {
+    // Load all global delegations to compute delegate weights
+    const { data: allDelegations } = await supabase
+      .from('delegation')
+      .select('from_member_id, to_member_id')
+      .is('area_id', null)
+      .is('unit_id', null)
+      .is('issue_id', null)
+
+    const delegRows = allDelegations ?? []
+
+    for (const init of initiatives) {
+      const votes = init.votes ?? []
+      // Build weight map: each voter's weight = 1 + number of people who delegate to them
+      const voterWeights = new Map<string, number>()
+      for (const v of votes) {
+        const memberId = v.member_id
+        const delegatorCount = delegRows.filter((d) => d.to_member_id === memberId).length
+        voterWeights.set(memberId, 1 + delegatorCount)
+      }
+      let approveWeight = 0, opposeWeight = 0, abstainWeight = 0
+      for (const v of votes) {
+        const w = voterWeights.get(v.member_id) ?? 1
+        if (v.value === 'approve') approveWeight += w
+        else if (v.value === 'oppose') opposeWeight += w
+        else abstainWeight += w
+      }
+      weightedVoteMap[init.id] = {
+        approveWeight,
+        opposeWeight,
+        abstainWeight,
+        totalWeight: approveWeight + opposeWeight + abstainWeight,
+      }
+    }
+  }
+
   const acceptedId = typedIssue.accepted_initiative_id
 
   const votingDeadlineDays = typedIssue.status === 'voting' ? daysUntil(typedIssue.voting_at) : null
@@ -178,9 +219,15 @@ export default async function ProposalDetailPage({ params }: Props) {
       <div className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-bold leading-tight">{typedIssue.title}</h1>
-          <Badge variant={getStatusVariant(typedIssue.status)} className="flex-shrink-0 mt-1">
-            {statusLabel(typedIssue.status)}
-          </Badge>
+          <div className="flex items-center gap-2 flex-shrink-0 mt-1">
+            <Badge variant={getStatusVariant(typedIssue.status)}>
+              {statusLabel(typedIssue.status)}
+            </Badge>
+            {/* Module 69: Iteration loop re-open button for admins */}
+            {modules.iteration_loops && isAdmin && (
+              <IterationButton issueId={typedIssue.id} currentStatus={typedIssue.status} />
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-4 text-sm text-foreground/50 flex-wrap">
           {typedIssue.area && (
@@ -264,6 +311,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           reportingEnabled={modules.reporting_system}
           verificationEnabled={modules.verification}
           anonymityEnabled={modules.anonymity}
+          mentionsEnabled={modules.mentions}
         />
       )}
 
@@ -340,12 +388,22 @@ export default async function ProposalDetailPage({ params }: Props) {
                   </div>
                 )}
 
-                {/* Arguments — Module 10 */}
+                {/* Arguments — Module 10/42 */}
                 {modules.pro_contra_arguments && (
                   <ArgumentSection
                     initiativeId={initiative.id}
                     arguments={(initiative as any).arguments ?? []}
                     userId={user?.id ?? null}
+                    weightingEnabled={modules.argument_weighting}
+                  />
+                )}
+
+                {/* Revision round — Module 73 */}
+                {modules.revision_rounds && typedIssue.status === 'verification' && isAccepted && user?.id === initiative.author_id && (
+                  <RevisionForm
+                    initiativeId={initiative.id}
+                    currentContent={initiative.content}
+                    userId={user.id}
                   />
                 )}
 
@@ -363,6 +421,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                               votes={votes}
                               quorum={quorum}
                               showLowResistance={modules.low_resistance_indicator || typedIssue.status === 'voting'}
+                              weightedVotes={modules.vote_weighting ? weightedVoteMap[initiative.id] : undefined}
                             />
                           </div>
                           {modules.alignment_meter && <AlignmentMeter votes={votes} />}
