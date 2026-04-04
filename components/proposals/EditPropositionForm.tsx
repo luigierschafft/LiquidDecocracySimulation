@@ -8,15 +8,22 @@ interface Props {
   initiativeId: string
   initialTitle: string
   initialContent: string
+  initialEstimatedCost?: string | null
+  initialTimeline?: string | null
+  initialAffectedAreas?: string[] | null
   onSaved: (title: string, content: string) => void
   versioningEnabled?: boolean
+  structuredEnabled?: boolean
   userId?: string | null
 }
 
-export function EditPropositionForm({ initiativeId, initialTitle, initialContent, onSaved, versioningEnabled = false, userId }: Props) {
+export function EditPropositionForm({ initiativeId, initialTitle, initialContent, initialEstimatedCost, initialTimeline, initialAffectedAreas, onSaved, versioningEnabled = false, structuredEnabled = false, userId }: Props) {
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(initialTitle)
   const [content, setContent] = useState(initialContent)
+  const [estimatedCost, setEstimatedCost] = useState(initialEstimatedCost ?? '')
+  const [timeline, setTimeline] = useState(initialTimeline ?? '')
+  const [affectedAreas, setAffectedAreas] = useState((initialAffectedAreas ?? []).join(', '))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const supabase = createClient()
