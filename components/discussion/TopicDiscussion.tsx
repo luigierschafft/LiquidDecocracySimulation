@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion, OpinionIntent } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
-import { MessageSquare, Send, Reply, Quote, Network } from 'lucide-react'
+import { MessageSquare, Send, Reply, Quote, Network, Trash2 } from 'lucide-react'
 import { PostVoteButton } from './PostVoteButton'
 import { IntentBadge, IntentPicker } from './IntentBadge'
 import { QuoteBlock } from './QuoteBlock'
@@ -28,6 +28,7 @@ interface Props {
   journeyModeEnabled?: boolean
   aiModerationEnabled?: boolean
   argumentMapEnabled?: boolean
+  isModerator?: boolean
 }
 
 export function TopicDiscussion({
@@ -45,6 +46,7 @@ export function TopicDiscussion({
   journeyModeEnabled = false,
   aiModerationEnabled = false,
   argumentMapEnabled = false,
+  isModerator = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
   const [mapView, setMapView] = useState(false)
@@ -155,6 +157,11 @@ export function TopicDiscussion({
     setReplyLoading(false)
   }
 
+  async function deleteOpinion(id: string) {
+    await supabase.from('opinion').delete().eq('id', id)
+    setOpinions((prev) => prev.filter((o) => o.id !== id))
+  }
+
   function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' }) {
     const cls = size === 'sm' ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm'
     return (
@@ -255,6 +262,15 @@ export function TopicDiscussion({
                   )}
                   {reportingEnabled && userId && userId !== op.author_id && (
                     <ReportButton targetType="opinion" targetId={op.id} userId={userId} />
+                  )}
+                  {isModerator && (
+                    <button
+                      onClick={() => deleteOpinion(op.id)}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-600 transition-colors font-medium"
+                      title="Delete (moderator)"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   )}
                 </div>
               </div>

@@ -124,6 +124,7 @@ export default async function ProposalDetailPage({ params }: Props) {
   // User data: delegations + admin status + ranked votes
   let userDelegations: any[] = []
   let isAdmin = false
+  let isModerator = false
   let userRankedVotes: RankedVote[] = []
   if (user) {
     const [delegResult, memberResult, rankedResult] = await Promise.all([
@@ -131,7 +132,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         .from('delegation')
         .select('*, to_member:member!delegation_to_member_id_fkey(id, display_name, email)')
         .eq('from_member_id', user.id),
-      supabase.from('member').select('is_admin').eq('id', user.id).single(),
+      supabase.from('member').select('is_admin, is_moderator').eq('id', user.id).single(),
       isSchulze
         ? supabase
             .from('ranked_vote')
@@ -142,6 +143,7 @@ export default async function ProposalDetailPage({ params }: Props) {
     ])
     userDelegations = delegResult.data ?? []
     isAdmin = memberResult.data?.is_admin ?? false
+    isModerator = memberResult.data?.is_moderator ?? false
     userRankedVotes = (rankedResult.data ?? []) as RankedVote[]
   }
 
@@ -399,6 +401,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           journeyModeEnabled={modules.argument_journey_mode}
           aiModerationEnabled={modules.ai_moderation}
           argumentMapEnabled={modules.argument_map}
+          isModerator={modules.roles_permissions && (isAdmin || isModerator)}
         />
       )}
 
