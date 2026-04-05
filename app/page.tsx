@@ -37,7 +37,6 @@ export default async function LandingPage() {
             {FLOW_STEPS.map((s, i) => (
               <div key={s.step} className="flex items-center">
                 <div className="flex flex-col items-center justify-center bg-white border border-accent/20 rounded-xl shadow-sm px-3 py-3 w-[88px] h-[72px] text-center">
-                  <span className="text-[10px] font-semibold text-accent/60 leading-none mb-1">{s.step}</span>
                   <span className="text-[11px] font-semibold text-foreground/80 leading-tight">{s.label}</span>
                 </div>
                 {i < FLOW_STEPS.length - 1 && (
