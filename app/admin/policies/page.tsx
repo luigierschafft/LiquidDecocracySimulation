@@ -16,6 +16,7 @@ export default async function AdminPoliciesPage() {
         items={policies ?? []}
         fields={[
           { key: 'name', label: 'Policy Name', required: true },
+          { key: 'description', label: 'Description (shown to users)' },
           { key: 'admission_days', label: 'Admission Days', type: 'number', required: true },
           { key: 'discussion_days', label: 'Discussion Days', type: 'number', required: true },
           { key: 'verification_days', label: 'Verification Days', type: 'number', required: true },

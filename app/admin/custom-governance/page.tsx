@@ -51,7 +51,12 @@ export default async function CustomGovernancePage() {
         {(policies ?? []).map((policy) => (
           <form key={policy.id} action={updatePolicy} className="card space-y-4">
             <input type="hidden" name="id" value={policy.id} />
-            <h2 className="font-semibold text-lg">{policy.name}</h2>
+            <div>
+              <h2 className="font-semibold text-lg">{policy.name}</h2>
+              {(policy as any).description && (
+                <p className="text-sm text-foreground/50 mt-0.5 leading-snug">{(policy as any).description}</p>
+              )}
+            </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {[
@@ -84,10 +89,17 @@ export default async function CustomGovernancePage() {
                 defaultValue={(policy as any).voting_method ?? 'approval'}
                 className="input w-full text-sm py-1.5"
               >
-                <option value="approval">Approval Voting (Yes/No/Abstain)</option>
-                <option value="schulze">Schulze / Ranked Choice (drag to rank)</option>
+                <option value="approval">Approval Voting (Yes / No / Abstain)</option>
+                <option value="schulze">Ranked Choice — Schulze Method</option>
               </select>
-              <p className="text-[11px] text-foreground/40">Schulze method requires the Ranking Voting module to be enabled.</p>
+              <div className="space-y-1 mt-1">
+                <p className="text-[11px] text-foreground/40">
+                  <span className="font-medium text-foreground/60">Approval Voting:</span> Each voter casts Yes/No/Abstain on every proposal independently. The proposal with the most approvals wins when quorum is met.
+                </p>
+                <p className="text-[11px] text-foreground/40">
+                  <span className="font-medium text-foreground/60">Ranked Choice (Schulze):</span> Voters rank proposals by preference. The Schulze method finds the Condorcet winner — the option that beats all others in head-to-head comparisons. Requires the Ranking Voting module.
+                </p>
+              </div>
             </div>
 
             <div className="flex justify-end">

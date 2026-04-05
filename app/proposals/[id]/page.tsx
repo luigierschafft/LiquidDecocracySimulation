@@ -261,6 +261,15 @@ export default async function ProposalDetailPage({ params }: Props) {
           {typedIssue.area && (
             <span>{typedIssue.area.unit?.name} · {typedIssue.area.name}</span>
           )}
+          {policy && (
+            <span
+              className="flex items-center gap-1"
+              title={(policy as any).description ?? undefined}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              {policy.name}
+            </span>
+          )}
           <span className="flex items-center gap-1">
             <Calendar className="w-3.5 h-3.5" />
             {formatDate(typedIssue.created_at)}
