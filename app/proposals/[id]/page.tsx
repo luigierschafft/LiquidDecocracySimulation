@@ -33,6 +33,7 @@ import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
 import { getEffectiveModules } from '@/lib/modules'
 import { publishDraft } from './actions'
+import { MergeProposalsModal } from '@/components/proposals/MergeProposalsModal'
 
 export const dynamic = 'force-dynamic'
 
@@ -419,15 +420,24 @@ export default async function ProposalDetailPage({ params }: Props) {
       {/* Propositions section — Module 16 */}
       {modules.thread_system && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <FileText className="w-5 h-5 text-accent" />
               Propositions
               <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
             </h2>
-            {modules.proposal_creation && canSubmitProposal && typedIssue.status !== 'closed' && (
-              <AddProposalForm issueId={typedIssue.id} userId={user!.id} draftEnabled={modules.proposal_status} structuredEnabled={modules.structured_proposals} />
-            )}
+            <div className="flex items-center gap-2 flex-wrap">
+              {modules.merging && isAdmin && initiatives.length >= 2 && user && (
+                <MergeProposalsModal
+                  issueId={typedIssue.id}
+                  initiatives={initiatives}
+                  userId={user.id}
+                />
+              )}
+              {modules.proposal_creation && canSubmitProposal && typedIssue.status !== 'closed' && (
+                <AddProposalForm issueId={typedIssue.id} userId={user!.id} draftEnabled={modules.proposal_status} structuredEnabled={modules.structured_proposals} />
+              )}
+            </div>
           </div>
 
           {initiatives.length === 0 && (
