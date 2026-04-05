@@ -45,7 +45,7 @@ export default async function LandingPage() {
           {/* Platform description */}
           <div className="text-left space-y-3 pt-4 border-t border-sand">
             <p className="text-sm text-foreground/60 leading-relaxed">
-              Flow Democracy is Auroville's participatory governance platform. Every community member can raise topics, discuss ideas, submit proposals and vote — directly or by delegating their vote to someone they trust.
+              Flow Democracy is Auroville&apos;s participatory governance platform. Every community member can raise topics, discuss ideas, submit proposals and vote — directly or by delegating their vote to someone they trust.
             </p>
             <p className="text-sm text-foreground/60 leading-relaxed">
               Each topic moves through a structured process:

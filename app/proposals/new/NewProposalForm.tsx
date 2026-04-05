@@ -51,6 +51,7 @@ export function NewProposalForm() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold">New Topic</h1>
         <p className="text-foreground/60 mt-1">Start a discussion for the community. You can add proposals after creating the topic.</p>
+
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-6">
