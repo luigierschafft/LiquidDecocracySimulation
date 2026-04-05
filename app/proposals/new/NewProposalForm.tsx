@@ -4,26 +4,19 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Button } from '@/components/ui/Button'
-import type { Area, Unit } from '@/lib/types'
+import type { Area } from '@/lib/types'
 
 export function NewProposalForm() {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [units, setUnits] = useState<Unit[]>([])
   const [areas, setAreas] = useState<Area[]>([])
-  const [selectedUnit, setSelectedUnit] = useState('')
   const [form, setForm] = useState({ title: '', areaId: '' })
 
   useEffect(() => {
-    supabase.from('unit').select('*').order('name').then(({ data }) => setUnits(data ?? []))
+    supabase.from('area').select('*').order('name').then(({ data }) => setAreas(data ?? []))
   }, [])
-
-  useEffect(() => {
-    if (!selectedUnit) { setAreas([]); return }
-    supabase.from('area').select('*').eq('unit_id', selectedUnit).order('name').then(({ data }) => setAreas(data ?? []))
-  }, [selectedUnit])
 
   async function handleSubmit(e: React.FormEvent, asDraft = false) {
     e.preventDefault()
@@ -73,31 +66,16 @@ export function NewProposalForm() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1.5">Unit (optional)</label>
-            <select
-              value={selectedUnit}
-              onChange={(e) => { setSelectedUnit(e.target.value); setForm((f) => ({ ...f, areaId: '' })) }}
-              className="input"
-            >
-              <option value="">Select unit…</option>
-              {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-            </select>
-          </div>
-          {areas.length > 0 && (
-            <div>
-              <label className="block text-sm font-medium mb-1.5">Area</label>
-              <select
-                value={form.areaId}
-                onChange={(e) => setForm((f) => ({ ...f, areaId: e.target.value }))}
-                className="input"
-              >
-                <option value="">Select area…</option>
-                {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
-              </select>
-            </div>
-          )}
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Area (optional)</label>
+          <select
+            value={form.areaId}
+            onChange={(e) => setForm((f) => ({ ...f, areaId: e.target.value }))}
+            className="input"
+          >
+            <option value="">Select area…</option>
+            {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
         </div>
 
         {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}

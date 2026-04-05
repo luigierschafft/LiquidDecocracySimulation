@@ -259,7 +259,7 @@ export default async function ProposalDetailPage({ params }: Props) {
         </div>
         <div className="flex items-center gap-4 text-sm text-foreground/50 flex-wrap">
           {typedIssue.area && (
-            <span>{typedIssue.area.unit?.name} · {typedIssue.area.name}</span>
+            <span>{typedIssue.area.name}</span>
           )}
           {policy && (
             <span

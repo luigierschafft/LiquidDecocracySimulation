@@ -10,18 +10,15 @@ export default async function AdminPage() {
     { count: memberCount },
     { count: pendingCount },
     { count: issueCount },
-    { count: unitCount },
   ] = await Promise.all([
     supabase.from('member').select('*', { count: 'exact', head: true }),
     supabase.from('member').select('*', { count: 'exact', head: true }).eq('is_approved', false),
     supabase.from('issue').select('*', { count: 'exact', head: true }),
-    supabase.from('unit').select('*', { count: 'exact', head: true }),
   ])
 
   const adminLinks = [
     { href: '/admin/users', icon: <Users className="w-5 h-5" />, label: 'Users', desc: 'Approve members, set admin roles' },
-    { href: '/admin/units', icon: <MapPin className="w-5 h-5" />, label: 'Units', desc: 'Manage governance units' },
-    { href: '/admin/areas', icon: <MapPin className="w-5 h-5" />, label: 'Areas', desc: 'Manage sub-areas per unit' },
+    { href: '/admin/areas', icon: <MapPin className="w-5 h-5" />, label: 'Areas', desc: 'Manage governance areas' },
     { href: '/admin/policies', icon: <Settings className="w-5 h-5" />, label: 'Policies', desc: 'Configure lifecycle timings' },
     { href: '/admin/settings', icon: <SlidersHorizontal className="w-5 h-5" />, label: 'Settings', desc: 'Platform-wide configuration' },
     { href: '/admin/modules', icon: <Puzzle className="w-5 h-5" />, label: 'Modules', desc: 'Enable/disable platform modules' },
@@ -45,7 +42,6 @@ export default async function AdminPage() {
           { label: 'Total Members', value: memberCount ?? 0 },
           { label: 'Pending Approval', value: pendingCount ?? 0, urgent: (pendingCount ?? 0) > 0 },
           { label: 'Total Issues', value: issueCount ?? 0 },
-          { label: 'Units', value: unitCount ?? 0 },
         ].map((stat) => (
           <div key={stat.label} className={`card text-center ${stat.urgent ? 'border-accent/50 bg-accent/5' : ''}`}>
             <div className={`text-2xl font-bold ${stat.urgent ? 'text-accent' : 'text-foreground'}`}>{stat.value}</div>

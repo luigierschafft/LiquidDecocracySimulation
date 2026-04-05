@@ -82,7 +82,10 @@
       "Bash(find \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" -name \"*.ts\" -o -name \"*.tsx\" | xargs grep -l \"from\\('opinion'\\)\\\\|from.*opinion\\\\|'/api.*opinion\" 2>/dev/null | head -20)",
       "Bash(grep -l \"opinion\" \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\supabase\\\\migrations\"/*.sql | xargs -I {} basename {})",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && find . -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -path \"*/app/api/*\" ! -path \"*/.claude/*\" | xargs grep -l \"opinion\" 2>/dev/null)",
-      "Bash(find /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/supabase/migrations -name \"*.sql\" | xargs grep -l \"voting_method\\\\|schulze\" 2>/dev/null)"
+      "Bash(find /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/supabase/migrations -name \"*.sql\" | xargs grep -l \"voting_method\\\\|schulze\" 2>/dev/null)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && vercel --prod 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx next dev 2>&1)",
+      "Bash(start http://localhost:3001)"
     ]
   }
 }

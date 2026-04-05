@@ -18,13 +18,13 @@ export default async function VotingCyclesPage() {
 
   const { data: voting } = await supabase
     .from('issue')
-    .select('id, title, voting_at, created_at, area:area(name, unit:unit(name))')
+    .select('id, title, voting_at, created_at, area:area(name)')
     .eq('status', 'voting')
     .order('voting_at', { ascending: true })
 
   const { data: upcoming } = await supabase
     .from('issue')
-    .select('id, title, discussion_at, verification_at, created_at, area:area(name, unit:unit(name))')
+    .select('id, title, discussion_at, verification_at, created_at, area:area(name)')
     .in('status', ['admission', 'discussion', 'verification'])
     .order('created_at', { ascending: false })
 
@@ -64,7 +64,7 @@ export default async function VotingCyclesPage() {
                   <div>
                     <p className="font-medium">{issue.title}</p>
                     <p className="text-xs text-foreground/50 mt-0.5">
-                      {(issue.area as any)?.unit?.name} · {(issue.area as any)?.name}
+                      {(issue.area as any)?.name}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0 space-y-1">
@@ -92,7 +92,7 @@ export default async function VotingCyclesPage() {
                   <div>
                     <p className="font-medium">{issue.title}</p>
                     <p className="text-xs text-foreground/50 mt-0.5">
-                      {issue.area?.unit?.name} · {issue.area?.name}
+                      {issue.area?.name}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0 space-y-1">

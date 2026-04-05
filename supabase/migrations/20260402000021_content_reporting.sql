@@ -1,4 +1,7 @@
-CREATE TYPE IF NOT EXISTS report_reason AS ENUM ('spam', 'harassment', 'misinformation', 'off_topic', 'other');
+DO $$ BEGIN
+  CREATE TYPE report_reason AS ENUM ('spam', 'harassment', 'misinformation', 'off_topic', 'other');
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
 CREATE TABLE IF NOT EXISTS content_report (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   reporter_id UUID NOT NULL REFERENCES member(id) ON DELETE CASCADE,
