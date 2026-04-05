@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { DelegationNetwork } from '@/components/delegation/DelegationNetwork'
+import { DelegationGraph } from '@/components/delegation/DelegationGraph'
 import { DelegationPathView } from '@/components/delegation/DelegationPathView'
 import Link from 'next/link'
 import { ArrowLeft, Network } from 'lucide-react'
@@ -26,6 +27,8 @@ export default async function DelegationNetworkPage() {
     .order('created_at', { ascending: true })
 
   const rows = (delegations ?? []) as Array<{
+    from_member_id: string
+    to_member_id: string
     from_member: { id: string; display_name: string | null; email: string } | null
     to_member: { id: string; display_name: string | null; email: string } | null
   }>
@@ -52,6 +55,11 @@ export default async function DelegationNetworkPage() {
           currentUserId={user.id}
         />
       )}
+
+      <DelegationGraph
+        delegations={rows}
+        currentUserId={user?.id ?? null}
+      />
 
       <DelegationNetwork
         delegations={rows as unknown as Delegation[]}
