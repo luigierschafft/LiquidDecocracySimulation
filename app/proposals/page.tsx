@@ -39,6 +39,7 @@ export default async function ProposalsPage({ searchParams }: Props) {
         votes:vote(*)
       )
     `)
+    .neq('status', 'draft')
     .order('created_at', { ascending: false })
 
   if (filterByStatus) {

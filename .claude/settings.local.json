@@ -68,7 +68,20 @@
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -40)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -30)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1 | head -20)",
-      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1)"
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx tsc --noEmit 2>&1)",
+      "Bash(npx tsc:*)",
+      "Bash(git rm:*)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx vercel ls 2>&1 | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && sleep 30 && npx vercel ls 2>&1 | head -5)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx vercel logs https://liquid-decocracy-simulation-495h-dnogq8y8r.vercel.app 2>&1 | tail -30)",
+      "Bash(npx vercel:*)",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npm install @anthropic-ai/sdk --save 2>&1 | tail -5)",
+      "Bash(find /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville -name \"*.tsx\" | xargs grep -l \"module\\\\|Module\" 2>/dev/null | head -20)",
+      "Bash(curl -s \"https://utskycikzhimasfeixcs.supabase.co/rest/v1/module?select=number,name,description&order=number&limit=10\" \\\\\n  -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t5Y2lremhpbWFzZmVpeGNzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDU5NTk1OSwiZXhwIjoyMDkwMTcxOTU5fQ.9YAbccTvp6nyqObtnuc1t-hMEfKFp937wQynLcO2LJs\" \\\\\n  -H \"Accept-Profile: v3\")",
+      "Bash(curl -s \"https://utskycikzhimasfeixcs.supabase.co/rest/v1/module?select=number,name,description&order=number&limit=10\" \\\\\n  -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t5Y2lremhpbWFzZmVpeGNzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDU5NTk1OSwiZXhwIjoyMDkwMTcxOTU5fQ.9YAbccTvp6nyqObtnuc1t-hMEfKFp937wQynLcO2LJs\")",
+      "Bash(find \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" -name \"*.ts\" -o -name \"*.tsx\" | xargs grep -l \"from\\('opinion'\\)\\\\|from.*opinion\\\\|'/api.*opinion\" 2>/dev/null | head -20)",
+      "Bash(grep -l \"opinion\" \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\supabase\\\\migrations\"/*.sql | xargs -I {} basename {})",
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && find . -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -path \"*/app/api/*\" ! -path \"*/.claude/*\" | xargs grep -l \"opinion\" 2>/dev/null)"
     ]
   }
 }

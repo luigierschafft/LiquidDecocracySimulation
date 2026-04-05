@@ -32,6 +32,7 @@ import { ProContraSection } from '@/components/discussion/ProContraSection'
 import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
 import { getEffectiveModules } from '@/lib/modules'
+import { publishDraft } from './actions'
 
 export const dynamic = 'force-dynamic'
 
@@ -260,6 +261,19 @@ export default async function ProposalDetailPage({ params }: Props) {
           )}
         </div>
       </div>
+
+      {/* Draft banner — Module 23 */}
+      {typedIssue.status === 'draft' && (user?.id === typedIssue.author_id || isAdmin) && (
+        <div className="rounded-xl border border-stone-300 bg-stone-50 px-5 py-4 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <p className="font-semibold text-stone-700">This topic is a Draft</p>
+            <p className="text-sm text-stone-500 mt-0.5">Only you can see it. Publish to make it visible to the community.</p>
+          </div>
+          <form action={publishDraft.bind(null, typedIssue.id)}>
+            <button type="submit" className="btn-primary">Publish Topic</button>
+          </form>
+        </div>
+      )}
 
       {/* Tags — Module 62 */}
       {modules.tagging_system && (

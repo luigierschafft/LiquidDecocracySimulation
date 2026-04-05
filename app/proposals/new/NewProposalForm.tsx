@@ -25,7 +25,7 @@ export function NewProposalForm() {
     supabase.from('area').select('*').eq('unit_id', selectedUnit).order('name').then(({ data }) => setAreas(data ?? []))
   }, [selectedUnit])
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent, asDraft = false) {
     e.preventDefault()
     setLoading(true)
     setError(null)
@@ -39,7 +39,7 @@ export function NewProposalForm() {
         title: form.title,
         author_id: user.id,
         area_id: form.areaId || null,
-        status: 'admission',
+        status: asDraft ? 'draft' : 'admission',
       })
       .select()
       .single()
@@ -106,8 +106,16 @@ export function NewProposalForm() {
           <button type="button" onClick={() => router.back()} className="btn-secondary">
             Cancel
           </button>
+          <button
+            type="button"
+            disabled={loading || !form.title.trim()}
+            onClick={(e) => handleSubmit(e as any, true)}
+            className="btn-secondary"
+          >
+            Save as Draft
+          </button>
           <Button type="submit" loading={loading}>
-            Create Topic
+            Publish Topic
           </Button>
         </div>
       </form>

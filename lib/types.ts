@@ -1,4 +1,4 @@
-export type IssueStatus = 'admission' | 'discussion' | 'verification' | 'voting' | 'closed'
+export type IssueStatus = 'draft' | 'admission' | 'discussion' | 'verification' | 'voting' | 'closed'
 export type VoteValue = 'approve' | 'oppose' | 'abstain'
 export type TopicCreationSetting = 'all_members' | 'admin_only'
 export type ProposalCreationSetting = 'all_members' | 'admin_only'
