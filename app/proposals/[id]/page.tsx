@@ -28,6 +28,7 @@ import { ScaleVoteBar } from '@/components/proposals/ScaleVoteBar'
 import { AlignmentMeter } from '@/components/proposals/AlignmentMeter'
 import { TagList } from '@/components/proposals/TagList'
 import { TopicDiscussion } from '@/components/discussion/TopicDiscussion'
+import { ProContraSection } from '@/components/discussion/ProContraSection'
 import { PhaseProgress } from '@/components/proposals/PhaseProgress'
 import { getAppSetting } from '@/lib/data/settings'
 import { getEffectiveModules } from '@/lib/modules'
@@ -335,6 +336,18 @@ export default async function ProposalDetailPage({ params }: Props) {
             </Link>
           </div>
         </div>
+      )}
+
+      {/* Pro/Contra Arguments — Module 10 */}
+      {modules.pro_contra_arguments && (
+        <ProContraSection
+          issueId={typedIssue.id}
+          opinions={(topicOpinionsResult.data ?? []).filter(
+            (o: any) => (o.intent === 'support' || o.intent === 'concern') && !o.parent_id
+          ) as unknown as Opinion[]}
+          userId={user?.id ?? null}
+          postVotingEnabled={modules.post_voting}
+        />
       )}
 
       {/* Topic-level discussion — Module 8/11/13/15 */}
