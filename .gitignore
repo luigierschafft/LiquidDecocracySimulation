@@ -39,3 +39,4 @@ LQFB_VM*/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.claude/worktrees/
