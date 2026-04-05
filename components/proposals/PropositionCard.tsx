@@ -6,7 +6,7 @@ import { ForkButton } from './ForkButton'
 import { VersionHistory } from './VersionHistory'
 import type { Initiative } from '@/lib/types'
 import { getMemberDisplayName, formatDate } from '@/lib/utils'
-import { Trophy, FileEdit, GitFork } from 'lucide-react'
+import { Trophy, FileEdit, GitFork, Feather } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
@@ -20,6 +20,7 @@ interface Props {
   draftEnabled?: boolean
   forkingEnabled?: boolean
   versioningEnabled?: boolean
+  isLowResistance?: boolean
   children: React.ReactNode
 }
 
@@ -32,6 +33,7 @@ export function PropositionCard({
   draftEnabled = false,
   forkingEnabled = false,
   versioningEnabled = false,
+  isLowResistance = false,
   children,
 }: Props) {
   const [title, setTitle] = useState(initiative.title)
@@ -90,7 +92,12 @@ export function PropositionCard({
               />
             )}
             {versioningEnabled && (
-              <VersionHistory initiativeId={initiative.id} />
+              <VersionHistory
+                initiativeId={initiative.id}
+                currentTitle={title}
+                currentContent={content}
+                diffEnabled={true}
+              />
             )}
           </div>
         </div>
@@ -99,6 +106,12 @@ export function PropositionCard({
             <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground/50 bg-foreground/10 px-2.5 py-1 rounded-full">
               <FileEdit className="w-3.5 h-3.5" />
               Draft
+            </div>
+          )}
+          {isLowResistance && !isAccepted && (
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-full">
+              <Feather className="w-3.5 h-3.5" />
+              Low Resistance
             </div>
           )}
           {isAccepted && (

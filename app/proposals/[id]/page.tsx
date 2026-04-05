@@ -155,6 +155,23 @@ export default async function ProposalDetailPage({ params }: Props) {
   const initiatives = typedIssue.initiatives ?? []
   const quorum = (typedIssue as any).policy?.quorum as number | undefined
 
+  // Module 34: Low Resistance Indicator — find proposal with least opposition
+  let lowResistanceId: string | null = null
+  if (modules.low_resistance_indicator && initiatives.length > 1) {
+    let minOpposeRatio = Infinity
+    for (const init of initiatives) {
+      const votes = init.votes ?? []
+      const total = votes.length
+      if (total < 3) continue // not enough votes to be meaningful
+      const oppose = votes.filter((v) => v.value === 'oppose').length
+      const ratio = oppose / total
+      if (ratio < minOpposeRatio) {
+        minOpposeRatio = ratio
+        lowResistanceId = init.id
+      }
+    }
+  }
+
   // Scale votes — Module 32
   type ScaleVoteMap = Record<string, { userScore: number | null; average: number | null; count: number }>
   const scaleVoteMap: ScaleVoteMap = {}
@@ -444,6 +461,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 draftEnabled={modules.proposal_status}
                 forkingEnabled={modules.forking}
                 versioningEnabled={modules.versioning}
+                isLowResistance={lowResistanceId === initiative.id}
               >
                 {/* Admin accept button */}
                 {isAdmin && typedIssue.status === 'voting' && (
