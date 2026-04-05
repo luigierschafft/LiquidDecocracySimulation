@@ -4,13 +4,14 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion, OpinionIntent } from '@/lib/types'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
-import { MessageSquare, Send, Reply, Quote } from 'lucide-react'
+import { MessageSquare, Send, Reply, Quote, Network } from 'lucide-react'
 import { PostVoteButton } from './PostVoteButton'
 import { IntentBadge, IntentPicker } from './IntentBadge'
 import { QuoteBlock } from './QuoteBlock'
 import { ReportButton } from '@/components/moderation/ReportButton'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { ArgumentJourney } from '@/components/ai/ArgumentJourney'
+import { ArgumentMap } from './ArgumentMap'
 
 interface Props {
   issueId: string
@@ -26,6 +27,7 @@ interface Props {
   mentionsEnabled?: boolean
   journeyModeEnabled?: boolean
   aiModerationEnabled?: boolean
+  argumentMapEnabled?: boolean
 }
 
 export function TopicDiscussion({
@@ -42,8 +44,10 @@ export function TopicDiscussion({
   mentionsEnabled = false,
   journeyModeEnabled = false,
   aiModerationEnabled = false,
+  argumentMapEnabled = false,
 }: Props) {
   const [opinions, setOpinions] = useState<Opinion[]>(initial)
+  const [mapView, setMapView] = useState(false)
   const [text, setText] = useState('')
   const [intent, setIntent] = useState<OpinionIntent | null>(null)
   const [isAnonymous, setIsAnonymous] = useState(false)
@@ -162,13 +166,37 @@ export function TopicDiscussion({
 
   return (
     <div className="card space-y-5">
-      <h2 className="font-semibold text-lg flex items-center gap-2">
-        <MessageSquare className="w-5 h-5 text-accent" />
-        Discussion
-        <span className="text-sm font-normal text-foreground/40">({topLevel.length})</span>
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-semibold text-lg flex items-center gap-2">
+          <MessageSquare className="w-5 h-5 text-accent" />
+          Discussion
+          <span className="text-sm font-normal text-foreground/40">({topLevel.length})</span>
+        </h2>
+        {argumentMapEnabled && (
+          <button
+            onClick={() => setMapView((v) => !v)}
+            className={`flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors ${
+              mapView
+                ? 'bg-accent text-white border-accent'
+                : 'text-foreground/50 border-sand hover:border-accent/40 hover:text-accent'
+            }`}
+          >
+            <Network className="w-3.5 h-3.5" />
+            {mapView ? 'List view' : 'Argument Map'}
+          </button>
+        )}
+      </div>
 
-      <div className="space-y-5">
+      {/* Argument Map view */}
+      {argumentMapEnabled && mapView && (
+        <ArgumentMap
+          issueId={issueId}
+          userId={userId}
+          initialOpinions={opinions}
+        />
+      )}
+
+      {!mapView && <div className="space-y-5">
         {topLevel.length === 0 && (
           <p className="text-sm text-foreground/40">No comments yet. Start the discussion.</p>
         )}
@@ -286,9 +314,9 @@ export function TopicDiscussion({
           </div>
           )
         })}
-      </div>
+      </div>}
 
-      {userId ? (
+      {!mapView && userId ? (
         <form onSubmit={addComment} className="space-y-2 pt-2 border-t border-sand">
           {/* Module 51: Argument Journey Mode */}
           {journeyModeEnabled && (
@@ -329,9 +357,9 @@ export function TopicDiscussion({
             </button>
           </div>
         </form>
-      ) : (
+      ) : (!mapView && (
         <p className="text-xs text-foreground/40 pt-2 border-t border-sand">Sign in to join the discussion.</p>
-      )}
+      ))}
     </div>
   )
 }

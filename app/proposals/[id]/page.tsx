@@ -397,6 +397,7 @@ export default async function ProposalDetailPage({ params }: Props) {
           mentionsEnabled={modules.mentions}
           journeyModeEnabled={modules.argument_journey_mode}
           aiModerationEnabled={modules.ai_moderation}
+          argumentMapEnabled={modules.argument_map}
         />
       )}
 
