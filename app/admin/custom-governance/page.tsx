@@ -24,6 +24,7 @@ export default async function CustomGovernancePage() {
     'use server'
     const id = formData.get('id') as string
     const supabaseInner = createClient()
+    const voting_method = formData.get('voting_method') as string
     await supabaseInner.from('policy').update({
       admission_days: Number(formData.get('admission_days')),
       discussion_days: Number(formData.get('discussion_days')),
@@ -31,6 +32,7 @@ export default async function CustomGovernancePage() {
       voting_days: Number(formData.get('voting_days')),
       quorum: Number(formData.get('quorum')),
       consensus_threshold: Number(formData.get('consensus_threshold')),
+      voting_method: ['approval', 'schulze'].includes(voting_method) ? voting_method : 'approval',
     }).eq('id', id)
     revalidatePath('/admin/custom-governance')
   }
@@ -72,6 +74,20 @@ export default async function CustomGovernancePage() {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* M27: Voting method */}
+            <div className="space-y-1 border-t border-sand pt-4">
+              <label className="text-xs font-medium text-foreground/60">Voting Method</label>
+              <select
+                name="voting_method"
+                defaultValue={(policy as any).voting_method ?? 'approval'}
+                className="input w-full text-sm py-1.5"
+              >
+                <option value="approval">Approval Voting (Yes/No/Abstain)</option>
+                <option value="schulze">Schulze / Ranked Choice (drag to rank)</option>
+              </select>
+              <p className="text-[11px] text-foreground/40">Schulze method requires the Ranking Voting module to be enabled.</p>
             </div>
 
             <div className="flex justify-end">

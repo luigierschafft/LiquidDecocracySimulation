@@ -81,7 +81,8 @@
       "Bash(curl -s \"https://utskycikzhimasfeixcs.supabase.co/rest/v1/module?select=number,name,description&order=number&limit=10\" \\\\\n  -H \"apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0c2t5Y2lremhpbWFzZmVpeGNzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NDU5NTk1OSwiZXhwIjoyMDkwMTcxOTU5fQ.9YAbccTvp6nyqObtnuc1t-hMEfKFp937wQynLcO2LJs\")",
       "Bash(find \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" -name \"*.ts\" -o -name \"*.tsx\" | xargs grep -l \"from\\('opinion'\\)\\\\|from.*opinion\\\\|'/api.*opinion\" 2>/dev/null | head -20)",
       "Bash(grep -l \"opinion\" \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\supabase\\\\migrations\"/*.sql | xargs -I {} basename {})",
-      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && find . -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -path \"*/app/api/*\" ! -path \"*/.claude/*\" | xargs grep -l \"opinion\" 2>/dev/null)"
+      "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && find . -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) -path \"*/app/api/*\" ! -path \"*/.claude/*\" | xargs grep -l \"opinion\" 2>/dev/null)",
+      "Bash(find /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/supabase/migrations -name \"*.sql\" | xargs grep -l \"voting_method\\\\|schulze\" 2>/dev/null)"
     ]
   }
 }
