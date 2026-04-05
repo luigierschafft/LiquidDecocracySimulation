@@ -426,7 +426,7 @@ export default async function ProposalDetailPage({ params }: Props) {
               <span className="text-sm font-normal text-foreground/40">({initiatives.length})</span>
             </h2>
             {modules.proposal_creation && canSubmitProposal && typedIssue.status !== 'closed' && (
-              <AddProposalForm issueId={typedIssue.id} userId={user!.id} draftEnabled={modules.proposal_status} />
+              <AddProposalForm issueId={typedIssue.id} userId={user!.id} draftEnabled={modules.proposal_status} structuredEnabled={modules.structured_proposals} />
             )}
           </div>
 
@@ -463,6 +463,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                 forkingEnabled={modules.forking}
                 versioningEnabled={modules.versioning}
                 isLowResistance={lowResistanceId === initiative.id}
+                structuredEnabled={modules.structured_proposals}
               >
                 {/* Admin accept button */}
                 {isAdmin && typedIssue.status === 'voting' && (
@@ -540,6 +541,7 @@ export default async function ProposalDetailPage({ params }: Props) {
                               <VoteButton
                                 initiativeId={initiative.id}
                                 currentVote={userVote ?? null}
+                                strongNoEnabled={modules.basic_voting}
                               />
                               {modules.delegation && !isIndicative && (
                                 <DelegationStatus

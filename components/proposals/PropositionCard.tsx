@@ -6,7 +6,7 @@ import { ForkButton } from './ForkButton'
 import { VersionHistory } from './VersionHistory'
 import type { Initiative } from '@/lib/types'
 import { getMemberDisplayName, formatDate } from '@/lib/utils'
-import { Trophy, FileEdit, GitFork, Feather } from 'lucide-react'
+import { Trophy, FileEdit, GitFork, Feather, Coins, Clock, MapPin } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
@@ -21,6 +21,7 @@ interface Props {
   forkingEnabled?: boolean
   versioningEnabled?: boolean
   isLowResistance?: boolean
+  structuredEnabled?: boolean
   children: React.ReactNode
 }
 
@@ -34,6 +35,7 @@ export function PropositionCard({
   forkingEnabled = false,
   versioningEnabled = false,
   isLowResistance = false,
+  structuredEnabled = false,
   children,
 }: Props) {
   const [title, setTitle] = useState(initiative.title)
@@ -126,6 +128,32 @@ export function PropositionCard({
       <div className="prose prose-sm max-w-none text-foreground/80">
         <ReactMarkdown>{content}</ReactMarkdown>
       </div>
+
+      {structuredEnabled && (initiative.estimated_cost || initiative.implementation_timeline || (initiative.affected_areas?.length ?? 0) > 0) && (
+        <div className="flex flex-wrap gap-4 text-xs text-foreground/60 border-t border-sand pt-3">
+          {initiative.estimated_cost && (
+            <span className="flex items-center gap-1.5">
+              <Coins className="w-3.5 h-3.5 text-accent/60" />
+              <span className="font-medium">Cost:</span> {initiative.estimated_cost}
+            </span>
+          )}
+          {initiative.implementation_timeline && (
+            <span className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5 text-accent/60" />
+              <span className="font-medium">Timeline:</span> {initiative.implementation_timeline}
+            </span>
+          )}
+          {(initiative.affected_areas?.length ?? 0) > 0 && (
+            <span className="flex items-center gap-1.5 flex-wrap">
+              <MapPin className="w-3.5 h-3.5 text-accent/60 flex-shrink-0" />
+              <span className="font-medium">Areas:</span>
+              {initiative.affected_areas!.map((a) => (
+                <span key={a} className="bg-sand px-1.5 py-0.5 rounded text-foreground/70">{a}</span>
+              ))}
+            </span>
+          )}
+        </div>
+      )}
 
       {canPublish && (
         <div className="flex items-center gap-3 border-t border-sand pt-4">

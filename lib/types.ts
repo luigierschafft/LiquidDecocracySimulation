@@ -1,5 +1,5 @@
 export type IssueStatus = 'draft' | 'admission' | 'discussion' | 'verification' | 'voting' | 'closed'
-export type VoteValue = 'approve' | 'oppose' | 'abstain'
+export type VoteValue = 'approve' | 'oppose' | 'abstain' | 'strong_no'
 export type TopicCreationSetting = 'all_members' | 'admin_only'
 export type ProposalCreationSetting = 'all_members' | 'admin_only'
 
@@ -182,6 +182,7 @@ export interface VoteCount {
   approve: number
   oppose: number
   abstain: number
+  strong_no: number
   total: number
   approvalPercent: number
 }

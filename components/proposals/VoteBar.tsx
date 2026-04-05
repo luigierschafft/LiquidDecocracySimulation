@@ -17,10 +17,11 @@ interface VoteBarProps {
 }
 
 export function VoteBar({ votes, quorum, showLowResistance, weightedVotes }: VoteBarProps) {
-  const { approve, oppose, abstain, total, approvalPercent } = votes
+  const { approve, oppose, abstain, strong_no, total, approvalPercent } = votes
   const approvePct = total > 0 ? (approve / total) * 100 : 0
   const opposePct = total > 0 ? (oppose / total) * 100 : 0
   const abstainPct = total > 0 ? (abstain / total) * 100 : 0
+  const strongNoPct = total > 0 ? ((strong_no ?? 0) / total) * 100 : 0
 
   const quorumMet = quorum !== undefined && total >= quorum
   const lowResistance = showLowResistance && total > 0 && opposePct < 20 && approvePct > 50
@@ -46,6 +47,9 @@ export function VoteBar({ votes, quorum, showLowResistance, weightedVotes }: Vot
         {opposePct > 0 && (
           <div className="bg-red-400 transition-all" style={{ width: `${opposePct}%` }} title={`Oppose: ${oppose}`} />
         )}
+        {strongNoPct > 0 && (
+          <div className="bg-red-900 transition-all" style={{ width: `${strongNoPct}%` }} title={`Strong No: ${strong_no}`} />
+        )}
       </div>
 
       {/* Stats row */}
@@ -62,6 +66,12 @@ export function VoteBar({ votes, quorum, showLowResistance, weightedVotes }: Vot
           <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
           {oppose} oppose
         </span>
+        {(strong_no ?? 0) > 0 && (
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-red-900 inline-block" />
+            {strong_no} strong no
+          </span>
+        )}
       </div>
 
       {/* Module 41: Weighted vote totals */}
