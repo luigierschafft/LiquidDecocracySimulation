@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
 import { ArrowRight, Vote, Users, GitBranch, Shield } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -15,10 +14,6 @@ const FLOW_STEPS = [
 ]
 
 export default async function LandingPage() {
-  const supabase = createClient()
-  const { count: issueCount } = await supabase.from('issue').select('*', { count: 'exact', head: true })
-  const { count: memberCount } = await supabase.from('member').select('*', { count: 'exact', head: true })
-
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -58,27 +53,7 @@ export default async function LandingPage() {
               Browse Topics
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href="/auth/login" className="btn-secondary text-base px-6 py-3">
-              Join Community
-            </Link>
           </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-y border-sand bg-white/50 py-12 px-4">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { value: issueCount ?? 0, label: 'Active Topics' },
-            { value: memberCount ?? 0, label: 'Community Members' },
-            { value: '4', label: 'Governance Areas' },
-            { value: '100%', label: 'Transparent' },
-          ].map((stat) => (
-            <div key={stat.label} className="space-y-1">
-              <div className="text-3xl font-bold text-accent">{stat.value}</div>
-              <div className="text-sm text-foreground/60">{stat.label}</div>
-            </div>
-          ))}
         </div>
       </section>
 
