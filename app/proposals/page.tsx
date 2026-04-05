@@ -51,7 +51,7 @@ export default async function ProposalsPage({ searchParams }: Props) {
 
   // Tags per issue — Module 62
   type TagMap = Record<string, { id: string; name: string; color: string }[]>
-  let tagMap: TagMap = {}
+  const tagMap: TagMap = {}
   if (modules.tagging_system && issues && issues.length > 0) {
     const issueIds = issues.map((i: any) => i.id)
     const { data: tagRows } = await supabase

@@ -22,7 +22,7 @@ export default async function AdminGovernancePage() {
           <BookOpen className="w-7 h-7 text-accent" />
           Governance Rules
         </h1>
-        <p className="text-foreground/60 mt-1">Define the platform's governance rules. Markdown supported.</p>
+        <p className="text-foreground/60 mt-1">Define the platform&apos;s governance rules. Markdown supported.</p>
       </div>
 
       <form action={saveRules} className="card space-y-4">

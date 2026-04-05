@@ -41,7 +41,7 @@ export function ModuleToggleRow({ moduleKey, number, name, description, adminEna
       {/* Name + Description */}
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium leading-tight">{name}</p>
-        <p className="text-xs text-foreground/40 mt-0.5 truncate">{description}</p>
+        <p className="text-xs text-foreground/50 mt-0.5 leading-snug">{description}</p>
       </div>
 
       {/* User Configurable toggle */}

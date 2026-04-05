@@ -155,7 +155,7 @@ export default async function ProposalDetailPage({ params }: Props) {
 
   // Scale votes — Module 32
   type ScaleVoteMap = Record<string, { userScore: number | null; average: number | null; count: number }>
-  let scaleVoteMap: ScaleVoteMap = {}
+  const scaleVoteMap: ScaleVoteMap = {}
   if (modules.scale_voting && initiatives.length > 0) {
     const initiativeIds = initiatives.map((i: Initiative) => i.id)
     const { data: scaleRows } = await supabase
@@ -174,7 +174,7 @@ export default async function ProposalDetailPage({ params }: Props) {
 
   // Module 41: Vote weighting — compute delegation-weighted vote counts
   type WeightedVoteMap = Record<string, WeightedVoteCount>
-  let weightedVoteMap: WeightedVoteMap = {}
+  const weightedVoteMap: WeightedVoteMap = {}
   if (modules.vote_weighting && initiatives.length > 0) {
     // Load all global delegations to compute delegate weights
     const { data: allDelegations } = await supabase
