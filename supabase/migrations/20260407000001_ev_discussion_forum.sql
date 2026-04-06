@@ -7,9 +7,9 @@
 CREATE SCHEMA IF NOT EXISTS ev;
 
 -- Topic-Erweiterung: Beschreibung + Abgrenzung
--- (erweitert v1.issue um zwei Pflichtfelder)
+-- (erweitert public.issue um zwei Pflichtfelder)
 CREATE TABLE IF NOT EXISTS ev.topic_meta (
-  issue_id        UUID PRIMARY KEY REFERENCES v1.issue(id) ON DELETE CASCADE,
+  issue_id        UUID PRIMARY KEY REFERENCES public.issue(id) ON DELETE CASCADE,
   about           TEXT NOT NULL, -- "Worüber wird hier geredet"
   scope           TEXT NOT NULL, -- "Was ist Teil dieses Topics"
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS ev.topic_meta (
 -- Statements (max 100 Zeichen)
 CREATE TABLE IF NOT EXISTS ev.statements (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  issue_id        UUID NOT NULL REFERENCES v1.issue(id) ON DELETE CASCADE,
+  issue_id        UUID NOT NULL REFERENCES public.issue(id) ON DELETE CASCADE,
   text            VARCHAR(100) NOT NULL,
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   source_links    TEXT[] DEFAULT '{}',
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS ev.statements (
 CREATE TABLE IF NOT EXISTS ev.statement_ratings (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   statement_id    UUID NOT NULL REFERENCES ev.statements(id) ON DELETE CASCADE,
-  user_id         UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   rating          SMALLINT NOT NULL CHECK (rating >= 0 AND rating <= 10),
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (statement_id, user_id)
@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS ev.discussion_nodes (
   type            ev.node_type NOT NULL,
   text            TEXT NOT NULL,
   source_links    TEXT[] DEFAULT '{}',
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -69,7 +69,7 @@ CREATE POLICY "ev_topic_meta_read" ON ev.topic_meta
 
 CREATE POLICY "ev_topic_meta_insert" ON ev.topic_meta
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_statements_read" ON ev.statements
@@ -77,7 +77,7 @@ CREATE POLICY "ev_statements_read" ON ev.statements
 
 CREATE POLICY "ev_statements_insert" ON ev.statements
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_statement_ratings_read" ON ev.statement_ratings
@@ -92,5 +92,5 @@ CREATE POLICY "ev_discussion_nodes_read" ON ev.discussion_nodes
 
 CREATE POLICY "ev_discussion_nodes_insert" ON ev.discussion_nodes
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );

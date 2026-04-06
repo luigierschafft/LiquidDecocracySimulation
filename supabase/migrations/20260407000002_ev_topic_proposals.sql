@@ -6,9 +6,9 @@
 -- Proposals innerhalb eines Topics
 CREATE TABLE IF NOT EXISTS ev.topic_proposals (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  issue_id        UUID NOT NULL REFERENCES v1.issue(id) ON DELETE CASCADE,
+  issue_id        UUID NOT NULL REFERENCES public.issue(id) ON DELETE CASCADE,
   text            TEXT NOT NULL,
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -20,7 +20,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 CREATE TABLE IF NOT EXISTS ev.proposal_votes (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   proposal_id     UUID NOT NULL REFERENCES ev.topic_proposals(id) ON DELETE CASCADE,
-  user_id         UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   vote            ev.proposal_vote_value NOT NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (proposal_id, user_id)
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS ev.proposal_arguments (
   proposal_id     UUID NOT NULL REFERENCES ev.topic_proposals(id) ON DELETE CASCADE,
   type            ev.proposal_arg_type NOT NULL,
   text            TEXT NOT NULL,
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS ev.proposed_improvements (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   proposal_id     UUID NOT NULL REFERENCES ev.topic_proposals(id) ON DELETE CASCADE,
   text            TEXT NOT NULL,
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -66,7 +66,7 @@ CREATE POLICY "ev_topic_proposals_read" ON ev.topic_proposals
 
 CREATE POLICY "ev_topic_proposals_insert" ON ev.topic_proposals
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_proposal_votes_read" ON ev.proposal_votes
@@ -81,7 +81,7 @@ CREATE POLICY "ev_proposal_arguments_read" ON ev.proposal_arguments
 
 CREATE POLICY "ev_proposal_arguments_insert" ON ev.proposal_arguments
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_proposed_improvements_read" ON ev.proposed_improvements
@@ -89,5 +89,5 @@ CREATE POLICY "ev_proposed_improvements_read" ON ev.proposed_improvements
 
 CREATE POLICY "ev_proposed_improvements_insert" ON ev.proposed_improvements
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );

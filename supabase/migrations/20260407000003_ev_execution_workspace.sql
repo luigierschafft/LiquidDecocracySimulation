@@ -7,7 +7,7 @@
 -- Hauptplan (ein Plan pro Issue)
 CREATE TABLE IF NOT EXISTS ev.execution_plans (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  issue_id        UUID NOT NULL UNIQUE REFERENCES v1.issue(id) ON DELETE CASCADE,
+  issue_id        UUID NOT NULL UNIQUE REFERENCES public.issue(id) ON DELETE CASCADE,
   goal            TEXT,             -- Projektziel (kurze Beschreibung)
   costs           TEXT,             -- Geschätzte Kosten
   duration        TEXT,             -- Geschätzte Dauer
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS ev.execution_tasks (
   title           TEXT NOT NULL,
   description     TEXT,
   status          ev.task_status NOT NULL DEFAULT 'todo',
-  assignee_id     UUID REFERENCES v1.member(id) ON DELETE SET NULL,
+  assignee_id     UUID REFERENCES public.member(id) ON DELETE SET NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS ev.task_comments (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   task_id         UUID NOT NULL REFERENCES ev.execution_tasks(id) ON DELETE CASCADE,
   text            TEXT NOT NULL,
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -55,7 +55,7 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 CREATE TABLE IF NOT EXISTS ev.execution_team (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   plan_id         UUID NOT NULL REFERENCES ev.execution_plans(id) ON DELETE CASCADE,
-  user_id         UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  user_id         UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   role            TEXT,
   status          ev.team_status NOT NULL DEFAULT 'interested',
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS ev.execution_suggestions (
   plan_id         UUID NOT NULL REFERENCES ev.execution_plans(id) ON DELETE CASCADE,
   section         TEXT NOT NULL CHECK (section IN ('goal', 'costs', 'duration', 'milestone')),
   proposed_value  TEXT NOT NULL,
-  author_id       UUID NOT NULL REFERENCES v1.member(id) ON DELETE CASCADE,
+  author_id       UUID NOT NULL REFERENCES public.member(id) ON DELETE CASCADE,
   upvotes         INTEGER NOT NULL DEFAULT 0,
   adopted         BOOLEAN NOT NULL DEFAULT false,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -102,12 +102,12 @@ CREATE POLICY "ev_exec_suggestions_read" ON ev.execution_suggestions FOR SELECT 
 -- Schreiben: nur approved members
 CREATE POLICY "ev_exec_tasks_insert" ON ev.execution_tasks
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_exec_tasks_update" ON ev.execution_tasks
   FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_task_comments_insert" ON ev.task_comments
@@ -115,7 +115,7 @@ CREATE POLICY "ev_task_comments_insert" ON ev.task_comments
 
 CREATE POLICY "ev_exec_milestones_insert" ON ev.execution_milestones
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_approved = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_approved = true)
   );
 
 CREATE POLICY "ev_exec_team_insert" ON ev.execution_team
@@ -127,10 +127,10 @@ CREATE POLICY "ev_exec_suggestions_insert" ON ev.execution_suggestions
 -- Admins können Plans erstellen
 CREATE POLICY "ev_exec_plans_admin_insert" ON ev.execution_plans
   FOR INSERT WITH CHECK (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_admin = true)
   );
 
 CREATE POLICY "ev_exec_plans_admin_update" ON ev.execution_plans
   FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM v1.member WHERE id = auth.uid() AND is_admin = true)
+    EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_admin = true)
   );
