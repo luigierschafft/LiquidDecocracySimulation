@@ -15,10 +15,10 @@ export default async function ProposalsPage({ params }: { params: { topicId: str
     .select(
       `
       *,
-      author:member!topic_proposals_author_id_fkey(display_name, email),
+      author:member(display_name, email),
       votes:ev_proposal_votes(*),
-      arguments:ev_proposal_arguments(*, author:member!proposal_arguments_author_id_fkey(display_name, email)),
-      improvements:ev_proposed_improvements(*, author:member!proposed_improvements_author_id_fkey(display_name, email))
+      arguments:ev_proposal_arguments(*, author:member(display_name, email)),
+      improvements:ev_proposed_improvements(*, author:member(display_name, email))
     `
     )
     .eq('issue_id', params.topicId)

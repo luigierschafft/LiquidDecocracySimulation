@@ -14,7 +14,7 @@ interface ProposalCardProps {
 
 export function ProposalCard({ issue }: ProposalCardProps) {
   return (
-    <Link href={`/proposals/${issue.id}`}>
+    <Link href={`/topics/${issue.id}/discussion`}>
       <div className="card hover:shadow-md hover:border-accent/30 transition-all cursor-pointer">
         <h3 className="font-semibold text-foreground leading-tight">{issue.title}</h3>
       </div>

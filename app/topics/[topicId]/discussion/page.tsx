@@ -15,7 +15,7 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
     .select(
       `
       *,
-      author:member!statements_author_id_fkey(display_name, email),
+      author:member(display_name, email),
       ratings:ev_statement_ratings(*)
     `
     )

@@ -17,9 +17,9 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     .select(
       `
       *,
-      tasks:ev_execution_tasks(*, assignee:member!execution_tasks_assignee_id_fkey(display_name, email), comments:ev_task_comments(*, author:member!task_comments_author_id_fkey(display_name, email))),
+      tasks:ev_execution_tasks(*, assignee:member(display_name, email), comments:ev_task_comments(*, author:member(display_name, email))),
       milestones:ev_execution_milestones(*),
-      team:ev_execution_team(*, member:member!execution_team_user_id_fkey(display_name, email))
+      team:ev_execution_team(*, member(display_name, email))
     `
     )
     .eq('issue_id', params.topicId)
