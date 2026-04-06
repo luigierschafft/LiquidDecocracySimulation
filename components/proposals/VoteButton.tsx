@@ -4,15 +4,16 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { VoteValue } from '@/lib/types'
 import { cn } from '@/lib/utils'
-import { ThumbsUp, ThumbsDown, Minus } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Minus, XCircle } from 'lucide-react'
 
 interface VoteButtonProps {
   initiativeId: string
   currentVote: VoteValue | null
   onVote?: (value: VoteValue) => void
+  strongNoEnabled?: boolean
 }
 
-const options: { value: VoteValue; label: string; icon: React.ReactNode; active: string; hover: string }[] = [
+const baseOptions: { value: VoteValue; label: string; icon: React.ReactNode; active: string; hover: string }[] = [
   {
     value: 'approve',
     label: 'Approve',
@@ -34,9 +35,17 @@ const options: { value: VoteValue; label: string; icon: React.ReactNode; active:
     active: 'bg-red-500 text-white border-red-500',
     hover: 'hover:border-red-400 hover:text-red-500',
   },
+  {
+    value: 'strong_no',
+    label: 'Strong No',
+    icon: <XCircle className="w-4 h-4" />,
+    active: 'bg-red-900 text-white border-red-900',
+    hover: 'hover:border-red-800 hover:text-red-900',
+  },
 ]
 
-export function VoteButton({ initiativeId, currentVote, onVote }: VoteButtonProps) {
+export function VoteButton({ initiativeId, currentVote, onVote, strongNoEnabled = false }: VoteButtonProps) {
+  const options = strongNoEnabled ? baseOptions : baseOptions.filter((o) => o.value !== 'strong_no')
   const [selected, setSelected] = useState<VoteValue | null>(currentVote)
   const [loading, setLoading] = useState(false)
   const supabase = createClient()

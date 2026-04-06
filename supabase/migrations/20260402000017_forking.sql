@@ -1,0 +1,1 @@
+ALTER TABLE initiative ADD COLUMN IF NOT EXISTS forked_from_id UUID REFERENCES initiative(id) ON DELETE SET NULL;

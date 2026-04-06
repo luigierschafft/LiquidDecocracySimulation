@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { PROTECTED_ROUTES, ADMIN_ROUTES } from '@/lib/config/routes'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -25,11 +26,8 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedRoutes = ['/proposals/new', '/profile', '/delegation']
-  const adminRoutes = ['/admin']
-
-  const isProtected = protectedRoutes.some((r) => request.nextUrl.pathname.startsWith(r))
-  const isAdmin = adminRoutes.some((r) => request.nextUrl.pathname.startsWith(r))
+  const isProtected = PROTECTED_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r))
+  const isAdmin = ADMIN_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r))
 
   if ((isProtected || isAdmin) && !user) {
     const url = request.nextUrl.clone()
