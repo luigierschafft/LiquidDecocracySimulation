@@ -32,7 +32,7 @@ export function AddTopicProposalForm({ topicId }: Props) {
       return
     }
 
-    const { error: insertError } = await supabase.schema('ev').from('topic_proposals').insert({
+    const { error: insertError } = await supabase.from('ev_topic_proposals').insert({
       issue_id: topicId,
       text: text.trim(),
       author_id: user.id,

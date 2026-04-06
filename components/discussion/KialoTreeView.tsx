@@ -60,7 +60,7 @@ function TreeNode({ node, userId, treeMode, depth = 0, onAdded }: TreeNodeProps)
     if (!replyText.trim() || !userId || !replyType) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('discussion_nodes').insert({
+    await supabase.from('ev_discussion_nodes').insert({
       statement_id: node.statement_id,
       parent_id: node.id,
       type: replyType,
@@ -160,8 +160,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
   const load = useCallback(async () => {
     const supabase = createClient()
     const { data } = await supabase
-      .schema('ev')
-      .from('discussion_nodes')
+      .from('ev_discussion_nodes')
       .select('*, author:member!discussion_nodes_author_id_fkey(display_name, email)')
       .eq('statement_id', statementId)
       .in('type', ['pro', 'contra'])
@@ -181,7 +180,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
     if (!addText.trim() || !userId || !addType) return
     setAddLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('discussion_nodes').insert({
+    await supabase.from('ev_discussion_nodes').insert({
       statement_id: statementId,
       parent_id: null,
       type: addType,

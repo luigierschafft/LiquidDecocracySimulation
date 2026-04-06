@@ -38,7 +38,7 @@ export function AddStatementForm({ topicId }: Props) {
     const source_links: string[] = []
     if (sourceUrl.trim()) source_links.push(sourceUrl.trim())
 
-    const { error: insertError } = await supabase.schema('ev').from('statements').insert({
+    const { error: insertError } = await supabase.from('ev_statements').insert({
       issue_id: topicId,
       text: text.trim(),
       author_id: user.id,

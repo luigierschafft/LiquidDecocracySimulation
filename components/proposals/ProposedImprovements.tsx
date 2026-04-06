@@ -25,7 +25,7 @@ export function ProposedImprovements({ proposalId, userId, improvements }: Props
     setError(null)
 
     const supabase = createClient()
-    const { error: insertError } = await supabase.schema('ev').from('proposed_improvements').insert({
+    const { error: insertError } = await supabase.from('ev_proposed_improvements').insert({
       proposal_id: proposalId,
       text: text.trim(),
       author_id: userId,

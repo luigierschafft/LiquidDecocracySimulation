@@ -34,7 +34,7 @@ export function TeamList({ team, planId, userId }: Props) {
     if (!userId) return
     setJoining(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('execution_team').insert({
+    await supabase.from('ev_execution_team').insert({
       plan_id: planId,
       user_id: userId,
       role: roleText.trim() || null,

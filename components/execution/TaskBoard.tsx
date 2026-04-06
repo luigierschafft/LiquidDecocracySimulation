@@ -32,7 +32,7 @@ export function TaskBoard({ tasks, planId, userId }: Props) {
     if (!newTitle.trim() || !userId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('execution_tasks').insert({
+    await supabase.from('ev_execution_tasks').insert({
       plan_id: planId,
       title: newTitle.trim(),
       description: newDesc.trim() || null,

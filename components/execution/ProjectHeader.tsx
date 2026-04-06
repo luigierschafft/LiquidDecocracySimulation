@@ -25,8 +25,7 @@ export function ProjectHeader({ plan }: Props) {
     setSaving(true)
     const supabase = createClient()
     await supabase
-      .schema('ev')
-      .from('execution_plans')
+      .from('ev_execution_plans')
       .update({ goal: goalText.trim() || null })
       .eq('id', plan.id)
     setSaving(false)

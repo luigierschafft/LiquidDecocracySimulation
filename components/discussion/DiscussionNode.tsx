@@ -34,7 +34,7 @@ function NodeItem({ node, userId, depth = 0, onAdded }: NodeProps) {
     if (!replyText.trim() || !userId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('discussion_nodes').insert({
+    await supabase.from('ev_discussion_nodes').insert({
       statement_id: node.statement_id,
       parent_id: node.id,
       type: replyType,
@@ -130,8 +130,7 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
   async function load() {
     const supabase = createClient()
     const { data } = await supabase
-      .schema('ev')
-      .from('discussion_nodes')
+      .from('ev_discussion_nodes')
       .select('*, author:member!discussion_nodes_author_id_fkey(display_name, email)')
       .eq('statement_id', statementId)
       .eq('type', filterType)
@@ -150,7 +149,7 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
     if (!addText.trim() || !userId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('discussion_nodes').insert({
+    await supabase.from('ev_discussion_nodes').insert({
       statement_id: statementId,
       parent_id: null,
       type: filterType,

@@ -11,13 +11,12 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
   } = await supabase.auth.getUser()
 
   const { data: statements } = await supabase
-    .schema('ev')
-    .from('statements')
+    .from('ev_statements')
     .select(
       `
       *,
       author:member!statements_author_id_fkey(display_name, email),
-      ratings:statement_ratings(*)
+      ratings:ev_statement_ratings(*)
     `
     )
     .eq('issue_id', params.topicId)

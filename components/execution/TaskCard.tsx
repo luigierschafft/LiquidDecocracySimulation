@@ -31,7 +31,7 @@ export function TaskCard({ task, userId }: Props) {
     if (statusLoading) return
     setStatusLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('execution_tasks').update({ status }).eq('id', task.id)
+    await supabase.from('ev_execution_tasks').update({ status }).eq('id', task.id)
     setStatusLoading(false)
     router.refresh()
   }
@@ -40,7 +40,7 @@ export function TaskCard({ task, userId }: Props) {
     if (!commentText.trim() || !userId) return
     setCommentLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('task_comments').insert({
+    await supabase.from('ev_task_comments').insert({
       task_id: task.id,
       text: commentText.trim(),
       author_id: userId,

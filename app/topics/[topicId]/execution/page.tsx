@@ -13,14 +13,13 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
   } = await supabase.auth.getUser()
 
   const { data: plan } = await supabase
-    .schema('ev')
-    .from('execution_plans')
+    .from('ev_execution_plans')
     .select(
       `
       *,
-      tasks:execution_tasks(*, assignee:member!execution_tasks_assignee_id_fkey(display_name, email), comments:task_comments(*, author:member!task_comments_author_id_fkey(display_name, email))),
-      milestones:execution_milestones(*),
-      team:execution_team(*, member:member!execution_team_user_id_fkey(display_name, email))
+      tasks:ev_execution_tasks(*, assignee:member!execution_tasks_assignee_id_fkey(display_name, email), comments:ev_task_comments(*, author:member!task_comments_author_id_fkey(display_name, email))),
+      milestones:ev_execution_milestones(*),
+      team:ev_execution_team(*, member:member!execution_team_user_id_fkey(display_name, email))
     `
     )
     .eq('issue_id', params.topicId)

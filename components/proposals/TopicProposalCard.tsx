@@ -58,7 +58,7 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
     if (!argText.trim() || !userId || !addArgType) return
     setArgLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('proposal_arguments').insert({
+    await supabase.from('ev_proposal_arguments').insert({
       proposal_id: proposal.id,
       type: addArgType,
       text: argText.trim(),

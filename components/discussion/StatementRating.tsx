@@ -28,7 +28,7 @@ export function StatementRating({ statementId, userId, currentRating, ratings, o
     setLoading(true)
     const supabase = createClient()
 
-    await supabase.schema('ev').from('statement_ratings').upsert(
+    await supabase.from('ev_statement_ratings').upsert(
       {
         statement_id: statementId,
         user_id: userId,

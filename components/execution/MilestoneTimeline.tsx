@@ -29,7 +29,7 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
     if (!title.trim() || !userId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.schema('ev').from('execution_milestones').insert({
+    await supabase.from('ev_execution_milestones').insert({
       plan_id: planId,
       title: title.trim(),
       date: date || null,

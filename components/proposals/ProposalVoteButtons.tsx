@@ -52,7 +52,7 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
     setLoading(true)
     const supabase = createClient()
 
-    await supabase.schema('ev').from('proposal_votes').upsert(
+    await supabase.from('ev_proposal_votes').upsert(
       {
         proposal_id: proposalId,
         user_id: userId,

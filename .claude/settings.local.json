@@ -85,7 +85,10 @@
       "Bash(find /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/supabase/migrations -name \"*.sql\" | xargs grep -l \"voting_method\\\\|schulze\" 2>/dev/null)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && vercel --prod 2>&1)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npx next dev 2>&1)",
-      "Bash(start http://localhost:3001)"
+      "Bash(start http://localhost:3001)",
+      "Bash(mkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/app/topics/\\\\[topicId\\\\]/discussion\nmkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/app/topics/\\\\[topicId\\\\]/proposals\nmkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/app/topics/\\\\[topicId\\\\]/execution\nmkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/components/topics\nmkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/components/discussion\nmkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/components/proposals\nmkdir -p /c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/components/execution)",
+      "Bash(cd C:/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville && sed -i 's/v1\\\\.issue/public.issue/g; s/v1\\\\.member/public.member/g; s/v1\\\\.area/public.area/g' supabase/migrations/20260407000001_ev_discussion_forum.sql supabase/migrations/20260407000002_ev_topic_proposals.sql supabase/migrations/20260407000003_ev_execution_workspace.sql)",
+      "Bash(cd C:/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville && sed -i \"s/t1000001/a1100001/g\" supabase/migrations/20260407000004_ev_seed_data.sql)"
     ]
   }
 }

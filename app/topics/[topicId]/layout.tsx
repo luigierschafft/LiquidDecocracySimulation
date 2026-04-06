@@ -12,7 +12,7 @@ export default async function TopicLayout({
   const supabase = createClient()
   const [{ data: issue }, { data: meta }] = await Promise.all([
     supabase.from('issue').select('*').eq('id', params.topicId).single(),
-    supabase.schema('ev').from('topic_meta').select('*').eq('issue_id', params.topicId).maybeSingle(),
+    supabase.from('ev_topic_meta').select('*').eq('issue_id', params.topicId).maybeSingle(),
   ])
   if (!issue) notFound()
   return (
