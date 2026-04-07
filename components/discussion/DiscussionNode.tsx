@@ -9,7 +9,7 @@ import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 const TYPE_STYLES: Record<string, { label: string; color: string }> = {
   pro: { label: 'PRO', color: 'bg-green-100 text-green-700' },
   contra: { label: 'CONTRA', color: 'bg-red-100 text-red-700' },
-  question: { label: 'FRAGE', color: 'bg-blue-100 text-blue-700' },
+  question: { label: 'QUESTION', color: 'bg-blue-100 text-blue-700' },
   statement: { label: 'STATEMENT', color: 'bg-gray-100 text-gray-600' },
 }
 
@@ -89,7 +89,7 @@ function NodeItem({ node, userId, depth = 0, onAdded }: NodeProps) {
             <textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder={`${TYPE_STYLES[replyType].label} hinzufügen…`}
+              placeholder={`Add ${TYPE_STYLES[replyType].label}…`}
               rows={2}
               className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -142,7 +142,7 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
 
   if (!loaded) {
     load()
-    return <div className="text-xs text-gray-400 py-2">Laden…</div>
+    return <div className="text-xs text-gray-400 py-2">Loading…</div>
   }
 
   async function handleAdd() {
@@ -168,7 +168,7 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
   return (
     <div className="space-y-2">
       {(nodes ?? []).length === 0 && (
-        <p className="text-xs text-gray-400">Noch keine {typeStyle.label}.</p>
+        <p className="text-xs text-gray-400">No {typeStyle.label.toLowerCase()}s yet.</p>
       )}
       {(nodes ?? []).map((node) => (
         <NodeItem key={node.id} node={node} userId={userId} onAdded={() => { setLoaded(false); load() }} />
@@ -178,7 +178,7 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
           <textarea
             value={addText}
             onChange={(e) => setAddText(e.target.value)}
-            placeholder={`${typeStyle.label} hinzufügen…`}
+            placeholder={`Add ${typeStyle.label.toLowerCase()}…`}
             rows={2}
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
           />

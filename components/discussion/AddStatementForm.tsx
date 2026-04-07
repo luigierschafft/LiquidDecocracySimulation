@@ -30,7 +30,7 @@ export function AddStatementForm({ topicId }: Props) {
       data: { user },
     } = await supabase.auth.getUser()
     if (!user) {
-      setError('Du musst eingeloggt sein.')
+      setError('You must be logged in.')
       setLoading(false)
       return
     }
@@ -60,14 +60,14 @@ export function AddStatementForm({ topicId }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-      <h2 className="text-sm font-semibold text-gray-700 mb-3">Statement hinzufügen</h2>
+      <h2 className="text-sm font-semibold text-gray-700 mb-3">Add Statement</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
         <div>
           <div className="relative">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value.slice(0, 100))}
-              placeholder="Dein Statement (max. 100 Zeichen)..."
+              placeholder="Your statement (max. 100 characters)..."
               rows={2}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12"
             />
@@ -86,7 +86,7 @@ export function AddStatementForm({ topicId }: Props) {
             type="url"
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
-            placeholder="https://quelle.de/link"
+            placeholder="https://source.org/link"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         )}
@@ -100,7 +100,7 @@ export function AddStatementForm({ topicId }: Props) {
             className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
           >
             <Plus className="w-4 h-4" />
-            {loading ? 'Wird gespeichert…' : 'Statement hinzufügen'}
+            {loading ? 'Saving…' : 'Add Statement'}
           </button>
           <button
             type="button"
@@ -108,7 +108,7 @@ export function AddStatementForm({ topicId }: Props) {
             className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors"
           >
             <LinkIcon className="w-3.5 h-3.5" />
-            {showUrl ? 'Quelle entfernen' : 'Quelle hinzufügen'}
+            {showUrl ? 'Remove source' : 'Add source'}
           </button>
         </div>
       </form>

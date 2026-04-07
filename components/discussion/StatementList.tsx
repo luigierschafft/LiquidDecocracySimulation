@@ -12,7 +12,7 @@ export function StatementList({ statements, userId, topicId }: Props) {
   if (statements.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400">
-        <p className="text-sm">Noch keine Statements. Sei der Erste!</p>
+        <p className="text-sm">No statements yet. Be the first!</p>
       </div>
     )
   }

@@ -34,7 +34,7 @@ function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
 const TYPE_STYLES: Record<string, { label: string; color: string; border: string }> = {
   pro: { label: 'PRO', color: 'bg-green-100 text-green-700', border: 'border-green-200' },
   contra: { label: 'CONTRA', color: 'bg-red-100 text-red-700', border: 'border-red-200' },
-  question: { label: 'FRAGE', color: 'bg-blue-100 text-blue-700', border: 'border-blue-200' },
+  question: { label: 'QUESTION', color: 'bg-blue-100 text-blue-700', border: 'border-blue-200' },
   statement: { label: 'STATEMENT', color: 'bg-gray-100 text-gray-600', border: 'border-gray-200' },
 }
 
@@ -88,7 +88,6 @@ function TreeNode({ node, userId, treeMode, depth = 0, onAdded }: TreeNodeProps)
           </span>
           <div className="flex-1">
             <p className="text-sm text-gray-800">{node.text}</p>
-            <span className="text-xs text-gray-400">{authorName}</span>
           </div>
           {children.length > 0 && (
             <button onClick={() => setExpanded(!expanded)} className="text-gray-400 hover:text-gray-600">
@@ -99,7 +98,7 @@ function TreeNode({ node, userId, treeMode, depth = 0, onAdded }: TreeNodeProps)
 
         {userId && (
           <div className="flex items-center gap-1 mt-2 flex-wrap">
-            <span className="text-xs text-gray-400 mr-1">Antworten:</span>
+            <span className="text-xs text-gray-400 mr-1">Reply:</span>
             {(['pro', 'contra', 'question', 'statement'] as DiscussionNode['type'][]).map((t) => (
               <button
                 key={t}
@@ -119,7 +118,7 @@ function TreeNode({ node, userId, treeMode, depth = 0, onAdded }: TreeNodeProps)
             <textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
-              placeholder={`${TYPE_STYLES[replyType].label} hinzufügen…`}
+              placeholder={`Add ${TYPE_STYLES[replyType].label}…`}
               rows={2}
               className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
@@ -171,7 +170,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
 
   if (!loaded) {
     load()
-    return <div className="text-xs text-gray-400 py-2">Laden…</div>
+    return <div className="text-xs text-gray-400 py-2">Loading…</div>
   }
 
   const tree = buildTree(nodes ?? [])
@@ -198,18 +197,18 @@ export function KialoTreeView({ statementId, userId }: Props) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-gray-500">Pro / Contra Argumente</span>
+        <span className="text-xs font-medium text-gray-500">Pro / Contra Arguments</span>
         <button
           onClick={() => setTreeMode(!treeMode)}
           className="flex items-center gap-1 text-xs text-gray-500 hover:text-purple-600 transition-colors"
         >
           {treeMode ? <List className="w-3.5 h-3.5" /> : <GitBranch className="w-3.5 h-3.5" />}
-          {treeMode ? 'Listenansicht' : 'Baumansicht'}
+          {treeMode ? 'List view' : 'Tree view'}
         </button>
       </div>
 
       {tree.length === 0 && (
-        <p className="text-xs text-gray-400">Noch keine Argumente.</p>
+        <p className="text-xs text-gray-400">No arguments yet.</p>
       )}
 
       {tree.map((node) => (
@@ -225,7 +224,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
       {userId && (
         <div className="border-t border-gray-100 pt-3">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs text-gray-500">Neues Argument:</span>
+            <span className="text-xs text-gray-500">New argument:</span>
             {(['pro', 'contra'] as DiscussionNode['type'][]).map((t) => (
               <button
                 key={t}
@@ -247,7 +246,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
               <textarea
                 value={addText}
                 onChange={(e) => setAddText(e.target.value)}
-                placeholder={`${addType === 'pro' ? 'Pro' : 'Contra'}-Argument hinzufügen…`}
+                placeholder={`Add ${addType === 'pro' ? 'pro' : 'contra'} argument…`}
                 rows={2}
                 className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
