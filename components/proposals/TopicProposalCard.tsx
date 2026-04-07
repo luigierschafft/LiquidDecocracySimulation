@@ -25,6 +25,8 @@ const VOTE_LABELS: Record<VoteValue, string> = {
   strong_disapproval: 'Strong No',
 }
 
+const VOTE_ORDER: VoteValue[] = ['approve', 'abstain', 'disapprove', 'strong_disapproval']
+
 interface Props {
   proposal: TopicProposal
   userId: string | null
@@ -37,7 +39,6 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
   const args: ProposalArgument[] = proposal.arguments ?? []
 
   const totalVotes = votes.length
-
   const voteCounts: Record<VoteValue, number> = {
     approve: votes.filter((v) => v.vote === 'approve').length,
     abstain: votes.filter((v) => v.vote === 'abstain').length,
@@ -47,8 +48,6 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
 
   const proArgs = args.filter((a) => a.type === 'pro')
   const contraArgs = args.filter((a) => a.type === 'contra')
-
-  const authorName = proposal.author?.display_name || proposal.author?.email || 'Anonym'
 
   const [addArgType, setAddArgType] = useState<'pro' | 'contra' | null>(null)
   const [argText, setArgText] = useState('')
@@ -72,82 +71,78 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 space-y-4">
-      {/* Header row */}
-      <div className="flex items-start gap-2">
-        <div className="flex-1">
-          <p className="text-sm text-gray-800 leading-relaxed">{proposal.text}</p>
-          <span className="text-xs text-gray-400 mt-1 block">{authorName}</span>
-        </div>
-      </div>
+      {/* Proposal text */}
+      <p className="text-sm text-gray-800 leading-relaxed">{proposal.text}</p>
 
-      {/* Two-column: proposal main + diff panel */}
+      {/* Two-column: left = voting + pro/contra | right = AI diff */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-4">
-          {/* Vote bar */}
+
+          {/* 1. Current vote summary */}
           {totalVotes > 0 && (
             <div className="space-y-1">
               <div className="flex h-3 rounded-full overflow-hidden gap-0.5">
-                {(Object.entries(voteCounts) as [VoteValue, number][])
-                  .filter(([, count]) => count > 0)
-                  .map(([vote, count]) => (
-                    <div
-                      key={vote}
-                      className={`${VOTE_COLORS[vote]} transition-all`}
-                      style={{ width: `${(count / totalVotes) * 100}%` }}
-                      title={`${VOTE_LABELS[vote]}: ${count}`}
-                    />
-                  ))}
+                {VOTE_ORDER.filter((v) => voteCounts[v] > 0).map((vote) => (
+                  <div
+                    key={vote}
+                    className={`${VOTE_COLORS[vote]} transition-all`}
+                    style={{ width: `${(voteCounts[vote] / totalVotes) * 100}%` }}
+                    title={`${VOTE_LABELS[vote]}: ${voteCounts[vote]}`}
+                  />
+                ))}
               </div>
               <div className="flex flex-wrap gap-3">
-                {(Object.entries(voteCounts) as [VoteValue, number][]).map(([vote, count]) => (
+                {VOTE_ORDER.map((vote) => (
                   <span key={vote} className="text-xs text-gray-500">
                     <span className={`inline-block w-2 h-2 rounded-full mr-1 ${VOTE_COLORS[vote]}`} />
-                    {VOTE_LABELS[vote]}: {count}
+                    {VOTE_LABELS[vote]}: {voteCounts[vote]}
                   </span>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Pro/Contra arguments */}
+          {/* 2. Your vote */}
+          <div>
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Your Vote</h4>
+            {userId ? (
+              <ProposalVoteButtons proposalId={proposal.id} userId={userId} votes={votes} />
+            ) : (
+              <p className="text-xs text-gray-400">Log in to vote.</p>
+            )}
+          </div>
+
+          {/* 3. Pro/Contra arguments */}
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              {/* Pro */}
               <div>
                 <h4 className="text-xs font-semibold text-green-700 uppercase tracking-wide flex items-center gap-1 mb-2">
                   <ThumbsUp className="w-3.5 h-3.5" /> Pro
                 </h4>
                 {proArgs.length === 0 ? (
-                  <p className="text-xs text-gray-400">Keine Pro-Argumente.</p>
+                  <p className="text-xs text-gray-400">No pro arguments.</p>
                 ) : (
                   <div className="space-y-1.5">
                     {proArgs.map((arg) => (
                       <div key={arg.id} className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                         <p className="text-xs text-gray-800">{arg.text}</p>
-                        <span className="text-xs text-gray-400">
-                          {arg.author?.display_name || arg.author?.email || 'Anonym'}
-                        </span>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Contra */}
               <div>
                 <h4 className="text-xs font-semibold text-red-700 uppercase tracking-wide flex items-center gap-1 mb-2">
                   <ThumbsDown className="w-3.5 h-3.5" /> Contra
                 </h4>
                 {contraArgs.length === 0 ? (
-                  <p className="text-xs text-gray-400">Keine Contra-Argumente.</p>
+                  <p className="text-xs text-gray-400">No contra arguments.</p>
                 ) : (
                   <div className="space-y-1.5">
                     {contraArgs.map((arg) => (
                       <div key={arg.id} className="bg-red-50 border border-red-200 rounded-lg px-3 py-2">
                         <p className="text-xs text-gray-800">{arg.text}</p>
-                        <span className="text-xs text-gray-400">
-                          {arg.author?.display_name || arg.author?.email || 'Anonym'}
-                        </span>
                       </div>
                     ))}
                   </div>
@@ -155,7 +150,6 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
               </div>
             </div>
 
-            {/* Add argument */}
             {userId && (
               <div className="space-y-2">
                 <div className="flex gap-2">
@@ -185,7 +179,7 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
                     <textarea
                       value={argText}
                       onChange={(e) => setArgText(e.target.value)}
-                      placeholder={`${addArgType === 'pro' ? 'Pro' : 'Contra'}-Argument…`}
+                      placeholder={`Add ${addArgType === 'pro' ? 'pro' : 'contra'} argument…`}
                       rows={2}
                       className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
                     />
@@ -204,26 +198,11 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
         </div>
 
         {/* Right: AI Diff panel */}
-        <AiDiffPanel
-          currentText={proposal.text}
-          nextText={nextProposal?.text ?? null}
-        />
+        <AiDiffPanel currentText={proposal.text} nextText={nextProposal?.text ?? null} />
       </div>
 
-      {/* Bottom row: vote buttons + improvements */}
-      <div className="border-t border-gray-100 pt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Deine Stimme</h4>
-          {userId ? (
-            <ProposalVoteButtons
-              proposalId={proposal.id}
-              userId={userId}
-              votes={votes}
-            />
-          ) : (
-            <p className="text-xs text-gray-400">Einloggen zum Abstimmen.</p>
-          )}
-        </div>
+      {/* Improvement suggestions */}
+      <div className="border-t border-gray-100 pt-4">
         <ProposedImprovements
           proposalId={proposal.id}
           userId={userId}

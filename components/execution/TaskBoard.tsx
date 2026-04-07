@@ -48,7 +48,7 @@ export function TaskBoard({ tasks, planId, userId }: Props) {
 
   return (
     <div>
-      <h2 className="text-sm font-semibold text-gray-700 mb-3">Aufgaben</h2>
+      <h2 className="text-sm font-semibold text-gray-700 mb-3">Tasks</h2>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {COLUMNS.map((col) => {
           const colTasks = tasks.filter((t) => t.status === col.status)
@@ -77,7 +77,7 @@ export function TaskBoard({ tasks, planId, userId }: Props) {
                     type="text"
                     value={newTitle}
                     onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Aufgabentitel…"
+                    placeholder="Task title…"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                     autoFocus
                   />

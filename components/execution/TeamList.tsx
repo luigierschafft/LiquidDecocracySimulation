@@ -55,7 +55,7 @@ export function TeamList({ team, planId, userId }: Props) {
       </div>
 
       {team.length === 0 && (
-        <p className="text-xs text-gray-400">Noch keine Teammitglieder.</p>
+        <p className="text-xs text-gray-400">No team members yet.</p>
       )}
 
       <div className="space-y-2">

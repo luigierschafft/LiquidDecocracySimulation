@@ -75,6 +75,17 @@ export interface ProposedImprovement {
   author_id: string
   created_at: string
   author?: { display_name: string | null; email: string }
+  votes?: ImprovementVote[]
+}
+
+export type ImprovementVoteValue = 'approve' | 'abstain' | 'disapprove' | 'strong_disapproval'
+
+export interface ImprovementVote {
+  id: string
+  improvement_id: string
+  user_id: string
+  vote: ImprovementVoteValue
+  created_at: string
 }
 
 export interface ExecutionPlan {

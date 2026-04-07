@@ -100,10 +100,10 @@ export function TaskCard({ task, userId }: Props) {
           <div className="space-y-2">
             <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kommentare</h5>
             {comments.length === 0 && (
-              <p className="text-xs text-gray-400">Noch keine Kommentare.</p>
+              <p className="text-xs text-gray-400">No comments yet.</p>
             )}
             {comments.map((c) => {
-              const author = c.author?.display_name || c.author?.email || 'Anonym'
+              const author = c.author?.display_name || c.author?.email || 'Anonymous'
               return (
                 <div key={c.id} className="bg-gray-50 rounded-lg px-3 py-2">
                   <p className="text-xs text-gray-800">{c.text}</p>

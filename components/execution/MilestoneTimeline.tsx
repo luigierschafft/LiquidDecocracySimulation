@@ -49,7 +49,7 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
       </div>
 
       {sorted.length === 0 && (
-        <p className="text-xs text-gray-400">Noch keine Meilensteine.</p>
+        <p className="text-xs text-gray-400">No milestones yet.</p>
       )}
 
       <div className="relative">

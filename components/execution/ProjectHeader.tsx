@@ -39,7 +39,7 @@ export function ProjectHeader({ plan }: Props) {
       <div className="flex items-start gap-3">
         <Target className="w-5 h-5 text-purple-600 mt-0.5 shrink-0" />
         <div className="flex-1">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Projektziel</h3>
+          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Project Goal</h3>
           {editingGoal ? (
             <div className="flex gap-2">
               <textarea
@@ -67,7 +67,7 @@ export function ProjectHeader({ plan }: Props) {
           ) : (
             <div className="flex items-start gap-2">
               <p className="text-sm text-gray-800 flex-1">
-                {plan.goal ?? <span className="text-gray-400 italic">Kein Ziel definiert.</span>}
+                {plan.goal ?? <span className="text-gray-400 italic">No goal defined yet.</span>}
               </p>
               <button
                 onClick={() => setEditingGoal(true)}
@@ -86,14 +86,14 @@ export function ProjectHeader({ plan }: Props) {
         <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
           <DollarSign className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500">Kosten</p>
+            <p className="text-xs text-gray-500">Budget</p>
             <p className="text-sm font-medium text-gray-800">{plan.costs ?? '–'}</p>
           </div>
         </div>
         <div className="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
           <Clock className="w-4 h-4 text-gray-400" />
           <div>
-            <p className="text-xs text-gray-500">Dauer</p>
+            <p className="text-xs text-gray-500">Duration</p>
             <p className="text-sm font-medium text-gray-800">{plan.duration ?? '–'}</p>
           </div>
         </div>
@@ -103,8 +103,8 @@ export function ProjectHeader({ plan }: Props) {
       {total > 0 && (
         <div className="space-y-1">
           <div className="flex justify-between text-xs text-gray-500">
-            <span>Fortschritt</span>
-            <span>{done}/{total} Aufgaben erledigt ({progress}%)</span>
+            <span>Progress</span>
+            <span>{done}/{total} tasks completed ({progress}%)</span>
           </div>
           <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
             <div

@@ -18,7 +18,7 @@ export default async function ProposalsPage({ params }: { params: { topicId: str
       author:member(display_name, email),
       votes:ev_proposal_votes(*),
       arguments:ev_proposal_arguments(*, author:member(display_name, email)),
-      improvements:ev_proposed_improvements(*, author:member(display_name, email))
+      improvements:ev_proposed_improvements(*, votes:ev_improvement_votes(*))
     `
     )
     .eq('issue_id', params.topicId)
@@ -30,7 +30,7 @@ export default async function ProposalsPage({ params }: { params: { topicId: str
       <div className="space-y-8">
         {(proposals ?? []).length === 0 && (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-sm">Noch keine Proposals. Reiche den ersten ein!</p>
+            <p className="text-sm">No proposals yet. Submit the first one!</p>
           </div>
         )}
         {(proposals ?? []).map((proposal, index) => (
