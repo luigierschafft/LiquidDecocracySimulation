@@ -131,7 +131,7 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
     const supabase = createClient()
     const { data } = await supabase
       .from('ev_discussion_nodes')
-      .select('*, author:member!discussion_nodes_author_id_fkey(display_name, email)')
+      .select('*')
       .eq('statement_id', statementId)
       .eq('type', filterType)
       .is('parent_id', null)

@@ -160,7 +160,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
     const supabase = createClient()
     const { data } = await supabase
       .from('ev_discussion_nodes')
-      .select('*, author:member!discussion_nodes_author_id_fkey(display_name, email)')
+      .select('*')
       .eq('statement_id', statementId)
       .in('type', ['pro', 'contra'])
       .order('created_at', { ascending: true })
