@@ -28,9 +28,9 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
   if (!plan) {
     return (
       <div className="text-center py-16 text-gray-500">
-        <p className="text-lg font-medium">Noch kein Execution Workspace</p>
+        <p className="text-lg font-medium">No execution workspace yet</p>
         <p className="text-sm mt-2">
-          Der Workspace wird automatisch erstellt, sobald eine Initiative angenommen wurde.
+          The workspace is created once a proposal has been accepted by the community.
         </p>
       </div>
     )

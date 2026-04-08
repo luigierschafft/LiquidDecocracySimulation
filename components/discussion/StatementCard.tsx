@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ExternalLink } from 'lucide-react'
+import { createClient } from '@/lib/supabase/browser'
 import { StatementRating } from './StatementRating'
 import { KialoTreeView } from './KialoTreeView'
 import { DiscussionNodeView } from './DiscussionNode'
@@ -18,6 +19,22 @@ export function StatementCard({ statement, userId }: Props) {
   const [activeTab, setActiveTab] = useState<Tab | null>(null)
   const [userRating, setUserRating] = useState<number | null>(statement.user_rating ?? null)
   const [avgRating, setAvgRating] = useState<number | null>(statement.avg_rating ?? null)
+  const [counts, setCounts] = useState<Record<Tab, number>>({ procontra: 0, questions: 0 })
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase
+      .from('ev_discussion_nodes')
+      .select('type')
+      .eq('statement_id', statement.id)
+      .is('parent_id', null)
+      .then(({ data }) => {
+        if (!data) return
+        const procontra = data.filter((n) => n.type === 'pro' || n.type === 'contra').length
+        const questions = data.filter((n) => n.type === 'question').length
+        setCounts({ procontra, questions })
+      })
+  }, [statement.id])
 
   const sourceLinks: string[] = statement.source_links ?? []
 
@@ -26,9 +43,9 @@ export function StatementCard({ statement, userId }: Props) {
     setAvgRating(newAvg)
   }
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'procontra', label: '+ Pro/Contra' },
-    { key: 'questions', label: '+ Question' },
+  const tabs: { key: Tab; label: string; activeColor: string; hasContentColor: string }[] = [
+    { key: 'procontra', label: '+ Pro/Contra', activeColor: 'bg-purple-600 text-white', hasContentColor: 'bg-green-100 text-green-700 hover:bg-green-200' },
+    { key: 'questions', label: '+ Question', activeColor: 'bg-purple-600 text-white', hasContentColor: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
   ]
 
   return (
@@ -76,7 +93,9 @@ export function StatementCard({ statement, userId }: Props) {
             onClick={() => setActiveTab(activeTab === tab.key ? null : tab.key)}
             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
               activeTab === tab.key
-                ? 'bg-purple-600 text-white'
+                ? tab.activeColor
+                : counts[tab.key] > 0
+                ? tab.hasContentColor
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >

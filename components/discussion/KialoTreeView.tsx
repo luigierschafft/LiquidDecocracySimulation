@@ -8,6 +8,7 @@ import { List, GitBranch, Plus, ChevronDown, ChevronRight } from 'lucide-react'
 interface Props {
   statementId: string
   userId: string | null
+  onCountLoaded?: (count: number) => void
 }
 
 function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
@@ -148,7 +149,7 @@ function TreeNode({ node, userId, treeMode, depth = 0, onAdded }: TreeNodeProps)
   )
 }
 
-export function KialoTreeView({ statementId, userId }: Props) {
+export function KialoTreeView({ statementId, userId, onCountLoaded }: Props) {
   const [nodes, setNodes] = useState<DiscussionNode[] | null>(null)
   const [treeMode, setTreeMode] = useState(true)
   const [addType, setAddType] = useState<DiscussionNode['type'] | null>(null)
@@ -166,6 +167,7 @@ export function KialoTreeView({ statementId, userId }: Props) {
       .order('created_at', { ascending: true })
     setNodes(data ?? [])
     setLoaded(true)
+    onCountLoaded?.((data ?? []).length)
   }, [statementId])
 
   if (!loaded) {

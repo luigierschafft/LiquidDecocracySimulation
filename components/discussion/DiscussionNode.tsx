@@ -119,9 +119,10 @@ interface ListProps {
   statementId: string
   userId: string | null
   filterType: 'question' | 'statement'
+  onCountLoaded?: (count: number) => void
 }
 
-export function DiscussionNodeView({ statementId, userId, filterType }: ListProps) {
+export function DiscussionNodeView({ statementId, userId, filterType, onCountLoaded }: ListProps) {
   const [nodes, setNodes] = useState<DiscussionNode[] | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [addText, setAddText] = useState('')
@@ -133,11 +134,27 @@ export function DiscussionNodeView({ statementId, userId, filterType }: ListProp
       .from('ev_discussion_nodes')
       .select('*')
       .eq('statement_id', statementId)
-      .eq('type', filterType)
-      .is('parent_id', null)
       .order('created_at', { ascending: true })
-    setNodes(data ?? [])
+
+    const all = data ?? []
+    const map = new Map<string, DiscussionNode>()
+    all.forEach((n) => map.set(n.id, { ...n, children: [] }))
+    map.forEach((node) => {
+      if (node.parent_id) {
+        const parent = map.get(node.parent_id)
+        if (parent) {
+          parent.children = parent.children ?? []
+          parent.children.push(node)
+        }
+      }
+    })
+    const roots = all
+      .filter((n) => !n.parent_id && n.type === filterType)
+      .map((n) => map.get(n.id)!)
+
+    setNodes(roots)
     setLoaded(true)
+    onCountLoaded?.(roots.length)
   }
 
   if (!loaded) {
