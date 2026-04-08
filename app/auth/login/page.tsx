@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Button } from '@/components/ui/Button'
 
@@ -16,6 +17,8 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
+  const searchParams = useSearchParams()
+  const next = searchParams.get('next') ?? '/topics'
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -28,7 +31,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     })
     if (error) setError(error.message)
@@ -41,7 +44,7 @@ export default function LoginPage() {
     setError(null)
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}` },
     })
     if (error) setError(error.message)
     else setSubmitted(true)

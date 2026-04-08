@@ -113,7 +113,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
               </button>
             </>
           ) : (
-            <Link href="/auth/login" className="btn-primary text-sm py-1.5">
+            <Link href={`/auth/login?next=${encodeURIComponent(pathname)}`} className="btn-primary text-sm py-1.5">
               Sign in
             </Link>
           )}
