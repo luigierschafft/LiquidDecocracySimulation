@@ -85,7 +85,7 @@ export function TaskBoard({ tasks, planId, userId }: Props) {
                     type="text"
                     value={newDesc}
                     onChange={(e) => setNewDesc(e.target.value)}
-                    placeholder="Beschreibung (optional)"
+                    placeholder="Description (optional)"
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                   <div className="flex gap-2">
@@ -94,13 +94,13 @@ export function TaskBoard({ tasks, planId, userId }: Props) {
                       disabled={loading || !newTitle.trim()}
                       className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
                     >
-                      {loading ? 'Speichern…' : 'Hinzufügen'}
+                      {loading ? 'Saving…' : 'Add'}
                     </button>
                     <button
                       onClick={() => { setAddingIn(null); setNewTitle(''); setNewDesc('') }}
                       className="px-3 py-2 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition-colors"
                     >
-                      Abbrechen
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export function TaskBoard({ tasks, planId, userId }: Props) {
                     className="w-full flex items-center gap-1.5 text-xs text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg px-3 py-2 transition-colors"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Task hinzufügen
+                    Add task
                   </button>
                 )
               )}

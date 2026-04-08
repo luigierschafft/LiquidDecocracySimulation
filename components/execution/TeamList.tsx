@@ -18,8 +18,8 @@ const STATUS_STYLES: Record<ExecutionTeamMember['status'], string> = {
 }
 
 const STATUS_LABELS: Record<ExecutionTeamMember['status'], string> = {
-  active: 'Aktiv',
-  interested: 'Interessiert',
+  active: 'Active',
+  interested: 'Interested',
 }
 
 export function TeamList({ team, planId, userId }: Props) {
@@ -83,7 +83,7 @@ export function TeamList({ team, planId, userId }: Props) {
                 type="text"
                 value={roleText}
                 onChange={(e) => setRoleText(e.target.value)}
-                placeholder="Deine Rolle (optional)…"
+                placeholder="Your role (optional)…"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
               <div className="flex gap-2">
@@ -92,13 +92,13 @@ export function TeamList({ team, planId, userId }: Props) {
                   disabled={joining}
                   className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
                 >
-                  {joining ? 'Beitreten…' : 'Beitreten'}
+                  {joining ? 'Joining…' : 'Join'}
                 </button>
                 <button
                   onClick={() => setShowForm(false)}
                   className="px-3 py-2 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Abbrechen
+                  Cancel
                 </button>
               </div>
             </div>
@@ -108,7 +108,7 @@ export function TeamList({ team, planId, userId }: Props) {
               className="flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium"
             >
               <UserPlus className="w-3.5 h-3.5" />
-              Team beitreten
+              Join team
             </button>
           )}
         </div>

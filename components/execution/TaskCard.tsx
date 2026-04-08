@@ -98,7 +98,7 @@ export function TaskCard({ task, userId }: Props) {
           )}
 
           <div className="space-y-2">
-            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Kommentare</h5>
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Comments</h5>
             {comments.length === 0 && (
               <p className="text-xs text-gray-400">No comments yet.</p>
             )}
@@ -118,7 +118,7 @@ export function TaskCard({ task, userId }: Props) {
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && addComment()}
-                  placeholder="Kommentar hinzufügen…"
+                  placeholder="Add a comment…"
                   className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
                 <button

@@ -45,7 +45,7 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-4">
       <div className="flex items-center gap-2">
         <Flag className="w-4 h-4 text-purple-600" />
-        <h3 className="text-sm font-semibold text-gray-700">Meilensteine</h3>
+        <h3 className="text-sm font-semibold text-gray-700">Milestones</h3>
       </div>
 
       {sorted.length === 0 && (
@@ -82,7 +82,7 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Meilenstein-Titel…"
+                placeholder="Milestone title…"
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                 autoFocus
               />
@@ -98,13 +98,13 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
                   disabled={loading || !title.trim()}
                   className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
                 >
-                  {loading ? 'Speichern…' : 'Hinzufügen'}
+                  {loading ? 'Saving…' : 'Add'}
                 </button>
                 <button
                   onClick={() => { setShowForm(false); setTitle(''); setDate('') }}
                   className="px-3 py-2 bg-gray-100 text-gray-600 text-xs rounded-lg hover:bg-gray-200 transition-colors"
                 >
-                  Abbrechen
+                  Cancel
                 </button>
               </div>
             </div>
@@ -114,7 +114,7 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
               className="flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium"
             >
               <Plus className="w-3.5 h-3.5" />
-              Meilenstein hinzufügen
+              Add milestone
             </button>
           )}
         </div>

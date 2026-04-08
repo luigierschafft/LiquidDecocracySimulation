@@ -9,21 +9,21 @@ type Section = 'discussion' | 'proposals' | 'execution'
 const SECTIONS: { value: Section; label: string; description: string }[] = [
   {
     value: 'discussion',
-    label: 'Diskussion',
+    label: 'Discussion',
     description:
-      'Hier werden gemeinsam Statements gesammelt und bewertet. Jedes Statement kann maximal 100 Zeichen lang sein und mit Pro/Contra-Argumenten diskutiert werden. Statements können auf einer Skala von 0 (unwichtig) bis 10 (sehr wichtig) bewertet werden.',
+      'Collect and rate statements together. Each statement is max 100 characters and can be discussed with pro/contra arguments. Rate statements on a scale from 0 (not important) to 10 (very important).',
   },
   {
     value: 'proposals',
     label: 'Proposals',
     description:
-      'Hier werden konkrete Vorschläge eingereicht und abgestimmt. Jeder Vorschlag kann mit Approve, Abstain, Disapprove oder Strong Disapproval bewertet werden. Pro/Contra-Argumente und Verbesserungsvorschläge können hinzugefügt werden.',
+      'Submit and vote on concrete proposals. Each proposal can be rated Approve, Abstain, Disapprove or Strong No. Add pro/contra arguments and improvement suggestions.',
   },
   {
     value: 'execution',
     label: 'Execution',
     description:
-      'Hier entsteht der Projektplan für eine angenommene Initiative. Der Workspace enthält Aufgaben, Team, Zeitplan und Ziele. Alle Änderungen werden als Vorschläge eingereicht und gemeinsam abgestimmt.',
+      'The project workspace for an accepted initiative. Contains tasks, team, timeline and goals. Track progress and collaborate on implementation.',
   },
 ]
 

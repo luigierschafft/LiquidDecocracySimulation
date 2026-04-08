@@ -72,7 +72,7 @@ export function ProjectHeader({ plan }: Props) {
               <button
                 onClick={() => setEditingGoal(true)}
                 className="text-gray-400 hover:text-purple-600 transition-colors"
-                title="Ziel bearbeiten"
+                title="Edit goal"
               >
                 <Edit3 className="w-4 h-4" />
               </button>
