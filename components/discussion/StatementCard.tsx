@@ -6,7 +6,7 @@ import { StatementRating } from './StatementRating'
 import { KialoTreeView } from './KialoTreeView'
 import { DiscussionNodeView } from './DiscussionNode'
 
-type Tab = 'procontra' | 'questions' | 'statements'
+type Tab = 'procontra' | 'questions'
 
 interface Props {
   statement: any
@@ -27,9 +27,8 @@ export function StatementCard({ statement, userId }: Props) {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'procontra', label: 'Pro/Contra' },
-    { key: 'questions', label: 'Questions' },
-    { key: 'statements', label: 'Statements' },
+    { key: 'procontra', label: '+ Pro/Contra' },
+    { key: 'questions', label: '+ Question' },
   ]
 
   return (
@@ -89,11 +88,11 @@ export function StatementCard({ statement, userId }: Props) {
       {activeTab === 'procontra' && (
         <KialoTreeView statementId={statement.id} userId={userId} />
       )}
-      {(activeTab === 'questions' || activeTab === 'statements') && (
+      {activeTab === 'questions' && (
         <DiscussionNodeView
           statementId={statement.id}
           userId={userId}
-          filterType={activeTab === 'questions' ? 'question' : 'statement'}
+          filterType="question"
         />
       )}
     </div>
