@@ -88,16 +88,27 @@ export interface ImprovementVote {
   created_at: string
 }
 
+export interface ExecutionComment {
+  id: string
+  plan_id: string
+  author_id: string
+  text: string
+  created_at: string
+  author?: { display_name: string | null; email: string } | null
+}
+
 export interface ExecutionPlan {
   id: string
   issue_id: string
   goal: string | null
   costs: string | null
   duration: string | null
+  proposal_text: string | null
   created_at: string
   tasks?: ExecutionTask[]
   milestones?: ExecutionMilestone[]
   team?: ExecutionTeamMember[]
+  comments?: ExecutionComment[]
 }
 
 export interface ExecutionTask {

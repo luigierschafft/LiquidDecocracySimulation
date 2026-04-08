@@ -3,6 +3,8 @@ import { ProjectHeader } from '@/components/execution/ProjectHeader'
 import { TaskBoard } from '@/components/execution/TaskBoard'
 import { TeamList } from '@/components/execution/TeamList'
 import { MilestoneTimeline } from '@/components/execution/MilestoneTimeline'
+import { ProposalDocument } from '@/components/execution/ProposalDocument'
+import { ExecutionComments } from '@/components/execution/ExecutionComments'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +21,8 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
       *,
       tasks:ev_execution_tasks(*, assignee:member(display_name, email), comments:ev_task_comments(*, author:member(display_name, email))),
       milestones:ev_execution_milestones(*),
-      team:ev_execution_team(*, member(display_name, email))
+      team:ev_execution_team(*, member(display_name, email)),
+      comments:ev_execution_comments(*, author:member(display_name, email))
     `
     )
     .eq('issue_id', params.topicId)
@@ -36,6 +39,10 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     )
   }
 
+  const sortedComments = [...(plan.comments ?? [])].sort(
+    (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  )
+
   return (
     <div className="space-y-8">
       <ProjectHeader plan={plan} />
@@ -45,6 +52,8 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
           <TeamList team={plan.team ?? []} planId={plan.id} userId={user?.id ?? null} />
           <MilestoneTimeline milestones={plan.milestones ?? []} planId={plan.id} userId={user?.id ?? null} />
         </div>
+        <ProposalDocument planId={plan.id} proposalText={plan.proposal_text ?? null} userId={user?.id ?? null} />
+        <ExecutionComments planId={plan.id} userId={user?.id ?? null} comments={sortedComments} />
       </div>
     </div>
   )
