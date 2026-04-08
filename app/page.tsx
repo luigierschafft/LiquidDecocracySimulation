@@ -23,7 +23,7 @@ export default async function LandingPage() {
             <span className="block text-accent">for Auroville</span>
           </h1>
 
-          <Link href="/proposals" className="btn-primary inline-flex items-center gap-2 text-base px-6 py-3">
+          <Link href="/topics" className="btn-primary inline-flex items-center gap-2 text-base px-6 py-3">
             Browse Topics
             <ArrowRight className="w-4 h-4" />
           </Link>

@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
   if ((isProtected || isAdmin) && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    url.searchParams.set('redirect', request.nextUrl.pathname)
+    url.searchParams.set('next', request.nextUrl.pathname)
     return NextResponse.redirect(url)
   }
 
