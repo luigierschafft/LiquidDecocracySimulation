@@ -107,7 +107,12 @@
       "WebFetch(domain:github.com)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npm install sunburst-chart 2>&1 | tail -5)",
       "Bash(cd \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" && npm list sunburst-chart 2>&1)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001 2>/dev/null || echo \"not running\")"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001 2>/dev/null || echo \"not running\")",
+      "Bash(dir \"C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\" /b 2>&1 | head -20)",
+      "Bash(mkdir -p \"/mnt/c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/public\" 2>/dev/null; cp \"/mnt/c/Users/Lukas/Downloads/ChatGPT Image Apr 23, 2026, 02_15_21 AM.png\" \"/mnt/c/Users/Lukas/Documents/App/Claudecode/LiquidDemocracyAuroville/public/mongoose.png\" && echo \"done\")",
+      "Bash(powershell.exe -Command \"New-Item -ItemType Directory -Force -Path 'C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\public'; Copy-Item -Path 'C:\\\\Users\\\\Lukas\\\\Downloads\\\\ChatGPT Image Apr 23, 2026, 02_15_21 AM.png' -Destination 'C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\public\\\\mongoose.png'; Write-Host 'done'\")",
+      "Bash(powershell.exe -Command \"Test-Path 'C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\public\\\\mongoose.png'\")",
+      "Bash(powershell.exe -Command \"New-Item -ItemType Directory -Force -Path 'C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\app\\\\play\\\\[topicId]'; New-Item -ItemType Directory -Force -Path 'C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\components\\\\play'; New-Item -ItemType Directory -Force -Path 'C:\\\\Users\\\\Lukas\\\\Documents\\\\App\\\\Claudecode\\\\LiquidDemocracyAuroville\\\\app\\\\api\\\\play\\\\topics'; Write-Host 'done'\")"
     ]
   }
 }
