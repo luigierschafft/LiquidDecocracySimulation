@@ -5,6 +5,9 @@ import { ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/browser'
 import { StatementRating } from './StatementRating'
 import { KialoTreeView } from './KialoTreeView'
+import { SunView } from './SunView'
+
+type ViewMode = 'split' | 'sun'
 
 interface Props {
   statement: any
@@ -14,6 +17,7 @@ interface Props {
 
 export function StatementCard({ statement, userId }: Props) {
   const [open, setOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<ViewMode>('split')
   const [userRating, setUserRating] = useState<number | null>(statement.user_rating ?? null)
   const [avgRating, setAvgRating] = useState<number | null>(statement.avg_rating ?? null)
   const [argCount, setArgCount] = useState(0)
@@ -76,7 +80,7 @@ export function StatementCard({ statement, userId }: Props) {
         </p>
       )}
 
-      <div className="pt-1 border-t border-gray-100">
+      <div className="pt-1 border-t border-gray-100 flex items-center gap-2">
         <button
           onClick={() => setOpen((v) => !v)}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
@@ -89,10 +93,34 @@ export function StatementCard({ statement, userId }: Props) {
         >
           {open ? 'Hide Discussion' : argCount > 0 ? `${argCount} Arguments` : '+ Discuss'}
         </button>
+
+        {open && (
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+            <button
+              onClick={() => setViewMode('split')}
+              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                viewMode === 'split' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Split
+            </button>
+            <button
+              onClick={() => setViewMode('sun')}
+              className={`text-xs px-2.5 py-1 rounded-md font-medium transition-colors ${
+                viewMode === 'sun' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              ☀ Sun
+            </button>
+          </div>
+        )}
       </div>
 
-      {open && (
+      {open && viewMode === 'split' && (
         <KialoTreeView statementId={statement.id} userId={userId} />
+      )}
+      {open && viewMode === 'sun' && (
+        <SunView statementId={statement.id} statementText={statement.text} userId={userId} />
       )}
     </div>
   )
