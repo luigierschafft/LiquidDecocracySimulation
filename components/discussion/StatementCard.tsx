@@ -5,9 +5,6 @@ import { ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/browser'
 import { StatementRating } from './StatementRating'
 import { KialoTreeView } from './KialoTreeView'
-import { DiscussionNodeView } from './DiscussionNode'
-
-type Tab = 'procontra' | 'questions'
 
 interface Props {
   statement: any
@@ -16,10 +13,10 @@ interface Props {
 }
 
 export function StatementCard({ statement, userId }: Props) {
-  const [activeTab, setActiveTab] = useState<Tab | null>(null)
+  const [open, setOpen] = useState(false)
   const [userRating, setUserRating] = useState<number | null>(statement.user_rating ?? null)
   const [avgRating, setAvgRating] = useState<number | null>(statement.avg_rating ?? null)
-  const [counts, setCounts] = useState<Record<Tab, number>>({ procontra: 0, questions: 0 })
+  const [argCount, setArgCount] = useState(0)
 
   useEffect(() => {
     const supabase = createClient()
@@ -28,11 +25,9 @@ export function StatementCard({ statement, userId }: Props) {
       .select('type')
       .eq('statement_id', statement.id)
       .is('parent_id', null)
+      .in('type', ['pro', 'contra'])
       .then(({ data }) => {
-        if (!data) return
-        const procontra = data.filter((n) => n.type === 'pro' || n.type === 'contra').length
-        const questions = data.filter((n) => n.type === 'question').length
-        setCounts({ procontra, questions })
+        setArgCount(data?.length ?? 0)
       })
   }, [statement.id])
 
@@ -42,11 +37,6 @@ export function StatementCard({ statement, userId }: Props) {
     setUserRating(rating)
     setAvgRating(newAvg)
   }
-
-  const tabs: { key: Tab; label: string; activeColor: string; hasContentColor: string }[] = [
-    { key: 'procontra', label: '+ Pro/Contra', activeColor: 'bg-purple-600 text-white', hasContentColor: 'bg-green-100 text-green-700 hover:bg-green-200' },
-    { key: 'questions', label: '+ Question', activeColor: 'bg-purple-600 text-white', hasContentColor: 'bg-blue-100 text-blue-700 hover:bg-blue-200' },
-  ]
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
@@ -86,33 +76,23 @@ export function StatementCard({ statement, userId }: Props) {
         </p>
       )}
 
-      <div className="flex items-center gap-2 pt-1 border-t border-gray-100">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(activeTab === tab.key ? null : tab.key)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
-              activeTab === tab.key
-                ? tab.activeColor
-                : counts[tab.key] > 0
-                ? tab.hasContentColor
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div className="pt-1 border-t border-gray-100">
+        <button
+          onClick={() => setOpen((v) => !v)}
+          className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+            open
+              ? 'bg-purple-600 text-white'
+              : argCount > 0
+              ? 'bg-green-100 text-green-700 hover:bg-green-200'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }`}
+        >
+          {open ? 'Hide Discussion' : argCount > 0 ? `${argCount} Arguments` : '+ Discuss'}
+        </button>
       </div>
 
-      {activeTab === 'procontra' && (
+      {open && (
         <KialoTreeView statementId={statement.id} userId={userId} />
-      )}
-      {activeTab === 'questions' && (
-        <DiscussionNodeView
-          statementId={statement.id}
-          userId={userId}
-          filterType="question"
-        />
       )}
     </div>
   )
