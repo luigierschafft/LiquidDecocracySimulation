@@ -1,64 +1,67 @@
-import { createClient } from '@/lib/supabase/server'
-import { ProposalCard } from '@/components/proposals/ProposalCard'
-import { PlayHome } from '@/components/play/PlayHome'
+import Image from 'next/image'
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
-import { getEffectiveModules } from '@/lib/modules'
-import type { Issue } from '@/lib/types'
 
-export const dynamic = 'force-dynamic'
-
-export default async function PlayPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  const modules = await getEffectiveModules(user?.id)
-
-  const { data: issues } = await supabase
-    .from('issue')
-    .select(`
-      *,
-      area(*, unit(*)),
-      author:member!issue_author_id_fkey(*),
-      initiatives:initiative!initiative_issue_id_fkey(
-        *,
-        author:member!initiative_author_id_fkey(*),
-        votes:vote(*)
-      )
-    `)
-    .neq('status', 'draft')
-    .order('created_at', { ascending: false })
-
+export default function PlayPage() {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      {/* Mongoose header */}
-      <PlayHome />
+    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
 
-      {/* New Topic button */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">Topics</h2>
-        {modules.proposal_creation && (
-          <Link href="/proposals/new" className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            New Topic
-          </Link>
-        )}
+      {/* ── Top area: title + Traditional button + Mongoose ── */}
+      <div className="w-full max-w-xs relative mb-10">
+
+        {/* Traditional button */}
+        <Link
+          href="/"
+          className="absolute top-0 right-0 z-10 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-2xl shadow-md leading-tight text-center"
+        >
+          Tradi­<br />tional
+        </Link>
+
+        {/* Greeting text */}
+        <div className="pr-16 pt-1">
+          <p className="text-xl font-black text-gray-900 leading-snug">
+            Hello, Thank you<br />
+            for being here<br />
+            What would you<br />
+            like to do today
+          </p>
+        </div>
+
+        {/* Mongoose – floats to the right, overlapping text */}
+        <div className="absolute -right-2 top-8 pointer-events-none bg-transparent">
+          <Image
+            src="/mongoose.png"
+            alt="Mongoose mascot"
+            width={156}
+            height={182}
+            priority
+            placeholder="empty"
+            className="drop-shadow-lg bg-transparent"
+            style={{ background: 'transparent' }}
+          />
+        </div>
       </div>
 
-      {/* Topic grid */}
-      {issues && issues.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {issues.map((issue) => (
-            <ProposalCard key={issue.id} issue={issue as unknown as Issue} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-20 text-foreground/40">
-          <p className="text-lg">No topics yet.</p>
-          <Link href="/proposals/new" className="text-accent hover:underline text-sm mt-2 inline-block">
-            Be the first to create one
-          </Link>
-        </div>
-      )}
+      {/* ── 3 main action buttons ── */}
+      <div className="w-full max-w-xs flex flex-col gap-4">
+        <Link href="/play/topics" className="block">
+          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
+            Choose a topic to<br />speak and sense
+          </div>
+        </Link>
+
+        <Link href="/play/help" className="block">
+          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
+            I just want to help<br />where I can
+          </div>
+        </Link>
+
+        <Link href="/play/delegation" className="block">
+          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
+            Organize my<br />delegation
+          </div>
+        </Link>
+      </div>
+
     </div>
   )
 }
