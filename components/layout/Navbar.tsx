@@ -58,6 +58,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
     { href: '/delegation', label: 'Delegation', show: showDelegation },
     { href: '/voting-cycles', label: 'Votes', show: showVotingCycles },
     { href: '/governance', label: 'Governance', show: showGovernance },
+    { href: '/play', label: '🐾 Play', show: true },
   ].filter((l) => l.show)
 
   return (
