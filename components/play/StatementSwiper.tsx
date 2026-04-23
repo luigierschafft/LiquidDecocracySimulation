@@ -15,7 +15,7 @@ interface Props {
   topicTitle: string
 }
 
-export function StatementSwiper({ statements, topicId, topicTitle }: Props) {
+export function StatementSwiper({ statements, topicId }: Props) {
   const [index, setIndex] = useState(0)
   const [animDir, setAnimDir] = useState<'left' | 'right' | 'up' | null>(null)
   const pointerStart = useRef<{ x: number; y: number } | null>(null)
@@ -72,7 +72,7 @@ export function StatementSwiper({ statements, topicId, topicTitle }: Props) {
   if (index >= statements.length) {
     return (
       <div className="flex flex-col items-center gap-4 mt-8">
-        <p className="text-base font-bold text-gray-700 text-center">You've seen all statements! 🎉</p>
+        <p className="text-base font-bold text-gray-700 text-center">You&apos;ve seen all statements! 🎉</p>
         <Image src="/mongoose.png" alt="Mongoose" width={130} height={152} placeholder="empty" style={{ background: 'transparent' }} className="drop-shadow-lg" />
         <button onClick={() => setIndex(0)} className="mt-4 text-xs text-gray-400 underline">Start over</button>
       </div>
