@@ -197,17 +197,15 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
           </div>
         </div>
 
-        {/* Right: AI Diff panel */}
-        <AiDiffPanel currentText={proposal.text} nextText={nextProposal?.text ?? null} />
-      </div>
-
-      {/* Improvement suggestions */}
-      <div className="border-t border-gray-100 pt-4">
-        <ProposedImprovements
-          proposalId={proposal.id}
-          userId={userId}
-          improvements={proposal.improvements ?? []}
-        />
+        {/* Right: Improvements + AI Diff panel */}
+        <div className="space-y-4">
+          <ProposedImprovements
+            proposalId={proposal.id}
+            userId={userId}
+            improvements={proposal.improvements ?? []}
+          />
+          <AiDiffPanel currentText={proposal.text} nextText={nextProposal?.text ?? null} />
+        </div>
       </div>
     </div>
   )

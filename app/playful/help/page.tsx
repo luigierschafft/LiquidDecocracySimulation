@@ -34,7 +34,7 @@ export default async function PlayHelpPage() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
       <HelpSession topics={topics} userId={user.id} />
-      <Link href="/play" className="mt-10 text-xs text-gray-400 underline">
+      <Link href="/playful" className="mt-10 text-xs text-gray-400 underline">
         ← Back
       </Link>
     </div>

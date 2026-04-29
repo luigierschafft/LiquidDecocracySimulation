@@ -1,61 +1,72 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
+import { LearnChat } from '@/components/play/LearnChat'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PlayLearnPage({ params }: { params: { topicId: string } }) {
   const supabase = createClient()
+
   const { data: issue } = await supabase
     .from('issue')
-    .select('id, title, status')
+    .select('id, title')
     .eq('id', params.topicId)
     .single()
 
   if (!issue) notFound()
 
+  // Load discussion context
+  const { data: statements } = await supabase
+    .from('ev_statements')
+    .select('id, text, ratings:ev_statement_ratings(rating)')
+    .eq('issue_id', params.topicId)
+    .order('created_at', { ascending: true })
+
+  const statementIds = (statements ?? []).map((s: any) => s.id)
+  const { data: nodes } = statementIds.length > 0
+    ? await supabase
+        .from('ev_discussion_nodes')
+        .select('statement_id, type, text')
+        .in('statement_id', statementIds)
+        .in('type', ['pro', 'contra'])
+    : { data: [] }
+
+  const lines: string[] = [`Topic: ${issue.title}\n`]
+  for (const stmt of statements ?? []) {
+    const ratings = (stmt.ratings ?? []).map((r: any) => r.rating)
+    const avg = ratings.length > 0
+      ? (ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length).toFixed(1)
+      : null
+    lines.push(`Statement: "${stmt.text}"${avg ? ` (avg rating: ${avg}/10)` : ''}`)
+    const pros = (nodes ?? []).filter((n: any) => n.statement_id === stmt.id && n.type === 'pro')
+    const contras = (nodes ?? []).filter((n: any) => n.statement_id === stmt.id && n.type === 'contra')
+    pros.forEach((n: any) => lines.push(`  + ${n.text}`))
+    contras.forEach((n: any) => lines.push(`  - ${n.text}`))
+    lines.push('')
+  }
+  const context = lines.join('\n')
+
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
 
       {/* Header */}
-      <div className="w-full max-w-xs relative mb-4">
+      <div className="w-full max-w-xs relative mb-6">
         <Link
           href={`/topics/${issue.id}`}
           className="absolute top-0 right-0 z-10 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-2 rounded-2xl shadow-md leading-tight text-center"
         >
           Tradi­<br />tional
         </Link>
-        <h1 className="text-xl font-black text-gray-900 pr-16 leading-tight">{issue.title}</h1>
+        <h1 className="text-xl font-black text-gray-900 pr-16 leading-tight">
+          {issue.title}<br />
+          <span className="text-lg font-extrabold text-gray-500">Learn</span>
+        </h1>
       </div>
 
-      {/* Spacer */}
-      <div className="flex-1 min-h-[80px]" />
+      <LearnChat context={context} />
 
-      {/* AI placeholder box */}
-      <div className="w-full max-w-xs border-2 border-dashed border-gray-300 rounded-2xl px-5 py-6 text-center mb-6">
-        <p className="text-sm text-gray-500 leading-relaxed">
-          Learn more about the topic with a specialized AI
-        </p>
-        <p className="text-xs text-gray-400 mt-3 italic">
-          ✦ AI chat coming soon — ask anything about this topic and get informed, balanced answers.
-        </p>
-      </div>
-
-      {/* Waving mongoose */}
-      <div className="pointer-events-none">
-        <Image
-          src="/mongoose.png"
-          alt="Mongoose"
-          width={130}
-          height={152}
-          placeholder="empty"
-          style={{ background: 'transparent' }}
-          className="drop-shadow-lg"
-        />
-      </div>
-
-      <Link href={`/play/${issue.id}`} className="mt-6 text-xs text-gray-400 underline">
+      <Link href={`/play/${issue.id}`} className="mt-8 text-xs text-gray-400 underline">
         ← Back
       </Link>
     </div>

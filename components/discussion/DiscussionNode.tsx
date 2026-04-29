@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { DiscussionNode } from '@/lib/types/ev'
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react'
 
+
 const TYPE_STYLES: Record<string, { label: string; color: string }> = {
   pro: { label: 'PRO', color: 'bg-green-100 text-green-700' },
   contra: { label: 'CONTRA', color: 'bg-red-100 text-red-700' },

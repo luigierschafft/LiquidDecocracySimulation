@@ -18,6 +18,7 @@ interface Props {
 export function StatementCard({ statement, userId }: Props) {
   const [open, setOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('split')
+  const [sunClickedNodeId, setSunClickedNodeId] = useState<string | null>(null)
   const [userRating, setUserRating] = useState<number | null>(statement.user_rating ?? null)
   const [avgRating, setAvgRating] = useState<number | null>(statement.avg_rating ?? null)
   const [argCount, setArgCount] = useState(0)
@@ -37,7 +38,7 @@ export function StatementCard({ statement, userId }: Props) {
 
   const sourceLinks: string[] = statement.source_links ?? []
 
-  function handleRatingChange(rating: number, newAvg: number) {
+  function handleRatingChange(rating: number | null, newAvg: number | null) {
     setUserRating(rating)
     setAvgRating(newAvg)
   }
@@ -117,10 +118,21 @@ export function StatementCard({ statement, userId }: Props) {
       </div>
 
       {open && viewMode === 'split' && (
-        <KialoTreeView statementId={statement.id} userId={userId} />
+        <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} />
       )}
       {open && viewMode === 'sun' && (
-        <SunView statementId={statement.id} statementText={statement.text} userId={userId} />
+        <div className="space-y-4">
+          <SunView
+            statementId={statement.id}
+            statementText={statement.text}
+            userId={userId}
+            onNodeClick={(id) => setSunClickedNodeId(id)}
+          />
+          <div className="border-t border-gray-100 pt-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Argument Tree</p>
+            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} />
+          </div>
+        </div>
       )}
     </div>
   )

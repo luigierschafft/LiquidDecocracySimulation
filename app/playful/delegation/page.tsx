@@ -57,7 +57,7 @@ export default async function PlayDelegationPage() {
         />
       </div>
 
-      <Link href="/play" className="mt-8 text-xs text-gray-400 underline">
+      <Link href="/playful" className="mt-8 text-xs text-gray-400 underline">
         ← Back
       </Link>
     </div>

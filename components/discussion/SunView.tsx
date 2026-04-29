@@ -21,35 +21,59 @@ function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
   return roots
 }
 
+// ─── Color helpers ────────────────────────────────────────────────────────────
+
+function proColor(avg: number): string {
+  const t = avg / 10
+  const r = Math.round(187 + (21 - 187) * t)
+  const g = Math.round(247 + (128 - 247) * t)
+  const b = Math.round(208 + (61 - 208) * t)
+  return `rgb(${r},${g},${b})`
+}
+
+function contraColor(avg: number): string {
+  const t = avg / 10
+  const r = Math.round(254 + (185 - 254) * t)
+  const g = Math.round(202 + (28 - 202) * t)
+  const b = Math.round(202 + (28 - 202) * t)
+  return `rgb(${r},${g},${b})`
+}
+
 // ─── Convert to sunburst data format ─────────────────────────────────────────
 
 interface SunNode {
   name: string
+  nodeId: string | null
   nodeType: 'root' | 'pro' | 'contra'
+  avgRating: number
   value: number
   children?: SunNode[]
 }
 
-function toSunNode(node: DiscussionNode): SunNode {
+function toSunNode(node: DiscussionNode, avgMap: Map<string, number>): SunNode {
   const children = (node.children ?? []).filter(
     (c) => c.type === 'pro' || c.type === 'contra'
   )
   return {
     name: node.text,
+    nodeId: node.id,
     nodeType: node.type as 'pro' | 'contra',
+    avgRating: avgMap.get(node.id) ?? 5,
     value: 1,
-    children: children.length > 0 ? children.map(toSunNode) : undefined,
+    children: children.length > 0 ? children.map((c) => toSunNode(c, avgMap)) : undefined,
   }
 }
 
-function toSunData(statementText: string, tree: DiscussionNode[]): SunNode {
+function toSunData(statementText: string, tree: DiscussionNode[], avgMap: Map<string, number>): SunNode {
   const pros = tree.filter((n) => n.type === 'pro')
   const contras = tree.filter((n) => n.type === 'contra')
   return {
     name: statementText,
+    nodeId: null,
     nodeType: 'root',
+    avgRating: 5,
     value: 1,
-    children: [...pros, ...contras].map(toSunNode),
+    children: [...pros, ...contras].map((n) => toSunNode(n, avgMap)),
   }
 }
 
@@ -59,22 +83,47 @@ interface Props {
   statementId: string
   statementText: string
   userId: string | null
+  onNodeClick?: (nodeId: string) => void
 }
 
-export function SunView({ statementId, statementText, userId }: Props) {
+export function SunView({ statementId, statementText, userId, onNodeClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<any>(null)
   const [dataLoaded, setDataLoaded] = useState(false)
   const [tree, setTree] = useState<DiscussionNode[]>([])
+  const [avgMap, setAvgMap] = useState<Map<string, number>>(new Map())
 
   const loadData = useCallback(async () => {
     const supabase = createClient()
-    const { data } = await supabase
+    const { data: nodes } = await supabase
       .from('ev_discussion_nodes')
       .select('*, author:member(display_name, email)')
       .eq('statement_id', statementId)
       .order('created_at', { ascending: true })
-    setTree(buildTree(data ?? []))
+
+    const nodeIds = (nodes ?? []).map((n: any) => n.id)
+    const map = new Map<string, number>()
+
+    if (nodeIds.length > 0) {
+      const { data: ratings } = await supabase
+        .from('ev_argument_ratings')
+        .select('node_id, rating')
+        .in('node_id', nodeIds)
+
+      // group by node_id and compute average
+      const groups = new Map<string, number[]>()
+      for (const r of ratings ?? []) {
+        const arr = groups.get(r.node_id) ?? []
+        arr.push(r.rating)
+        groups.set(r.node_id, arr)
+      }
+      groups.forEach((vals, id) => {
+        map.set(id, vals.reduce((s, v) => s + v, 0) / vals.length)
+      })
+    }
+
+    setAvgMap(map)
+    setTree(buildTree(nodes ?? []))
     setDataLoaded(true)
   }, [statementId])
 
@@ -92,10 +141,9 @@ export function SunView({ statementId, statementText, userId }: Props) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const Sunburst = ((await import('sunburst-chart')) as any).default
 
-      const sunData = toSunData(statementText, tree)
+      const sunData = toSunData(statementText, tree, avgMap)
 
       if (chartRef.current) {
-        // Already mounted — just update data
         chartRef.current.data(sunData)
         return
       }
@@ -105,37 +153,56 @@ export function SunView({ statementId, statementText, userId }: Props) {
       chart
         .data(sunData)
         .width(w)
-        .height(w) // square — looks best for sunburst
+        .height(w)
         .color((node: any) => {
           const t = node.nodeType ?? node.__dataNode?.data?.nodeType
+          const avg: number = node.avgRating ?? node.__dataNode?.data?.avgRating ?? 5
           if (t === 'root') return '#a855f7'
-          if (t === 'pro')  return '#22c55e'
-          return '#ef4444'
+          if (t === 'pro')  return proColor(avg)
+          return contraColor(avg)
         })
         .strokeColor(() => 'white')
         .label((node: any) => {
           const txt: string = node.name ?? ''
-          return txt.length > 28 ? txt.slice(0, 27) + '…' : txt
+          const isRoot = (node.nodeType ?? node.__dataNode?.data?.nodeType) === 'root'
+          if (isRoot) return txt
+          return txt.length > 50 ? txt.slice(0, 49) + '…' : txt
         })
         .size('value')
-        .centerRadius(0.22)
+        .centerRadius(0.38)
         .radiusScaleExponent(0.55)
         .transitionDuration(450)
+        .onClick((node: any) => {
+          const id: string | null = node.nodeId ?? node.__dataNode?.data?.nodeId ?? null
+          if (id && onNodeClick) onNodeClick(id)
+        })
         .tooltipContent((node: any) => {
           const t = node.nodeType
           if (t === 'root') return ''
+          const avg: number = node.avgRating ?? 5
           const badge = t === 'pro'
             ? '<span style="color:#22c55e;font-weight:700">PRO</span>'
             : '<span style="color:#ef4444;font-weight:700">CONTRA</span>'
-          return `${badge} — ${node.name}`
+          return `${badge} — ${node.name} (avg: ${avg.toFixed(1)})`
         })
 
       chart(container)
       chartRef.current = chart
+
+      // Override text rendering: white fill, no contour stroke
+      if (!document.getElementById('sunburst-text-style')) {
+        const style = document.createElement('style')
+        style.id = 'sunburst-text-style'
+        style.textContent = `
+          .sunburst-viz .text-stroke { fill: white !important; }
+          .sunburst-viz .text-contour { stroke: none !important; }
+        `
+        document.head.appendChild(style)
+      }
     }
 
     initChart()
-  }, [dataLoaded, tree, statementText])
+  }, [dataLoaded, tree, statementText, avgMap])
 
   return (
     <div>

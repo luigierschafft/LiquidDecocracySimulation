@@ -9,7 +9,7 @@ interface Props {
   currentRating: number | null
   avgRating: number | null
   ratings: any[]
-  onRatingChange: (rating: number, newAvg: number) => void
+  onRatingChange: (rating: number | null, newAvg: number | null) => void
 }
 
 function interpolateColor(t: number): string {
@@ -26,29 +26,41 @@ export function StatementRating({ statementId, userId, currentRating, avgRating,
 
   async function handleClick(value: number) {
     if (loading) return
+    const next = value === selected ? null : value
     setLoading(true)
     const supabase = createClient()
 
-    await supabase.from('ev_statement_ratings').upsert(
-      { statement_id: statementId, user_id: userId, rating: value },
-      { onConflict: 'statement_id,user_id' }
-    )
+    if (next === null) {
+      await supabase.from('ev_statement_ratings').delete()
+        .eq('statement_id', statementId).eq('user_id', userId)
+    } else {
+      await supabase.from('ev_statement_ratings').upsert(
+        { statement_id: statementId, user_id: userId, rating: next },
+        { onConflict: 'statement_id,user_id' }
+      )
+    }
 
-    setSelected(value)
+    setSelected(next)
     setLoading(false)
 
-    const existingIdx = ratings.findIndex((r: any) => r.user_id === userId)
-    const updatedRatings = existingIdx >= 0
-      ? ratings.map((r: any, i: number) => (i === existingIdx ? { ...r, rating: value } : r))
-      : [...ratings, { user_id: userId, rating: value }]
-    const avg = updatedRatings.reduce((sum: number, r: any) => sum + r.rating, 0) / updatedRatings.length
-    onRatingChange(value, avg)
+    const updatedRatings = next === null
+      ? ratings.filter((r: any) => r.user_id !== userId)
+      : (() => {
+          const existingIdx = ratings.findIndex((r: any) => r.user_id === userId)
+          return existingIdx >= 0
+            ? ratings.map((r: any, i: number) => (i === existingIdx ? { ...r, rating: next } : r))
+            : [...ratings, { user_id: userId, rating: next }]
+        })()
+    const avg = updatedRatings.length > 0
+      ? updatedRatings.reduce((sum: number, r: any) => sum + r.rating, 0) / updatedRatings.length
+      : null
+    onRatingChange(next, avg)
   }
 
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-xs text-gray-400 shrink-0">Not so important</span>
+        <span className="text-xs text-gray-400 shrink-0">Disapprove</span>
         <div className="flex items-center gap-0.5">
           {Array.from({ length: 11 }, (_, i) => i).map((val) => {
             const t = val / 10
@@ -72,7 +84,7 @@ export function StatementRating({ statementId, userId, currentRating, avgRating,
             )
           })}
         </div>
-        <span className="text-xs text-gray-400 shrink-0">Important</span>
+        <span className="text-xs text-gray-400 shrink-0">Approve</span>
         {avgRating !== null && (
           <span className="text-xs text-gray-500 ml-2">
             Importance average: <span className="font-semibold text-purple-700">{avgRating.toFixed(1)}</span>

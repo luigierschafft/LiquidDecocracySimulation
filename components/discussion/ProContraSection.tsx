@@ -1,11 +1,77 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion } from '@/lib/types'
-import { getMemberDisplayName, formatDate } from '@/lib/utils'
 import { ThumbsUp, ThumbsDown, Plus, Send } from 'lucide-react'
 import { PostVoteButton } from './PostVoteButton'
+
+function interpolateColor(t: number): string {
+  const r = Math.round(255 + (124 - 255) * t)
+  const g = Math.round(255 + (58 - 255) * t)
+  const b = Math.round(255 + (237 - 255) * t)
+  return `rgb(${r},${g},${b})`
+}
+
+function MiniScale({ opinionId, userId }: { opinionId: string; userId: string | null }) {
+  const [selected, setSelected] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [initialized, setInitialized] = useState(false)
+
+  useEffect(() => {
+    if (!userId || initialized) return
+    const supabase = createClient()
+    supabase
+      .from('opinion_ratings')
+      .select('rating')
+      .eq('opinion_id', opinionId)
+      .eq('user_id', userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSelected(data.rating)
+        setInitialized(true)
+      })
+  }, [opinionId, userId, initialized])
+
+  async function handleClick(val: number) {
+    if (loading) return
+    const next = val === selected ? null : val
+    setSelected(next)
+    if (!userId) return
+    setLoading(true)
+    const supabase = createClient()
+    if (next === null) {
+      await supabase.from('opinion_ratings').delete().eq('opinion_id', opinionId).eq('user_id', userId)
+    } else {
+      await supabase.from('opinion_ratings').upsert(
+        { opinion_id: opinionId, user_id: userId, rating: next },
+        { onConflict: 'opinion_id,user_id' }
+      )
+    }
+    setLoading(false)
+  }
+
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: 11 }, (_, i) => i).map((val) => (
+        <button
+          key={val}
+          onClick={() => handleClick(val)}
+          title={`${val}/10`}
+          disabled={loading}
+          style={{ backgroundColor: interpolateColor(val / 10) }}
+          className={`w-3.5 h-3.5 rounded-sm transition-all border flex items-center justify-center ${
+            selected === val ? 'border-purple-700 scale-110' : 'border-transparent hover:border-purple-400'
+          }`}
+        >
+          {selected === val && (
+            <span className={`text-[8px] font-bold leading-none ${val >= 6 ? 'text-white' : 'text-purple-900'}`}>{val}</span>
+          )}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 interface Props {
   issueId: string
@@ -48,17 +114,11 @@ export function ProContraSection({ issueId, opinions: initial, userId, postVotin
   }
 
   function ArgumentCard({ op }: { op: Opinion }) {
-    const authorName = op.is_anonymous ? 'Anonymous' : getMemberDisplayName(op.author)
     return (
       <div className="bg-background rounded-lg border border-sand p-3 space-y-1.5">
         <p className="text-sm text-foreground/85 leading-snug">{op.content}</p>
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-accent/10 text-accent flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-              {authorName[0]?.toUpperCase()}
-            </div>
-            <span className="text-[11px] text-foreground/40">{authorName} · {formatDate(op.created_at)}</span>
-          </div>
+          <MiniScale opinionId={op.id} userId={userId} />
           {postVotingEnabled && (
             <PostVoteButton
               targetType="opinion"

@@ -1,117 +1,120 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { DiscussionNode } from '@/lib/types/ev'
-import { Plus, ChevronDown, ChevronRight } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
-interface Props {
-  statementId: string
-  userId: string | null
+// ─── Rating scale ─────────────────────────────────────────────────────────────
+
+function interpolateColor(t: number): string {
+  const r = Math.round(255 + (124 - 255) * t)
+  const g = Math.round(255 + (58 - 255) * t)
+  const b = Math.round(255 + (237 - 255) * t)
+  return `rgb(${r},${g},${b})`
 }
 
-function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
-  // Only pro and contra — no questions or statements
-  const filtered = nodes.filter((n) => n.type === 'pro' || n.type === 'contra')
-  const map = new Map<string, DiscussionNode>()
+function MiniScale({ nodeId, userId }: { nodeId: string; userId: string | null }) {
+  const [selected, setSelected] = useState<number | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [initialized, setInitialized] = useState(false)
 
-  filtered.forEach((n) => map.set(n.id, { ...n, children: [] }))
+  useEffect(() => {
+    if (!userId || initialized) return
+    const supabase = createClient()
+    supabase
+      .from('ev_argument_ratings')
+      .select('rating')
+      .eq('node_id', nodeId)
+      .eq('user_id', userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setSelected(data.rating)
+        setInitialized(true)
+      })
+  }, [nodeId, userId, initialized])
 
-  const roots: DiscussionNode[] = []
-  map.forEach((node) => {
-    if (!node.parent_id) {
-      roots.push(node)
-    } else if (map.has(node.parent_id)) {
-      const parent = map.get(node.parent_id)!
-      parent.children = parent.children ?? []
-      parent.children.push(node)
+  async function handleClick(val: number) {
+    if (loading) return
+    const next = val === selected ? null : val
+    setSelected(next)
+    if (!userId) return
+    setLoading(true)
+    const supabase = createClient()
+    if (next === null) {
+      await supabase.from('ev_argument_ratings').delete().eq('node_id', nodeId).eq('user_id', userId)
+    } else {
+      await supabase.from('ev_argument_ratings').upsert(
+        { node_id: nodeId, user_id: userId, rating: next },
+        { onConflict: 'node_id,user_id' }
+      )
     }
-    // if parent_id exists but parent was filtered out (e.g. was a question) → skip entirely
-  })
+    setLoading(false)
+  }
 
-  return roots
+  return (
+    <div className="flex items-center gap-0.5 mt-1.5" onClick={(e) => e.stopPropagation()}>
+      {Array.from({ length: 11 }, (_, i) => i).map((val) => (
+        <button
+          key={val}
+          onClick={() => handleClick(val)}
+          title={`${val}/10`}
+          disabled={loading}
+          style={{ backgroundColor: interpolateColor(val / 10) }}
+          className={`w-3.5 h-3.5 rounded-sm transition-all border flex items-center justify-center ${
+            selected === val ? 'border-purple-700 scale-110' : 'border-transparent hover:border-purple-400'
+          }`}
+        >
+          {selected === val && (
+            <span className={`text-[8px] font-bold leading-none ${val >= 6 ? 'text-white' : 'text-purple-900'}`}>{val}</span>
+          )}
+        </button>
+      ))}
+    </div>
+  )
 }
 
-// ─── Card ────────────────────────────────────────────────────────────────────
+// ─── Argument card (click to navigate into) ───────────────────────────────────
 
 interface CardProps {
   node: DiscussionNode
   userId: string | null
-  statementId: string
-  onAdded: () => void
+  onNavigate: (node: DiscussionNode) => void
 }
 
-function KialoCard({ node, userId, statementId, onAdded }: CardProps) {
-  const [expanded, setExpanded] = useState(false)
+function KialoCard({ node, userId, onNavigate }: CardProps) {
   const children = node.children ?? []
   const proCount = children.filter((c) => c.type === 'pro').length
   const contraCount = children.filter((c) => c.type === 'contra').length
   const hasChildren = children.length > 0
-  const canExpand = hasChildren || userId !== null
-
   const isPro = node.type === 'pro'
-  const leftBorder = isPro ? 'border-l-green-400' : 'border-l-red-400'
-  const chevronColor = isPro ? 'text-green-500' : 'text-red-400'
-  const countProColor = 'text-green-600'
-  const countContraColor = 'text-red-500'
 
   return (
-    <div>
-      <div
-        onClick={() => canExpand && setExpanded((v) => !v)}
-        className={`rounded-lg border border-gray-100 border-l-4 ${leftBorder} bg-white p-2.5 transition-colors ${
-          canExpand ? 'cursor-pointer hover:bg-gray-50' : ''
-        }`}
-      >
-        <div className="flex items-start gap-2">
-          <p className="text-sm text-gray-800 flex-1 leading-snug">{node.text}</p>
-          {canExpand && (
-            <span className={`shrink-0 mt-0.5 ${chevronColor}`}>
-              {expanded ? (
-                <ChevronDown className="w-3.5 h-3.5" />
-              ) : (
-                <ChevronRight className="w-3.5 h-3.5" />
-              )}
-            </span>
+    <div
+      onClick={() => onNavigate(node)}
+      className={`rounded-lg border bg-white p-2.5 cursor-pointer hover:shadow-sm active:scale-[0.99] transition-all ${
+        isPro ? 'border-l-4 border-l-green-400 border-gray-100' : 'border-l-4 border-l-red-400 border-gray-100'
+      }`}
+    >
+      <p className="text-sm text-gray-800 leading-snug">{node.text}</p>
+
+      <MiniScale nodeId={node.id} userId={userId} />
+
+      {hasChildren && (
+        <div className="flex gap-3 mt-1.5">
+          {proCount > 0 && (
+            <span className="text-xs font-medium text-green-600">{proCount} pro →</span>
           )}
-        </div>
-
-        {node.author?.display_name && (
-          <p className="text-xs text-gray-400 mt-1">{node.author.display_name}</p>
-        )}
-
-        {hasChildren && !expanded && (
-          <div className="flex gap-3 mt-1.5">
-            {proCount > 0 && (
-              <span className={`text-xs font-medium ${countProColor}`}>
-                {proCount} pro
-              </span>
-            )}
-            {contraCount > 0 && (
-              <span className={`text-xs font-medium ${countContraColor}`}>
-                {contraCount} contra
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-
-      {expanded && (
-        <div className="mt-2 ml-3 border-l-2 border-gray-100 pl-2">
-          <KialoSplit
-            nodes={children}
-            userId={userId}
-            parentId={node.id}
-            statementId={statementId}
-            onAdded={onAdded}
-          />
+          {contraCount > 0 && (
+            <span className="text-xs font-medium text-red-500">{contraCount} contra →</span>
+          )}
         </div>
       )}
     </div>
   )
 }
 
-// ─── Column ───────────────────────────────────────────────────────────────────
+// ─── Column (pro or contra) ───────────────────────────────────────────────────
 
 interface ColumnProps {
   type: 'pro' | 'contra'
@@ -120,9 +123,10 @@ interface ColumnProps {
   parentId: string | null
   statementId: string
   onAdded: () => void
+  onNavigate: (node: DiscussionNode) => void
 }
 
-function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded }: ColumnProps) {
+function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded, onNavigate }: ColumnProps) {
   const [adding, setAdding] = useState(false)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
@@ -134,9 +138,7 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded }: Co
   const addBtnStyle = isPro
     ? 'border-green-200 text-green-600 hover:border-green-400 hover:bg-green-50'
     : 'border-red-200 text-red-500 hover:border-red-400 hover:bg-red-50'
-  const submitBtnStyle = isPro
-    ? 'bg-green-600 hover:bg-green-700'
-    : 'bg-red-500 hover:bg-red-600'
+  const submitBtnStyle = isPro ? 'bg-green-600 hover:bg-green-700' : 'bg-red-500 hover:bg-red-600'
 
   async function handleAdd() {
     if (!text.trim() || !userId) return
@@ -158,7 +160,6 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded }: Co
 
   return (
     <div className={`rounded-xl border ${borderColor} overflow-hidden flex flex-col`}>
-      {/* Header */}
       <div className={`px-3 py-2 border-b ${headerBg} flex items-center justify-between`}>
         <span className={`text-xs font-bold uppercase tracking-wide ${headerText}`}>
           {isPro ? '✓ Pro' : '✗ Contra'}
@@ -168,15 +169,13 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded }: Co
         )}
       </div>
 
-      {/* Arguments */}
       <div className="p-2 space-y-2 bg-white flex-1 min-h-[48px]">
         {nodes.map((node) => (
           <KialoCard
             key={node.id}
             node={node}
             userId={userId}
-            statementId={statementId}
-            onAdded={onAdded}
+            onNavigate={onNavigate}
           />
         ))}
 
@@ -184,7 +183,6 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded }: Co
           <p className="text-xs text-gray-400 py-1">No {isPro ? 'pro' : 'contra'} arguments yet.</p>
         )}
 
-        {/* Add form */}
         {userId && (
           adding ? (
             <div className="space-y-1.5 pt-1">
@@ -227,7 +225,7 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded }: Co
   )
 }
 
-// ─── Split ────────────────────────────────────────────────────────────────────
+// ─── Split view (2 columns) ───────────────────────────────────────────────────
 
 interface SplitProps {
   nodes: DiscussionNode[]
@@ -235,39 +233,58 @@ interface SplitProps {
   parentId: string | null
   statementId: string
   onAdded: () => void
+  onNavigate: (node: DiscussionNode) => void
 }
 
-function KialoSplit({ nodes, userId, parentId, statementId, onAdded }: SplitProps) {
+function KialoSplit({ nodes, userId, parentId, statementId, onAdded, onNavigate }: SplitProps) {
   const pros = nodes.filter((n) => n.type === 'pro')
   const contras = nodes.filter((n) => n.type === 'contra')
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      <KialoColumn
-        type="pro"
-        nodes={pros}
-        userId={userId}
-        parentId={parentId}
-        statementId={statementId}
-        onAdded={onAdded}
-      />
-      <KialoColumn
-        type="contra"
-        nodes={contras}
-        userId={userId}
-        parentId={parentId}
-        statementId={statementId}
-        onAdded={onAdded}
-      />
+      <KialoColumn type="pro" nodes={pros} userId={userId} parentId={parentId} statementId={statementId} onAdded={onAdded} onNavigate={onNavigate} />
+      <KialoColumn type="contra" nodes={contras} userId={userId} parentId={parentId} statementId={statementId} onAdded={onAdded} onNavigate={onNavigate} />
     </div>
   )
 }
 
 // ─── Root export ──────────────────────────────────────────────────────────────
 
-export function KialoTreeView({ statementId, userId }: Props) {
+interface Props {
+  statementId: string
+  statementText: string
+  userId: string | null
+  autoFocusNodeId?: string | null
+}
+
+function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
+  const filtered = nodes.filter((n) => n.type === 'pro' || n.type === 'contra')
+  const map = new Map<string, DiscussionNode>()
+  filtered.forEach((n) => map.set(n.id, { ...n, children: [] }))
+  const roots: DiscussionNode[] = []
+  map.forEach((node) => {
+    if (!node.parent_id) {
+      roots.push(node)
+    } else if (map.has(node.parent_id)) {
+      map.get(node.parent_id)!.children!.push(node)
+    }
+  })
+  return roots
+}
+
+function findPath(nodes: DiscussionNode[], targetId: string, path: DiscussionNode[] = []): DiscussionNode[] | null {
+  for (const n of nodes) {
+    if (n.id === targetId) return [...path, n]
+    const found = findPath(n.children ?? [], targetId, [...path, n])
+    if (found) return found
+  }
+  return null
+}
+
+export function KialoTreeView({ statementId, statementText, userId, autoFocusNodeId }: Props) {
   const [nodes, setNodes] = useState<DiscussionNode[] | null>(null)
   const [loaded, setLoaded] = useState(false)
+  const [focusStack, setFocusStack] = useState<DiscussionNode[]>([])
 
   const load = useCallback(async () => {
     const supabase = createClient()
@@ -280,20 +297,107 @@ export function KialoTreeView({ statementId, userId }: Props) {
     setLoaded(true)
   }, [statementId])
 
-  if (!loaded) {
+  useEffect(() => {
     load()
-    return <div className="text-xs text-gray-400 py-2">Loading…</div>
-  }
+  }, [load])
 
   const tree = buildTree(nodes ?? [])
 
+  useEffect(() => {
+    if (!autoFocusNodeId || !loaded) return
+    const path = findPath(tree, autoFocusNodeId)
+    if (path) setFocusStack(path)
+  }, [autoFocusNodeId, loaded]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!loaded) return <div className="text-xs text-gray-400 py-2">Loading…</div>
+  const focusedNode = focusStack[focusStack.length - 1] ?? null
+  const currentNodes = focusedNode ? (focusedNode.children ?? []) : tree
+  const currentParentId = focusedNode ? focusedNode.id : null
+
+  function navigateTo(node: DiscussionNode) {
+    // Rebuild node from latest tree so children are up to date
+    setFocusStack((prev) => [...prev, node])
+  }
+
+  function navigateBackTo(index: number) {
+    setFocusStack((prev) => prev.slice(0, index))
+  }
+
+  function handleAdded() {
+    setLoaded(false)
+    load().then(() => {
+      // After reload, rebuild focusStack nodes from fresh tree
+      setFocusStack([])
+    })
+  }
+
   return (
-    <KialoSplit
-      nodes={tree}
-      userId={userId}
-      parentId={null}
-      statementId={statementId}
-      onAdded={() => { setLoaded(false); load() }}
-    />
+    <div className="space-y-3">
+
+      {/* Parent context — small, clickable to go back */}
+      {(() => {
+        const parentText = focusStack.length === 0
+          ? statementText
+          : focusStack.length === 1
+            ? statementText
+            : focusStack[focusStack.length - 2].text
+        const canGoBack = focusStack.length > 0
+        const goBack = () => setFocusStack((prev) => prev.slice(0, -1))
+
+        return (
+          <div
+            onClick={canGoBack ? goBack : undefined}
+            className={`rounded-lg px-3 py-2 border border-gray-200 bg-gray-50 ${
+              canGoBack ? 'cursor-pointer hover:bg-gray-100 active:scale-[0.99] transition-all' : ''
+            }`}
+          >
+            {canGoBack && (
+              <span className="text-xs text-gray-400 font-medium">← back  </span>
+            )}
+            <span className="text-xs text-gray-500 leading-snug line-clamp-2">
+              {parentText}
+            </span>
+          </div>
+        )
+      })()}
+
+      {/* Focused argument — shown large */}
+      {focusedNode && (
+        <div className={`rounded-xl p-4 border-l-4 ${
+          focusedNode.type === 'pro'
+            ? 'border-l-green-500 bg-green-50 border border-green-200'
+            : 'border-l-red-500 bg-red-50 border border-red-200'
+        }`}>
+          <span className={`text-xs font-bold uppercase tracking-wide ${
+            focusedNode.type === 'pro' ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {focusedNode.type === 'pro' ? '✓ Pro' : '✗ Contra'}
+          </span>
+          <p className="text-base font-semibold text-gray-900 mt-1 leading-snug">
+            {focusedNode.text}
+          </p>
+          <MiniScale nodeId={focusedNode.id} userId={userId} />
+          {currentNodes.length === 0 && (
+            <p className="text-xs text-gray-400 mt-2">No sub-arguments yet.</p>
+          )}
+        </div>
+      )}
+
+      {/* Pro / Contra columns */}
+      {(currentNodes.length > 0 || userId) && (
+        <KialoSplit
+          nodes={currentNodes}
+          userId={userId}
+          parentId={currentParentId}
+          statementId={statementId}
+          onAdded={handleAdded}
+          onNavigate={navigateTo}
+        />
+      )}
+
+      {tree.length === 0 && !userId && (
+        <p className="text-xs text-gray-400 text-center py-2">No arguments yet.</p>
+      )}
+    </div>
   )
 }
