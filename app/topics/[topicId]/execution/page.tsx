@@ -43,15 +43,14 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     )
   }
 
-  // Fetch sections with pending proposals
-  const { data: sections } = await supabase
+  // Ensure sections exist (create from template if needed)
+  const { data: existingSections } = await supabase
     .from('ev_execution_sections')
-    .select('*, updater:member!updated_by(display_name, email), proposals:ev_section_proposals(*, author:member(display_name, email))')
+    .select('id')
     .eq('plan_id', plan.id)
-    .order('sort_order', { ascending: true })
+    .limit(1)
 
-  // If no sections exist yet, create them from template
-  if (!sections || sections.length === 0) {
+  if (!existingSections || existingSections.length === 0) {
     for (const tmpl of SECTION_TEMPLATE) {
       await supabase.from('ev_execution_sections').upsert(
         { plan_id: plan.id, key: tmpl.key, title: tmpl.title, content: '', sort_order: tmpl.sort_order },
@@ -60,14 +59,12 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     }
   }
 
-  // Refetch if we just created them
-  const { data: finalSections } = sections && sections.length > 0
-    ? { data: sections }
-    : await supabase
-        .from('ev_execution_sections')
-        .select('*, updater:member!updated_by(display_name, email), proposals:ev_section_proposals(*, author:member(display_name, email))')
-        .eq('plan_id', plan.id)
-        .order('sort_order', { ascending: true })
+  // Fetch sections with pending proposals
+  const { data: finalSections } = await supabase
+    .from('ev_execution_sections')
+    .select('*, proposals:ev_section_proposals(*, author:member(display_name, email))')
+    .eq('plan_id', plan.id)
+    .order('sort_order', { ascending: true })
 
   const team = plan.team ?? []
   const isLead = user ? team.some((m: any) => m.user_id === user.id && m.is_lead) : false

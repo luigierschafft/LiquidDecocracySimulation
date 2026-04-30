@@ -69,12 +69,15 @@ export async function POST(request: Request) {
 
   const sectionKeys = SECTION_TEMPLATE.map((s) => `${s.key}: ${s.title}`).join('\n')
 
-  const message = await anthropic.messages.create({
-    model: AI_MODEL,
-    max_tokens: 4000,
-    messages: [{
-      role: 'user',
-      content: `You are drafting a project plan for a community initiative in Auroville, India.
+  let sections: Record<string, string> = {}
+
+  try {
+    const message = await anthropic.messages.create({
+      model: AI_MODEL,
+      max_tokens: 4000,
+      messages: [{
+        role: 'user',
+        content: `You are drafting a project plan for a community initiative in Auroville, India.
 
 Topic: ${issue?.title ?? 'Unknown'}
 Description: ${issue?.body ?? 'N/A'}
@@ -93,20 +96,16 @@ Generate content for each of these sections. Use Markdown formatting (# headings
 Sections to fill:
 ${sectionKeys}
 
-Respond ONLY with a JSON object where keys are the section keys and values are the markdown content strings. No other text.`,
-    }],
-  })
+Respond ONLY with a JSON object where keys are the section keys and values are the markdown content strings. No other text, no markdown code fences.`,
+      }],
+    })
 
-  const responseText = (message.content[0] as any).text ?? '{}'
-
-  // Parse AI response
-  let sections: Record<string, string>
-  try {
-    // Extract JSON from response (handle markdown code blocks)
+    const responseText = (message.content[0] as any).text ?? '{}'
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     sections = jsonMatch ? JSON.parse(jsonMatch[0]) : {}
-  } catch {
-    return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+  } catch (e: any) {
+    console.error('AI draft-plan error:', e?.message ?? e)
+    return NextResponse.json({ error: e?.message ?? 'AI generation failed' }, { status: 500 })
   }
 
   // Upsert sections into DB
