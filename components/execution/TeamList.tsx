@@ -32,10 +32,22 @@ export function TeamList({ team, planId, userId }: Props) {
   const [selectedMemberId, setSelectedMemberId] = useState('')
   const [addRole, setAddRole] = useState('')
   const [adding, setAdding] = useState(false)
+  const [togglingLead, setTogglingLead] = useState<string | null>(null)
 
   const isAlreadyMember = userId ? team.some((m) => m.user_id === userId) : false
   const isLead = userId ? team.some((m) => m.user_id === userId && m.is_lead) : false
   const hasLead = team.some((m) => m.is_lead)
+
+  async function toggleLead(memberId: string, currentlyLead: boolean) {
+    setTogglingLead(memberId)
+    const supabase = createClient()
+    await supabase
+      .from('ev_execution_team')
+      .update({ is_lead: !currentlyLead })
+      .eq('id', memberId)
+    setTogglingLead(null)
+    router.refresh()
+  }
 
   // Load all members for the add-member dropdown (only when lead opens it)
   useEffect(() => {
@@ -109,9 +121,25 @@ export function TeamList({ team, planId, userId }: Props) {
                   {member.role && <p className="text-xs text-gray-400">{member.role}</p>}
                 </div>
               </div>
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[member.status]}`}>
-                {STATUS_LABELS[member.status]}
-              </span>
+              <div className="flex items-center gap-1.5">
+                {isLead && member.user_id !== userId && (
+                  <button
+                    onClick={() => toggleLead(member.id, member.is_lead)}
+                    disabled={togglingLead === member.id}
+                    className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                      member.is_lead
+                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        : 'bg-gray-100 text-gray-500 hover:bg-amber-100 hover:text-amber-700'
+                    }`}
+                    title={member.is_lead ? 'Remove lead role' : 'Make team lead'}
+                  >
+                    {member.is_lead ? 'Remove Lead' : 'Make Lead'}
+                  </button>
+                )}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[member.status]}`}>
+                  {STATUS_LABELS[member.status]}
+                </span>
+              </div>
             </div>
           )
         })}

@@ -6,6 +6,7 @@ import { MilestoneTimeline } from '@/components/execution/MilestoneTimeline'
 import { ExecutionComments } from '@/components/execution/ExecutionComments'
 import { SectionEditor } from '@/components/execution/SectionEditor'
 import { GenerateDraftButton } from '@/components/execution/GenerateDraftButton'
+import { CreateWorkspaceButton } from '@/components/execution/CreateWorkspaceButton'
 import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 
 export const dynamic = 'force-dynamic'
@@ -34,9 +35,10 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     return (
       <div className="text-center py-16 text-gray-500">
         <p className="text-lg font-medium">No execution workspace yet</p>
-        <p className="text-sm mt-2">
-          The workspace is created once a proposal has been accepted by the community.
+        <p className="text-sm mt-2 mb-6">
+          Start a workspace to collaboratively build a project plan with your team.
         </p>
+        {user && <CreateWorkspaceButton topicId={params.topicId} />}
       </div>
     )
   }
