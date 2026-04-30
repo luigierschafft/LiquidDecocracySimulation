@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import Groq from 'groq-sdk'
 import { createClient } from '@/lib/supabase/server'
 import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 
@@ -72,8 +72,9 @@ export async function POST(request: Request) {
   let sections: Record<string, string> = {}
 
   try {
-    const message = await anthropic.messages.create({
-      model: AI_MODEL,
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+    const chat = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 4000,
       messages: [{
         role: 'user',
@@ -100,7 +101,7 @@ Respond ONLY with a JSON object where keys are the section keys and values are t
       }],
     })
 
-    const responseText = (message.content[0] as any).text ?? '{}'
+    const responseText = chat.choices[0]?.message?.content ?? '{}'
     const jsonMatch = responseText.match(/\{[\s\S]*\}/)
     sections = jsonMatch ? JSON.parse(jsonMatch[0]) : {}
   } catch (e: any) {
