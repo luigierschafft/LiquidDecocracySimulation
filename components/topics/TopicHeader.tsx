@@ -11,7 +11,7 @@ const SECTIONS: { value: Section; label: string; description: string }[] = [
     value: 'discussion',
     label: 'Discussion',
     description:
-      'Collect and rate statements together. Each statement is max 400 characters and can be discussed with pro/contra arguments. Rate statements on a scale from 0 (not important) to 10 (very important).',
+      'Collect and rate statements together. Each statement is max 200 characters and can be discussed with pro/contra arguments. Rate statements on a scale from 0 (not important) to 10 (very important).',
   },
   {
     value: 'proposals',
