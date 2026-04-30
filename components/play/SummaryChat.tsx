@@ -123,7 +123,7 @@ export function SummaryChat({ context }: Props) {
       {history.length === 0 && !summaryLoading && (
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-gray-500 text-center max-w-[200px] leading-relaxed">
-            Ask me anything about this discussion — I'll only answer based on what the community has shared.
+            Ask me anything about this discussion — I&apos;ll only answer based on what the community has shared.
           </p>
           <Image
             src="/mongoose.png"

@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export default async function PlayStatementPage({ params }: { params: { topicId: string } }) {
   const supabase = createClient()
 
-  const [{ data: issue }, { data: evStatements }] = await Promise.all([
+  const [{ data: issue }, { data: evStatements }, { data: evNodes }] = await Promise.all([
     supabase
       .from('issue')
       .select('id, title')
@@ -19,11 +19,16 @@ export default async function PlayStatementPage({ params }: { params: { topicId:
       .select('id, text')
       .eq('issue_id', params.topicId)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('ev_discussion_nodes')
+      .select('*')
+      .eq('statement_id', params.topicId),
   ])
 
   if (!issue) notFound()
 
   const statements = (evStatements ?? []).map((s) => ({ id: s.id, text: s.text }))
+  const nodes = evNodes ?? []
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
@@ -43,6 +48,7 @@ export default async function PlayStatementPage({ params }: { params: { topicId:
         statements={statements}
         topicId={issue.id}
         topicTitle={issue.title}
+        nodes={nodes}
       />
 
       <Link href={`/play/${issue.id}`} className="mt-6 text-xs text-gray-400 underline">
