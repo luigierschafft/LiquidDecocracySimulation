@@ -59,7 +59,7 @@ export function MilestoneTimeline({ milestones, planId, userId }: Props) {
         <div className="space-y-4">
           {sorted.map((ms) => {
             const dateStr = ms.date
-              ? new Date(ms.date).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' })
+              ? new Date(ms.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
               : null
             return (
               <div key={ms.id} className="flex items-start gap-4 pl-6 relative">

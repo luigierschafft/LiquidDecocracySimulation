@@ -145,9 +145,37 @@ export interface ExecutionTeamMember {
   plan_id: string
   user_id: string
   role: string | null
+  is_lead: boolean
   status: 'active' | 'interested'
   created_at: string
   member?: { display_name: string | null; email: string }
+}
+
+export interface ExecutionSection {
+  id: string
+  plan_id: string
+  key: string
+  title: string
+  content: string
+  sort_order: number
+  updated_at: string
+  updated_by: string | null
+  updater?: { display_name: string | null; email: string } | null
+  proposals?: SectionProposal[]
+}
+
+export interface SectionProposal {
+  id: string
+  section_id: string
+  author_id: string
+  old_content: string
+  new_content: string
+  comment: string | null
+  status: 'pending' | 'accepted' | 'rejected'
+  reviewed_by: string | null
+  reviewed_at: string | null
+  created_at: string
+  author?: { display_name: string | null; email: string } | null
 }
 
 export interface ExecutionSuggestion {

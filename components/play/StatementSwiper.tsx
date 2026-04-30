@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/browser'
 
@@ -35,6 +35,12 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
   const [addingType, setAddingType] = useState<'pro' | 'contra' | null>(null)
   const [addingText, setAddingText] = useState('')
   const [addingSubmitting, setAddingSubmitting] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null))
+  }, [])
 
   const current = statements[index]
 
@@ -43,7 +49,16 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
   const pros = currentNodes.filter((n) => n.type === 'pro')
   const contras = currentNodes.filter((n) => n.type === 'contra')
 
-  function swipe(dir: 'left' | 'right' | 'up') {
+  async function swipe(dir: 'left' | 'right' | 'up') {
+    // Save vote to DB before animating (independent from importance rating)
+    if (current && userId && (dir === 'right' || dir === 'left')) {
+      const vote = dir === 'right' ? 'agree' : 'disagree'
+      const supabase = createClient()
+      supabase.from('ev_statement_ratings').upsert(
+        { statement_id: current.id, user_id: userId, vote },
+        { onConflict: 'statement_id,user_id' }
+      )
+    }
     setAnimDir(dir)
     setAddingType(null)
     setAddingText('')

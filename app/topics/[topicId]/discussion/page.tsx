@@ -22,14 +22,16 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
     .eq('issue_id', params.topicId)
     .order('created_at', { ascending: false })
 
-  const statementsWithAvg = (statements ?? []).map((s) => ({
-    ...s,
-    avg_rating:
-      s.ratings?.length > 0
-        ? s.ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / s.ratings.length
+  const statementsWithAvg = (statements ?? []).map((s) => {
+    const ratedEntries = (s.ratings ?? []).filter((r: any) => r.rating != null)
+    return {
+      ...s,
+      avg_rating: ratedEntries.length > 0
+        ? ratedEntries.reduce((sum: number, r: any) => sum + r.rating, 0) / ratedEntries.length
         : null,
-    user_rating: s.ratings?.find((r: any) => r.user_id === user?.id)?.rating ?? null,
-  }))
+      user_rating: s.ratings?.find((r: any) => r.user_id === user?.id)?.rating ?? null,
+    }
+  })
 
   return (
     <div className="space-y-6">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { ExternalLink } from 'lucide-react'
 import { createClient } from '@/lib/supabase/browser'
 import { StatementRating } from './StatementRating'
@@ -20,21 +20,56 @@ export function StatementCard({ statement, userId }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('split')
   const [sunClickedNodeId, setSunClickedNodeId] = useState<string | null>(null)
   const [userRating, setUserRating] = useState<number | null>(statement.user_rating ?? null)
+  const [userVote, setUserVote] = useState<'agree' | 'pass' | 'disagree' | null>(
+    statement.ratings?.find((r: any) => r.user_id === userId)?.vote ?? null
+  )
   const [avgRating, setAvgRating] = useState<number | null>(statement.avg_rating ?? null)
+  const [liveRatings, setLiveRatings] = useState<{ user_id: string; rating: number; vote?: string }[]>(statement.ratings ?? [])
   const [argCount, setArgCount] = useState(0)
+  const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null)
 
   useEffect(() => {
     const supabase = createClient()
+
+    // Fetch arg count
     supabase
       .from('ev_discussion_nodes')
       .select('type')
       .eq('statement_id', statement.id)
       .is('parent_id', null)
       .in('type', ['pro', 'contra'])
-      .then(({ data }) => {
-        setArgCount(data?.length ?? 0)
-      })
-  }, [statement.id])
+      .then(({ data }) => setArgCount(data?.length ?? 0))
+
+    // Realtime subscription for ratings
+    const channel = supabase
+      .channel(`ratings:${statement.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'ev_statement_ratings', filter: `statement_id=eq.${statement.id}` },
+        async () => {
+          const { data } = await supabase
+            .from('ev_statement_ratings')
+            .select('user_id, rating')
+            .eq('statement_id', statement.id)
+          if (data) {
+            setLiveRatings(data)
+            const avg = data.length > 0
+              ? data.reduce((s, r) => s + r.rating, 0) / data.length
+              : null
+            setAvgRating(avg)
+            if (userId) {
+              const mine = data.find((r) => r.user_id === userId)
+              setUserRating(mine?.rating ?? null)
+              setUserVote((mine as any)?.vote ?? null)
+            }
+          }
+        }
+      )
+      .subscribe()
+
+    channelRef.current = channel
+    return () => { supabase.removeChannel(channel) }
+  }, [statement.id, userId])
 
   const sourceLinks: string[] = statement.source_links ?? []
 
@@ -73,8 +108,9 @@ export function StatementCard({ statement, userId }: Props) {
             statementId={statement.id}
             userId={userId}
             currentRating={userRating}
+            currentVote={userVote}
             avgRating={avgRating}
-            ratings={statement.ratings ?? []}
+            ratings={liveRatings}
             onRatingChange={handleRatingChange}
           />
         </div>

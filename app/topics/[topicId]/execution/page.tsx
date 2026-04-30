@@ -3,8 +3,10 @@ import { ProjectHeader } from '@/components/execution/ProjectHeader'
 import { TaskBoard } from '@/components/execution/TaskBoard'
 import { TeamList } from '@/components/execution/TeamList'
 import { MilestoneTimeline } from '@/components/execution/MilestoneTimeline'
-import { ProposalDocument } from '@/components/execution/ProposalDocument'
 import { ExecutionComments } from '@/components/execution/ExecutionComments'
+import { SectionEditor } from '@/components/execution/SectionEditor'
+import { GenerateDraftButton } from '@/components/execution/GenerateDraftButton'
+import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,22 +41,73 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     )
   }
 
+  // Fetch sections with pending proposals
+  const { data: sections } = await supabase
+    .from('ev_execution_sections')
+    .select('*, updater:member!updated_by(display_name, email), proposals:ev_section_proposals(*, author:member(display_name, email))')
+    .eq('plan_id', plan.id)
+    .order('sort_order', { ascending: true })
+
+  // If no sections exist yet, create them from template
+  if (!sections || sections.length === 0) {
+    for (const tmpl of SECTION_TEMPLATE) {
+      await supabase.from('ev_execution_sections').upsert(
+        { plan_id: plan.id, key: tmpl.key, title: tmpl.title, content: '', sort_order: tmpl.sort_order },
+        { onConflict: 'plan_id,key' }
+      )
+    }
+  }
+
+  // Refetch if we just created them
+  const { data: finalSections } = sections && sections.length > 0
+    ? { data: sections }
+    : await supabase
+        .from('ev_execution_sections')
+        .select('*, updater:member!updated_by(display_name, email), proposals:ev_section_proposals(*, author:member(display_name, email))')
+        .eq('plan_id', plan.id)
+        .order('sort_order', { ascending: true })
+
+  const team = plan.team ?? []
+  const isLead = user ? team.some((m: any) => m.user_id === user.id && m.is_lead) : false
+  const isMember = user ? team.some((m: any) => m.user_id === user.id) : false
+
   const sortedComments = [...(plan.comments ?? [])].sort(
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   )
 
+  const allSectionsEmpty = (finalSections ?? []).every((s: any) => !s.content)
+
   return (
     <div className="space-y-8">
       <ProjectHeader plan={plan} />
-      <div className="grid grid-cols-1 gap-8">
-        <TaskBoard tasks={plan.tasks ?? []} planId={plan.id} userId={user?.id ?? null} />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <TeamList team={plan.team ?? []} planId={plan.id} userId={user?.id ?? null} />
-          <MilestoneTimeline milestones={plan.milestones ?? []} planId={plan.id} userId={user?.id ?? null} />
-        </div>
-        <ProposalDocument planId={plan.id} proposalText={plan.proposal_text ?? null} userId={user?.id ?? null} />
-        <ExecutionComments planId={plan.id} userId={user?.id ?? null} comments={sortedComments} />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <TeamList team={team} planId={plan.id} userId={user?.id ?? null} />
+        <MilestoneTimeline milestones={plan.milestones ?? []} planId={plan.id} userId={user?.id ?? null} />
       </div>
+
+      {/* Project Plan Sections */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-700">Project Plan</h2>
+          {isLead && allSectionsEmpty && (
+            <GenerateDraftButton planId={plan.id} issueId={params.topicId} />
+          )}
+        </div>
+
+        {(finalSections ?? []).map((section: any) => (
+          <SectionEditor
+            key={section.id}
+            section={section}
+            isLead={isLead}
+            isMember={isMember}
+            userId={user?.id ?? null}
+          />
+        ))}
+      </div>
+
+      <TaskBoard tasks={plan.tasks ?? []} planId={plan.id} userId={user?.id ?? null} />
+      <ExecutionComments planId={plan.id} userId={user?.id ?? null} comments={sortedComments} />
     </div>
   )
 }
