@@ -222,7 +222,13 @@ export function SunView({ statementId, statementText, userId, onNodeClick }: Pro
           const isRoot = (node.nodeType ?? node.__dataNode?.data?.nodeType) === 'root'
           if (isRoot) return ''
           const txt: string = node.name ?? ''
-          return txt.length > 50 ? txt.slice(0, 49) + '…' : txt
+          if (!txt) return ''
+          // Use arc angle fraction to estimate how many chars fit at ~9px font
+          const dn = node.__dataNode ?? node
+          const arcFraction: number = ((dn.x1 ?? 0.25) - (dn.x0 ?? 0))
+          const arcLen = arcFraction * Math.PI * w * 0.6
+          const maxChars = Math.max(4, Math.floor(arcLen / 5))
+          return txt.length <= maxChars ? txt : txt.slice(0, maxChars - 1) + '…'
         })
         .size('value')
         .centerRadius(0.3)
@@ -259,9 +265,9 @@ export function SunView({ statementId, statementText, userId, onNodeClick }: Pro
         const style = document.createElement('style')
         style.id = 'sunburst-text-style'
         style.textContent = `
-          .sunburst-viz .text-stroke { fill: white !important; font-size: 13px !important; font-weight: 600 !important; }
+          .sunburst-viz .text-stroke { fill: white !important; font-size: 9px !important; font-weight: 600 !important; }
           .sunburst-viz .text-contour { stroke: none !important; }
-          .sunburst-viz text { font-size: 13px !important; font-weight: 600 !important; }
+          .sunburst-viz text { font-size: 9px !important; font-weight: 600 !important; }
         `
         document.head.appendChild(style)
       }

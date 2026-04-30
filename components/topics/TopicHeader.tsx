@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import type { Issue } from '@/lib/types'
 import type { TopicMeta } from '@/lib/types/ev'
 
-type Section = 'discussion' | 'proposals' | 'execution'
+type Section = 'discussion' | 'proposals' | 'execution' | 'analysis'
 
 const SECTIONS: { value: Section; label: string; description: string }[] = [
   {
@@ -25,6 +25,12 @@ const SECTIONS: { value: Section; label: string; description: string }[] = [
     description:
       'The project workspace for an accepted initiative. Contains tasks, team, timeline and goals. Track progress and collaborate on implementation.',
   },
+  {
+    value: 'analysis',
+    label: 'Analysis',
+    description:
+      'Polis-style discussion analysis: see how participants cluster by opinion, which statements have broad consensus, and where the community is divided.',
+  },
 ]
 
 interface Props {
@@ -42,6 +48,8 @@ export function TopicHeader({ issue, topicId }: Props) {
       ? 'proposals'
       : pathname.includes('/execution')
       ? 'execution'
+      : pathname.includes('/analysis')
+      ? 'analysis'
       : 'discussion'
 
   const current = SECTIONS.find((s) => s.value === activeSection)!

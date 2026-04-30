@@ -46,7 +46,7 @@ export function StatementCard({ statement, userId }: Props) {
   return (
     <div
       className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3 cursor-pointer"
-      onClick={() => setOpen(true)}
+      onClick={() => { setOpen(true); setViewMode('split') }}
     >
       <p className="text-sm font-medium text-gray-900 leading-relaxed">{statement.text}</p>
 

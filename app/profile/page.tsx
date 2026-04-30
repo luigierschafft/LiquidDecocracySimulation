@@ -44,6 +44,8 @@ export default async function ProfilePage() {
     platformStatementsRes,
     platformNodesRes,
     platformRatingsRes,
+    platformPropositionsRes,
+    platformExecutionPlansRes,
   ] = await Promise.all([
     newIssueIds.length > 0
       ? supabase.from('ev_statements').select('id', { count: 'exact', head: true }).in('issue_id', newIssueIds)
@@ -54,6 +56,12 @@ export default async function ProfilePage() {
     newStatementIds.length > 0
       ? supabase.from('ev_statement_ratings').select('id', { count: 'exact', head: true }).in('statement_id', newStatementIds)
       : Promise.resolve({ count: 0 }),
+    newIssueIds.length > 0
+      ? supabase.from('ev_topic_proposals').select('id', { count: 'exact', head: true }).in('issue_id', newIssueIds)
+      : Promise.resolve({ count: 0 }),
+    newIssueIds.length > 0
+      ? supabase.from('ev_execution_plans').select('id', { count: 'exact', head: true }).in('issue_id', newIssueIds)
+      : Promise.resolve({ count: 0 }),
   ])
 
   const platformStats = {
@@ -61,6 +69,8 @@ export default async function ProfilePage() {
     statements: (platformStatementsRes as any).count ?? 0,
     arguments: (platformNodesRes as any).count ?? 0,
     votes: (platformRatingsRes as any).count ?? 0,
+    propositions: (platformPropositionsRes as any).count ?? 0,
+    executionPlans: (platformExecutionPlansRes as any).count ?? 0,
   }
 
   // Personal activity — filtered to new topics only
@@ -70,6 +80,8 @@ export default async function ProfilePage() {
     { data: proposals },
     { data: improvements },
     { data: improvementVotes },
+    { data: userPropositions },
+    { data: userTopics },
   ] = await Promise.all([
     newIssueIds.length > 0
       ? supabase
@@ -105,6 +117,22 @@ export default async function ProfilePage() {
       .from('ev_improvement_votes')
       .select('id, vote, created_at')
       .eq('user_id', user.id),
+    newIssueIds.length > 0
+      ? supabase
+          .from('ev_topic_proposals')
+          .select('id, title, created_at, issue:issue(id, title)')
+          .eq('author_id', user.id)
+          .in('issue_id', newIssueIds)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
+    newIssueIds.length > 0
+      ? supabase
+          .from('issue')
+          .select('id, title, created_at')
+          .eq('author_id', user.id)
+          .in('id', newIssueIds)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
   ])
 
   // Personal stats
@@ -112,6 +140,7 @@ export default async function ProfilePage() {
   const proCount = (discussionNodes as any[])?.filter((n) => n.type === 'pro').length ?? 0
   const contraCount = (discussionNodes as any[])?.filter((n) => n.type === 'contra').length ?? 0
   const improvementsCount = (improvements as any[])?.length ?? 0
+  const propositionsCount = (userPropositions as any[])?.length ?? 0
 
   const allVoteValues = (improvementVotes as any[])?.map((v) => v.vote) ?? []
   const approveCount = allVoteValues.filter((v) => v === 'approve').length
@@ -149,12 +178,32 @@ export default async function ProfilePage() {
       date: imp.created_at,
     })
   }
+  for (const prop of (userPropositions as any[]) ?? []) {
+    timeline.push({
+      kind: 'Proposition',
+      label: prop.issue?.title ?? 'Unknown topic',
+      text: prop.title,
+      date: prop.created_at,
+      link: prop.issue?.id ? `/topics/${prop.issue.id}/proposals` : undefined,
+    })
+  }
+  for (const topic of (userTopics as any[]) ?? []) {
+    timeline.push({
+      kind: 'Topic',
+      label: 'New topic',
+      text: topic.title,
+      date: topic.created_at,
+      link: `/topics/${topic.id}/discussion`,
+    })
+  }
   timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const kindColor: Record<string, string> = {
     Statement: 'bg-blue-50 text-blue-700',
     Proposal: 'bg-violet-50 text-violet-700',
     Improvement: 'bg-amber-50 text-amber-700',
+    Proposition: 'bg-indigo-50 text-indigo-700',
+    Topic: 'bg-green-50 text-green-700',
   }
 
   return (
@@ -230,12 +279,14 @@ export default async function ProfilePage() {
       {/* Platform Stats */}
       <div className="card space-y-4">
         <h2 className="font-semibold text-lg">Platform</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {[
             { label: 'Topics', value: platformStats.topics },
             { label: 'Votes', value: platformStats.votes },
             { label: 'Statements', value: platformStats.statements },
             { label: 'Arguments', value: platformStats.arguments },
+            { label: 'Propositions', value: platformStats.propositions },
+            { label: 'Execution Plans', value: platformStats.executionPlans },
           ].map((s) => (
             <div key={s.label} className="rounded-lg bg-sand/40 px-4 py-3 text-center">
               <p className="text-2xl font-bold text-accent">{s.value}</p>
@@ -257,6 +308,7 @@ export default async function ProfilePage() {
             { label: 'Pro arguments', value: proCount },
             { label: 'Contra arguments', value: contraCount },
             { label: 'Improvement suggestions', value: improvementsCount },
+            { label: 'Propositions written', value: propositionsCount },
           ].map((stat) => (
             <div key={stat.label} className="rounded-lg bg-sand/40 px-4 py-3 text-center">
               <p className="text-2xl font-bold text-accent">{stat.value}</p>
