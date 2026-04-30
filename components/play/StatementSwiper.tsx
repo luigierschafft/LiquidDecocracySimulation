@@ -142,8 +142,8 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
           <textarea
             value={newText}
             onChange={(e) => setNewText(e.target.value)}
-            placeholder="Write your statement… (max 100 characters)"
-            maxLength={100}
+            placeholder="Write your statement… (max 400 characters)"
+            maxLength={400}
             rows={3}
             className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-pink-300"
             autoFocus

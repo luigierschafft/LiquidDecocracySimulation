@@ -66,8 +66,8 @@ export function AddStatementForm({ topicId }: Props) {
           <div className="relative">
             <textarea
               value={text}
-              onChange={(e) => setText(e.target.value.slice(0, 100))}
-              placeholder="Your statement (max. 100 characters)..."
+              onChange={(e) => setText(e.target.value.slice(0, 400))}
+              placeholder="Your statement (max. 400 characters)..."
               rows={2}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12"
             />
