@@ -1,16 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
-import { ModuleSettings } from '@/components/profile/ModuleSettings'
-import { getUserConfigurableModules, getEffectiveModules } from '@/lib/modules'
+import { getEffectiveModules } from '@/lib/modules'
 import { formatDate, getMemberDisplayName } from '@/lib/utils'
 import { Badge } from '@/components/ui/Badge'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
-import { LanguageSelector } from '@/components/profile/LanguageSelector'
-import { MapPin, Shield, Star, Clock, Activity, Bell } from 'lucide-react'
+import { MapPin, Shield, Star } from 'lucide-react'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
+
+const CUTOFF = '2026-04-30'
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -19,97 +19,142 @@ export default async function ProfilePage() {
 
   const { data: member } = await supabase.from('member').select('*').eq('id', user.id).single()
 
-  const [configurableModules, modules] = await Promise.all([
-    getUserConfigurableModules(user.id),
-    getEffectiveModules(user.id),
-  ])
-
-  const translationEnabled = modules.auto_translation === true
+  const modules = await getEffectiveModules(user.id)
   const userProfilesEnabled = modules.user_profiles === true
   const rolesEnabled = modules.roles_permissions === true
   const verificationEnabled = modules.verification === true
   const reputationEnabled = modules.reputation_system === true
-  const activityEnabled = modules.activity_tracking === true
-  const privacyEnabled = modules.privacy_settings === true
-  const delegationLimitsEnabled = modules.delegation_limits === true
-  const notificationsEnabled = modules.notifications === true
-  const userNotifSettingsEnabled = modules.user_notification_settings === true
 
-  // Show vote history unless privacy says no
-  const showVoteHistory = !privacyEnabled || (member?.show_vote_history !== false)
+  // Get new issue IDs (the only ones we count)
+  const { data: newIssues } = await supabase
+    .from('issue')
+    .select('id')
+    .gte('created_at', CUTOFF)
+    .neq('status', 'draft')
+  const newIssueIds = (newIssues ?? []).map((i) => i.id)
 
-  // Queries that depend on modules
-  const votesQuery = showVoteHistory
-    ? supabase
-        .from('vote')
-        .select('*, initiative:initiative(title, issue:issue(id, title))')
-        .eq('member_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-    : Promise.resolve({ data: [] })
+  // Get statement IDs for new issues (needed to filter discussion nodes)
+  const { data: newIssueStatements } = newIssueIds.length > 0
+    ? await supabase.from('ev_statements').select('id').in('issue_id', newIssueIds)
+    : { data: [] }
+  const newStatementIds = (newIssueStatements ?? []).map((s) => s.id)
 
-  // Activity: unified feed of recent actions from existing tables
-  const activityQuery = activityEnabled
-    ? Promise.all([
-        supabase
-          .from('vote')
-          .select('id, created_at, value, initiative:initiative(title, issue:issue(id, title))')
-          .eq('member_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(10),
-        supabase
-          .from('opinion')
-          .select('id, created_at, content, issue:issue(id, title)')
+  // Platform stats — all filtered to new topics
+  const [
+    platformStatementsRes,
+    platformNodesRes,
+    platformRatingsRes,
+  ] = await Promise.all([
+    newIssueIds.length > 0
+      ? supabase.from('ev_statements').select('id', { count: 'exact', head: true }).in('issue_id', newIssueIds)
+      : Promise.resolve({ count: 0 }),
+    newStatementIds.length > 0
+      ? supabase.from('ev_discussion_nodes').select('id', { count: 'exact', head: true }).in('statement_id', newStatementIds).in('type', ['pro', 'contra'])
+      : Promise.resolve({ count: 0 }),
+    newStatementIds.length > 0
+      ? supabase.from('ev_statement_ratings').select('id', { count: 'exact', head: true }).in('statement_id', newStatementIds)
+      : Promise.resolve({ count: 0 }),
+  ])
+
+  const platformStats = {
+    topics: newIssueIds.length,
+    statements: (platformStatementsRes as any).count ?? 0,
+    arguments: (platformNodesRes as any).count ?? 0,
+    votes: (platformRatingsRes as any).count ?? 0,
+  }
+
+  // Personal activity — filtered to new topics only
+  const [
+    { data: statements },
+    { data: discussionNodes },
+    { data: proposals },
+    { data: improvements },
+    { data: improvementVotes },
+  ] = await Promise.all([
+    newIssueIds.length > 0
+      ? supabase
+          .from('ev_statements')
+          .select('id, text, created_at, issue:issue(id, title)')
           .eq('author_id', user.id)
-          .is('initiative_id', null)
+          .in('issue_id', newIssueIds)
           .order('created_at', { ascending: false })
-          .limit(10),
-        supabase
+      : Promise.resolve({ data: [] }),
+    newStatementIds.length > 0
+      ? supabase
+          .from('ev_discussion_nodes')
+          .select('id, type, created_at')
+          .eq('author_id', user.id)
+          .in('statement_id', newStatementIds)
+          .in('type', ['pro', 'contra'])
+      : Promise.resolve({ data: [] }),
+    newIssueIds.length > 0
+      ? supabase
           .from('initiative')
-          .select('id, created_at, title, issue:issue(id, title)')
+          .select('id, title, created_at, issue:issue(id, title)')
           .eq('author_id', user.id)
           .eq('is_draft', false)
+          .in('issue_id', newIssueIds)
           .order('created_at', { ascending: false })
-          .limit(10),
-      ])
-    : Promise.resolve(null)
+      : Promise.resolve({ data: [] }),
+    supabase
+      .from('ev_proposed_improvements')
+      .select('id, text, created_at, proposal:ev_topic_proposals(id, title, issue:issue(id, title))')
+      .eq('author_id', user.id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('ev_improvement_votes')
+      .select('id, vote, created_at')
+      .eq('user_id', user.id),
+  ])
 
-  const [votesResult, activityResult] = await Promise.all([votesQuery, activityQuery])
-  const votes = (votesResult as any).data ?? []
+  // Personal stats
+  const statementsCount = (statements as any[])?.length ?? 0
+  const proCount = (discussionNodes as any[])?.filter((n) => n.type === 'pro').length ?? 0
+  const contraCount = (discussionNodes as any[])?.filter((n) => n.type === 'contra').length ?? 0
+  const improvementsCount = (improvements as any[])?.length ?? 0
 
-  // Build unified activity feed
-  let activityFeed: { type: string; label: string; sub: string; date: string; link?: string }[] = []
-  if (activityEnabled && activityResult) {
-    const [vRes, oRes, iRes] = activityResult as any[]
-    for (const v of vRes?.data ?? []) {
-      activityFeed.push({
-        type: 'vote',
-        label: `Voted ${v.value} on "${v.initiative?.issue?.title ?? '?'}"`,
-        sub: v.initiative?.title ?? '',
-        date: v.created_at,
-        link: v.initiative?.issue?.id ? `/proposals/${v.initiative.issue.id}` : undefined,
-      })
-    }
-    for (const o of oRes?.data ?? []) {
-      activityFeed.push({
-        type: 'opinion',
-        label: `Commented on "${(o as any).issue?.title ?? '?'}"`,
-        sub: String(o.content).slice(0, 60) + (String(o.content).length > 60 ? '…' : ''),
-        date: o.created_at,
-        link: (o as any).issue?.id ? `/proposals/${(o as any).issue.id}` : undefined,
-      })
-    }
-    for (const i of iRes?.data ?? []) {
-      activityFeed.push({
-        type: 'initiative',
-        label: `Submitted proposition "${i.title}"`,
-        sub: (i as any).issue?.title ?? '',
-        date: i.created_at,
-        link: (i as any).issue?.id ? `/proposals/${(i as any).issue.id}` : undefined,
-      })
-    }
-    activityFeed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    activityFeed = activityFeed.slice(0, 20)
+  const allVoteValues = (improvementVotes as any[])?.map((v) => v.vote) ?? []
+  const approveCount = allVoteValues.filter((v) => v === 'approve').length
+  const disapproveCount = allVoteValues.filter((v) => v === 'disapprove' || v === 'strong_disapproval').length
+  const abstainCount = allVoteValues.filter((v) => v === 'abstain').length
+  const totalVotes = allVoteValues.length
+
+  // Timeline entries
+  type TimelineItem = { kind: string; label: string; text: string; date: string; link?: string }
+  const timeline: TimelineItem[] = []
+
+  for (const s of (statements as any[]) ?? []) {
+    timeline.push({
+      kind: 'Statement',
+      label: s.issue?.title ?? 'Unknown topic',
+      text: s.text,
+      date: s.created_at,
+      link: s.issue?.id ? `/topics/${s.issue.id}/discussion` : undefined,
+    })
+  }
+  for (const p of (proposals as any[]) ?? []) {
+    timeline.push({
+      kind: 'Proposal',
+      label: p.issue?.title ?? 'Unknown topic',
+      text: p.title,
+      date: p.created_at,
+      link: p.issue?.id ? `/topics/${p.issue.id}/proposals` : undefined,
+    })
+  }
+  for (const imp of (improvements as any[]) ?? []) {
+    timeline.push({
+      kind: 'Improvement',
+      label: imp.proposal?.title ?? 'Unknown proposal',
+      text: imp.text,
+      date: imp.created_at,
+    })
+  }
+  timeline.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  const kindColor: Record<string, string> = {
+    Statement: 'bg-blue-50 text-blue-700',
+    Proposal: 'bg-violet-50 text-violet-700',
+    Improvement: 'bg-amber-50 text-amber-700',
   }
 
   return (
@@ -158,19 +203,14 @@ export default async function ProfilePage() {
           </div>
         </div>
 
-        {/* Bio — shown when user_profiles module is on */}
         {userProfilesEnabled && member?.bio && (
           <p className="text-sm text-foreground/70 leading-relaxed">{member.bio}</p>
         )}
 
-        {/* Interests — shown when user_profiles module is on */}
         {userProfilesEnabled && member?.interests && member.interests.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {member.interests.map((interest: string) => (
-              <span
-                key={interest}
-                className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs font-medium"
-              >
+              <span key={interest} className="px-2 py-0.5 rounded-full bg-accent/10 text-accent text-xs font-medium">
                 {interest}
               </span>
             ))}
@@ -187,154 +227,76 @@ export default async function ProfilePage() {
         />
       </div>
 
-      {/* Delegation limit setting — Module 39 */}
-      {delegationLimitsEnabled && (
-        <DelegationLimitSection memberId={user.id} currentLimit={member?.max_incoming_delegations ?? null} />
-      )}
-
-      {/* Privacy settings — Module 91 */}
-      {privacyEnabled && (
-        <PrivacySection
-          memberId={user.id}
-          showVoteHistory={member?.show_vote_history !== false}
-          showActivity={member?.show_activity !== false}
-        />
-      )}
-
-      {/* User notification settings — Module 85 */}
-      {userNotifSettingsEnabled && (
-        <NotificationPrefsSection
-          memberId={user.id}
-          prefs={member?.notification_preferences ?? { new_opinion: true, phase_change: true, reply: true, mention: true }}
-        />
-      )}
-
-      {/* Language preference — Module 95 */}
-      {translationEnabled && (
-        <LanguageSelector memberId={user.id} currentLang={(member as any)?.preferred_language ?? 'en'} />
-      )}
-
-      {/* User-configurable module settings */}
-      {configurableModules.length > 0 && (
-        <ModuleSettings modules={configurableModules} userId={user.id} />
-      )}
-
-      {/* Recent Activity — Module 5 */}
-      {activityEnabled && (!privacyEnabled || member?.show_activity !== false) && (
-        <div className="card space-y-4">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <Activity className="w-5 h-5 text-accent" />
-            Recent Activity
-          </h2>
-          {activityFeed.length === 0 ? (
-            <p className="text-sm text-foreground/40">No activity yet.</p>
-          ) : (
-            <div className="divide-y divide-sand">
-              {activityFeed.map((item, i) => (
-                <div key={i} className="py-3 flex items-start gap-3">
-                  <Clock className="w-4 h-4 text-foreground/30 mt-0.5 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    {item.link ? (
-                      <Link href={item.link} className="text-sm font-medium hover:text-accent transition-colors truncate block">
-                        {item.label}
-                      </Link>
-                    ) : (
-                      <p className="text-sm font-medium truncate">{item.label}</p>
-                    )}
-                    {item.sub && <p className="text-xs text-foreground/40 truncate">{item.sub}</p>}
-                    <p className="text-xs text-foreground/30">{formatDate(item.date)}</p>
-                  </div>
-                </div>
-              ))}
+      {/* Platform Stats */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-lg">Platform</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Topics', value: platformStats.topics },
+            { label: 'Votes', value: platformStats.votes },
+            { label: 'Statements', value: platformStats.statements },
+            { label: 'Arguments', value: platformStats.arguments },
+          ].map((s) => (
+            <div key={s.label} className="rounded-lg bg-sand/40 px-4 py-3 text-center">
+              <p className="text-2xl font-bold text-accent">{s.value}</p>
+              <p className="text-xs text-foreground/50 mt-0.5">{s.label}</p>
             </div>
-          )}
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Vote History */}
-      {showVoteHistory && (
-        <div className="card space-y-4">
-          <h2 className="font-semibold text-lg">Vote History</h2>
-          {votes && votes.length > 0 ? (
-            <div className="divide-y divide-sand">
-              {votes.map((v: any) => (
-                <div key={v.id} className="py-3 flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{v.initiative?.issue?.title}</p>
-                    <p className="text-xs text-foreground/40">{formatDate(v.created_at)}</p>
-                  </div>
-                  <Badge variant={v.value === 'approve' ? 'green' : v.value === 'oppose' ? 'default' : 'sand'}>
-                    {v.value}
-                  </Badge>
-                </div>
-              ))}
+      {/* Activity Stats */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-lg">My Activity</h2>
+
+        {/* Top stats row */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {[
+            { label: 'Total votes', value: totalVotes },
+            { label: 'Statements written', value: statementsCount },
+            { label: 'Pro arguments', value: proCount },
+            { label: 'Contra arguments', value: contraCount },
+            { label: 'Improvement suggestions', value: improvementsCount },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-lg bg-sand/40 px-4 py-3 text-center">
+              <p className="text-2xl font-bold text-accent">{stat.value}</p>
+              <p className="text-xs text-foreground/50 mt-0.5">{stat.label}</p>
             </div>
-          ) : (
-            <p className="text-sm text-foreground/40">No votes yet.</p>
-          )}
-        </div>
-      )}
-
-      {/* Notification link — Module 84 */}
-      {notificationsEnabled && (
-        <div className="card flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-accent" />
-            <span className="font-medium">Notifications</span>
+          ))}
+          <div className="rounded-lg bg-sand/40 px-4 py-3 text-center">
+            <p className="text-sm font-bold text-accent leading-snug">
+              {approveCount}✓ / {disapproveCount}✗ / {abstainCount}–
+            </p>
+            <p className="text-xs text-foreground/50 mt-0.5">Approve / Disapprove / Abstain</p>
           </div>
-          <Link href="/profile/notifications" className="btn-secondary text-sm py-1.5">
-            View All
-          </Link>
         </div>
-      )}
+
+        {/* Timeline */}
+        {timeline.length === 0 ? (
+          <p className="text-sm text-foreground/40">No contributions yet.</p>
+        ) : (
+          <div className="divide-y divide-sand">
+            {timeline.map((item, i) => (
+              <div key={i} className="py-3 flex items-start gap-3">
+                <span className={`mt-0.5 flex-shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${kindColor[item.kind] ?? 'bg-gray-100 text-gray-600'}`}>
+                  {item.kind}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-foreground/40 truncate">{item.label}</p>
+                  {item.link ? (
+                    <Link href={item.link} className="text-sm font-medium hover:text-accent transition-colors line-clamp-2 block">
+                      {item.text}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-medium line-clamp-2">{item.text}</p>
+                  )}
+                  <p className="text-xs text-foreground/30 mt-0.5">{formatDate(item.date)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
-
-// --- Inline server components for privacy/delegation/notification prefs ---
-
-function PrivacySection({
-  memberId,
-  showVoteHistory,
-  showActivity,
-}: {
-  memberId: string
-  showVoteHistory: boolean
-  showActivity: boolean
-}) {
-  return (
-    <div className="card space-y-4">
-      <h2 className="font-semibold text-lg">Privacy Settings</h2>
-      <PrivacyForm memberId={memberId} showVoteHistory={showVoteHistory} showActivity={showActivity} />
-    </div>
-  )
-}
-
-function DelegationLimitSection({ memberId, currentLimit }: { memberId: string; currentLimit: number | null }) {
-  return (
-    <div className="card space-y-4">
-      <h2 className="font-semibold text-lg">Delegation Limits</h2>
-      <DelegationLimitForm memberId={memberId} currentLimit={currentLimit} />
-    </div>
-  )
-}
-
-function NotificationPrefsSection({
-  memberId,
-  prefs,
-}: {
-  memberId: string
-  prefs: Record<string, boolean>
-}) {
-  return (
-    <div className="card space-y-4">
-      <h2 className="font-semibold text-lg">Notification Preferences</h2>
-      <NotificationPrefsForm memberId={memberId} prefs={prefs} />
-    </div>
-  )
-}
-
-// Client components imported below
-import { PrivacyForm } from '@/components/profile/PrivacyForm'
-import { DelegationLimitForm } from '@/components/profile/DelegationLimitForm'
-import { NotificationPrefsForm } from '@/components/profile/NotificationPrefsForm'

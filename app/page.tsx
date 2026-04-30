@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowDown, ArrowRight } from 'lucide-react'
+import { ArrowDown } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,10 +23,14 @@ export default async function LandingPage() {
             <span className="block text-accent">for Auroville</span>
           </h1>
 
-          <Link href="/proposals" className="btn-primary inline-flex items-center gap-2 text-base px-6 py-3">
-            Browse Topics
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="flex flex-col gap-3 w-full">
+            <Link href="/topics" className="btn-primary inline-flex items-center justify-center gap-2 text-base px-6 py-3 w-full">
+              Browse Topics — Classic
+            </Link>
+            <Link href="/playful" className="inline-flex items-center justify-center gap-2 text-base px-6 py-3 w-full rounded-xl font-semibold bg-gradient-to-r from-amber-400 to-orange-400 text-gray-900 shadow-md hover:brightness-105 transition-all">
+              Browse Topics — Playful
+            </Link>
+          </div>
 
           {/* Flow steps vertical */}
           <div className="flex flex-col items-center gap-0 pt-2">

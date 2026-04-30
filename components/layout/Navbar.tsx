@@ -54,11 +54,14 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
   }
 
   const navLinks = [
-    { href: '/proposals', label: 'Topics', show: true },
+    { href: '/topics', label: 'Topics', show: true },
     { href: '/delegation', label: 'Delegation', show: showDelegation },
-    { href: '/voting-cycles', label: 'Votes', show: showVotingCycles },
-    { href: '/governance', label: 'Governance', show: showGovernance },
+    { href: '/voting-cycles', label: 'Votes', show: false },
+    { href: '/governance', label: 'Governance', show: false },
+    { href: '/playful', label: '🐾 Play', show: true },
   ].filter((l) => l.show)
+
+  if (pathname.startsWith('/playful')) return null
 
   return (
     <nav className="border-b border-sand bg-white/80 backdrop-blur-sm sticky top-0 z-50">
@@ -113,7 +116,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
               </button>
             </>
           ) : (
-            <Link href="/auth/login" className="btn-primary text-sm py-1.5">
+            <Link href={`/auth/login?next=${encodeURIComponent(pathname)}`} className="btn-primary text-sm py-1.5">
               Sign in
             </Link>
           )}

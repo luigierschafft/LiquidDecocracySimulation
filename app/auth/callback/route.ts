@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
-  const next = url.searchParams.get('next') ?? '/proposals'
+  const next = url.searchParams.get('next') ?? '/topics'
 
   if (code) {
     const supabase = createClient()
