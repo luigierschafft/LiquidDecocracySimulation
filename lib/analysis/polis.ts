@@ -80,7 +80,7 @@ export function analyze(ratings: Rating[], statements: Statement[]): AnalysisRes
 
   // ── PCA + clustering ───────────────────────────────────────────────────────
   let scatter: ScatterPoint[] = []
-  let groups:  OpinionGroup[] = []
+  const groups:  OpinionGroup[] = []
 
   if (n >= 3 && m >= 2) {
     const points = pcaProject(matrix, m)
