@@ -43,7 +43,7 @@ export function NewProposalForm() {
       return
     }
 
-    router.push(`/proposals/${issue.id}`)
+    router.push(`/topics/${issue.id}/discussion`)
   }
 
   return (

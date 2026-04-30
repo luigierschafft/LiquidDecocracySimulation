@@ -17,7 +17,7 @@ export function AddStatementForm({ topicId }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const remaining = 100 - text.length
+  const remaining = 200 - text.length
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
