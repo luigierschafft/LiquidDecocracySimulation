@@ -10,6 +10,8 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
+const CUTOFF = '2026-04-30'
+
 export default async function ProfilePage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -23,88 +25,126 @@ export default async function ProfilePage() {
   const verificationEnabled = modules.verification === true
   const reputationEnabled = modules.reputation_system === true
 
-  // Fetch all activity data in parallel
+  // Get new issue IDs (the only ones we count)
+  const { data: newIssues } = await supabase
+    .from('issue')
+    .select('id')
+    .gte('created_at', CUTOFF)
+    .neq('status', 'draft')
+  const newIssueIds = (newIssues ?? []).map((i) => i.id)
+
+  // Get statement IDs for new issues (needed to filter discussion nodes)
+  const { data: newIssueStatements } = newIssueIds.length > 0
+    ? await supabase.from('ev_statements').select('id').in('issue_id', newIssueIds)
+    : { data: [] }
+  const newStatementIds = (newIssueStatements ?? []).map((s) => s.id)
+
+  // Platform stats — all filtered to new topics
   const [
-    { data: proposalVotes },
-    { data: improvementVotes },
+    platformStatementsRes,
+    platformNodesRes,
+    platformRatingsRes,
+  ] = await Promise.all([
+    newIssueIds.length > 0
+      ? supabase.from('ev_statements').select('id', { count: 'exact', head: true }).in('issue_id', newIssueIds)
+      : Promise.resolve({ count: 0 }),
+    newStatementIds.length > 0
+      ? supabase.from('ev_discussion_nodes').select('id', { count: 'exact', head: true }).in('statement_id', newStatementIds).in('type', ['pro', 'contra'])
+      : Promise.resolve({ count: 0 }),
+    newStatementIds.length > 0
+      ? supabase.from('ev_statement_ratings').select('id', { count: 'exact', head: true }).in('statement_id', newStatementIds)
+      : Promise.resolve({ count: 0 }),
+  ])
+
+  const platformStats = {
+    topics: newIssueIds.length,
+    statements: (platformStatementsRes as any).count ?? 0,
+    arguments: (platformNodesRes as any).count ?? 0,
+    votes: (platformRatingsRes as any).count ?? 0,
+  }
+
+  // Personal activity — filtered to new topics only
+  const [
     { data: statements },
     { data: discussionNodes },
     { data: proposals },
     { data: improvements },
+    { data: improvementVotes },
   ] = await Promise.all([
-    supabase
-      .from('vote')
-      .select('id, value, created_at, initiative:initiative(id, title, issue:issue(id, title))')
-      .eq('member_id', user.id)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('ev_improvement_votes')
-      .select('id, vote, created_at')
-      .eq('user_id', user.id),
-    supabase
-      .from('ev_statements')
-      .select('id, text, created_at, issue:issue(id, title)')
-      .eq('author_id', user.id)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('ev_discussion_nodes')
-      .select('id, type, created_at')
-      .eq('author_id', user.id)
-      .in('type', ['pro', 'contra']),
-    supabase
-      .from('initiative')
-      .select('id, title, created_at, issue:issue(id, title)')
-      .eq('author_id', user.id)
-      .eq('is_draft', false)
-      .order('created_at', { ascending: false }),
+    newIssueIds.length > 0
+      ? supabase
+          .from('ev_statements')
+          .select('id, text, created_at, issue:issue(id, title)')
+          .eq('author_id', user.id)
+          .in('issue_id', newIssueIds)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
+    newStatementIds.length > 0
+      ? supabase
+          .from('ev_discussion_nodes')
+          .select('id, type, created_at')
+          .eq('author_id', user.id)
+          .in('statement_id', newStatementIds)
+          .in('type', ['pro', 'contra'])
+      : Promise.resolve({ data: [] }),
+    newIssueIds.length > 0
+      ? supabase
+          .from('initiative')
+          .select('id, title, created_at, issue:issue(id, title)')
+          .eq('author_id', user.id)
+          .eq('is_draft', false)
+          .in('issue_id', newIssueIds)
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] }),
     supabase
       .from('ev_proposed_improvements')
       .select('id, text, created_at, proposal:ev_topic_proposals(id, title, issue:issue(id, title))')
       .eq('author_id', user.id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('ev_improvement_votes')
+      .select('id, vote, created_at')
+      .eq('user_id', user.id),
   ])
 
-  // Stats
-  const totalVotes = (proposalVotes?.length ?? 0) + (improvementVotes?.length ?? 0)
-  const statementsCount = statements?.length ?? 0
-  const proCount = discussionNodes?.filter((n) => n.type === 'pro').length ?? 0
-  const contraCount = discussionNodes?.filter((n) => n.type === 'contra').length ?? 0
+  // Personal stats
+  const statementsCount = (statements as any[])?.length ?? 0
+  const proCount = (discussionNodes as any[])?.filter((n) => n.type === 'pro').length ?? 0
+  const contraCount = (discussionNodes as any[])?.filter((n) => n.type === 'contra').length ?? 0
+  const improvementsCount = (improvements as any[])?.length ?? 0
 
-  const allVoteValues = [
-    ...(proposalVotes ?? []).map((v) => v.value),
-    ...(improvementVotes ?? []).map((v) => v.vote),
-  ]
+  const allVoteValues = (improvementVotes as any[])?.map((v) => v.vote) ?? []
   const approveCount = allVoteValues.filter((v) => v === 'approve').length
-  const disapproveCount = allVoteValues.filter((v) => v === 'disapprove' || v === 'strong_disapproval' || v === 'oppose').length
+  const disapproveCount = allVoteValues.filter((v) => v === 'disapprove' || v === 'strong_disapproval').length
   const abstainCount = allVoteValues.filter((v) => v === 'abstain').length
-  const improvementsCount = improvements?.length ?? 0
+  const totalVotes = allVoteValues.length
 
   // Timeline entries
   type TimelineItem = { kind: string; label: string; text: string; date: string; link?: string }
   const timeline: TimelineItem[] = []
 
-  for (const s of statements ?? []) {
+  for (const s of (statements as any[]) ?? []) {
     timeline.push({
       kind: 'Statement',
-      label: (s as any).issue?.title ?? 'Unknown topic',
+      label: s.issue?.title ?? 'Unknown topic',
       text: s.text,
       date: s.created_at,
-      link: (s as any).issue?.id ? `/topics/${(s as any).issue.id}/discussion` : undefined,
+      link: s.issue?.id ? `/topics/${s.issue.id}/discussion` : undefined,
     })
   }
-  for (const p of proposals ?? []) {
+  for (const p of (proposals as any[]) ?? []) {
     timeline.push({
       kind: 'Proposal',
-      label: (p as any).issue?.title ?? 'Unknown topic',
+      label: p.issue?.title ?? 'Unknown topic',
       text: p.title,
       date: p.created_at,
-      link: (p as any).issue?.id ? `/topics/${(p as any).issue.id}/proposals` : undefined,
+      link: p.issue?.id ? `/topics/${p.issue.id}/proposals` : undefined,
     })
   }
-  for (const imp of improvements ?? []) {
+  for (const imp of (improvements as any[]) ?? []) {
     timeline.push({
       kind: 'Improvement',
-      label: (imp as any).proposal?.title ?? 'Unknown proposal',
+      label: imp.proposal?.title ?? 'Unknown proposal',
       text: imp.text,
       date: imp.created_at,
     })
@@ -187,9 +227,27 @@ export default async function ProfilePage() {
         />
       </div>
 
+      {/* Platform Stats */}
+      <div className="card space-y-4">
+        <h2 className="font-semibold text-lg">Platform</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Topics', value: platformStats.topics },
+            { label: 'Votes', value: platformStats.votes },
+            { label: 'Statements', value: platformStats.statements },
+            { label: 'Arguments', value: platformStats.arguments },
+          ].map((s) => (
+            <div key={s.label} className="rounded-lg bg-sand/40 px-4 py-3 text-center">
+              <p className="text-2xl font-bold text-accent">{s.value}</p>
+              <p className="text-xs text-foreground/50 mt-0.5">{s.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Activity Stats */}
       <div className="card space-y-4">
-        <h2 className="font-semibold text-lg">Activity</h2>
+        <h2 className="font-semibold text-lg">My Activity</h2>
 
         {/* Top stats row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
