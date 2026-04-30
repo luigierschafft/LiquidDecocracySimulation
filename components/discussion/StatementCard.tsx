@@ -44,11 +44,14 @@ export function StatementCard({ statement, userId }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
+    <div
+      className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3 cursor-pointer"
+      onClick={() => setOpen(true)}
+    >
       <p className="text-sm font-medium text-gray-900 leading-relaxed">{statement.text}</p>
 
       {sourceLinks.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
           {sourceLinks.map((url, i) => (
             <a
               key={i}
@@ -65,14 +68,16 @@ export function StatementCard({ statement, userId }: Props) {
       )}
 
       {userId && (
-        <StatementRating
-          statementId={statement.id}
-          userId={userId}
-          currentRating={userRating}
-          avgRating={avgRating}
-          ratings={statement.ratings ?? []}
-          onRatingChange={handleRatingChange}
-        />
+        <div onClick={(e) => e.stopPropagation()}>
+          <StatementRating
+            statementId={statement.id}
+            userId={userId}
+            currentRating={userRating}
+            avgRating={avgRating}
+            ratings={statement.ratings ?? []}
+            onRatingChange={handleRatingChange}
+          />
+        </div>
       )}
 
       {!userId && avgRating !== null && (
@@ -81,7 +86,7 @@ export function StatementCard({ statement, userId }: Props) {
         </p>
       )}
 
-      <div className="pt-1 border-t border-gray-100 flex items-center gap-2">
+      <div className="pt-1 border-t border-gray-100 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
         <button
           onClick={() => setOpen((v) => !v)}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
@@ -118,10 +123,12 @@ export function StatementCard({ statement, userId }: Props) {
       </div>
 
       {open && viewMode === 'split' && (
-        <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} />
+        <div onClick={(e) => e.stopPropagation()}>
+          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} />
+        </div>
       )}
       {open && viewMode === 'sun' && (
-        <div className="space-y-4">
+        <div className="space-y-4" onClick={(e) => e.stopPropagation()}>
           <SunView
             statementId={statement.id}
             statementText={statement.text}

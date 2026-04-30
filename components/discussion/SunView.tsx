@@ -77,6 +77,61 @@ function toSunData(statementText: string, tree: DiscussionNode[], avgMap: Map<st
   }
 }
 
+// ─── Inject center label into SVG ─────────────────────────────────────────────
+
+function injectCenterLabel(svg: SVGElement, w: number, text: string) {
+  // Remove any previous center overlay
+  svg.querySelectorAll('[data-center-overlay]').forEach((el) => el.remove())
+
+  // Sunburst renders arcs inside a <g transform="translate(cx,cy)">
+  // → in that coordinate space, center = 0,0
+  const g = svg.querySelector('g')
+  const parent: Element = g ?? svg
+  const r = w * 0.45 / 2  // covers root ring
+
+  const ns = 'http://www.w3.org/2000/svg'
+
+  // Purple circle at 0,0 (center of the group)
+  const circle = document.createElementNS(ns, 'circle')
+  circle.setAttribute('cx', '0')
+  circle.setAttribute('cy', '0')
+  circle.setAttribute('r', String(r))
+  circle.setAttribute('fill', '#a855f7')
+  circle.setAttribute('pointer-events', 'none')
+  circle.setAttribute('data-center-overlay', '1')
+  parent.appendChild(circle)
+
+  // Text via foreignObject
+  const fo = document.createElementNS(ns, 'foreignObject')
+  fo.setAttribute('x', String(-r + 4))
+  fo.setAttribute('y', String(-r + 4))
+  fo.setAttribute('width', String(r * 2 - 8))
+  fo.setAttribute('height', String(r * 2 - 8))
+  fo.setAttribute('pointer-events', 'none')
+  fo.setAttribute('data-center-overlay', '1')
+
+  const div = document.createElement('div')
+  div.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
+  div.style.cssText = [
+    'width:100%', 'height:100%',
+    'display:flex', 'align-items:center', 'justify-content:center',
+    'overflow:hidden',
+  ].join(';')
+
+  const p = document.createElement('p')
+  p.style.cssText = [
+    'font-size:9px', 'font-weight:700', 'color:white',
+    'text-align:center', 'line-height:1.3', 'margin:0', 'padding:0',
+    'display:-webkit-box', '-webkit-line-clamp:5',
+    '-webkit-box-orient:vertical', 'overflow:hidden',
+  ].join(';')
+  p.textContent = text
+
+  div.appendChild(p)
+  fo.appendChild(div)
+  parent.appendChild(fo)
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -110,7 +165,6 @@ export function SunView({ statementId, statementText, userId, onNodeClick }: Pro
         .select('node_id, rating')
         .in('node_id', nodeIds)
 
-      // group by node_id and compute average
       const groups = new Map<string, number[]>()
       for (const r of ratings ?? []) {
         const arr = groups.get(r.node_id) ?? []
@@ -135,16 +189,18 @@ export function SunView({ statementId, statementText, userId, onNodeClick }: Pro
     if (!dataLoaded || !containerRef.current) return
 
     const container = containerRef.current
-    const w = container.clientWidth || 520
+    const w = Math.min(container.clientWidth || 390, 390)
 
     async function initChart() {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const Sunburst = ((await import('sunburst-chart')) as any).default
 
       const sunData = toSunData(statementText, tree, avgMap)
 
       if (chartRef.current) {
         chartRef.current.data(sunData)
+        // Re-inject after data update
+        const svg = container.querySelector('svg') as SVGElement | null
+        if (svg) injectCenterLabel(svg, w, statementText)
         return
       }
 
@@ -163,18 +219,23 @@ export function SunView({ statementId, statementText, userId, onNodeClick }: Pro
         })
         .strokeColor(() => 'white')
         .label((node: any) => {
-          const txt: string = node.name ?? ''
           const isRoot = (node.nodeType ?? node.__dataNode?.data?.nodeType) === 'root'
-          if (isRoot) return txt
+          if (isRoot) return ''
+          const txt: string = node.name ?? ''
           return txt.length > 50 ? txt.slice(0, 49) + '…' : txt
         })
         .size('value')
-        .centerRadius(0.38)
+        .centerRadius(0.3)
         .radiusScaleExponent(0.55)
         .transitionDuration(450)
         .onClick((node: any) => {
           const id: string | null = node.nodeId ?? node.__dataNode?.data?.nodeId ?? null
           if (id && onNodeClick) onNodeClick(id)
+          // Re-inject center after zoom transition
+          setTimeout(() => {
+            const svg = container.querySelector('svg') as SVGElement | null
+            if (svg) injectCenterLabel(svg, w, statementText)
+          }, 500)
         })
         .tooltipContent((node: any) => {
           const t = node.nodeType
@@ -189,20 +250,25 @@ export function SunView({ statementId, statementText, userId, onNodeClick }: Pro
       chart(container)
       chartRef.current = chart
 
-      // Override text rendering: white fill, no contour stroke
+      // Inject center label into SVG (on top of all arcs)
+      const svg = container.querySelector('svg') as SVGElement | null
+      if (svg) injectCenterLabel(svg, w, statementText)
+
+      // Text style
       if (!document.getElementById('sunburst-text-style')) {
         const style = document.createElement('style')
         style.id = 'sunburst-text-style'
         style.textContent = `
-          .sunburst-viz .text-stroke { fill: white !important; }
+          .sunburst-viz .text-stroke { fill: white !important; font-size: 13px !important; font-weight: 600 !important; }
           .sunburst-viz .text-contour { stroke: none !important; }
+          .sunburst-viz text { font-size: 13px !important; font-weight: 600 !important; }
         `
         document.head.appendChild(style)
       }
     }
 
     initChart()
-  }, [dataLoaded, tree, statementText, avgMap])
+  }, [dataLoaded, tree, statementText, avgMap, onNodeClick])
 
   return (
     <div>

@@ -5,6 +5,8 @@ import { HelpSession } from '@/components/play/HelpSession'
 
 export const dynamic = 'force-dynamic'
 
+const CUTOFF = '2026-04-30'
+
 export default async function PlayHelpPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -15,6 +17,7 @@ export default async function PlayHelpPage() {
       .from('issue')
       .select('id, title, created_at')
       .neq('status', 'draft')
+      .gte('created_at', CUTOFF)
       .order('created_at', { ascending: true }),
     supabase.from('ev_statements').select('issue_id'),
   ])

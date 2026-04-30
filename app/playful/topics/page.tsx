@@ -4,13 +4,36 @@ import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
+const CUTOFF = '2026-04-30'
+
+function isNew(createdAt: string) {
+  return createdAt >= CUTOFF
+}
+
+function TopicButton({ issue }: { issue: { id: string; title: string; created_at: string } }) {
+  const fresh = isNew(issue.created_at)
+  return (
+    <Link href={`/playful/${issue.id}`} className="block">
+      <div className={`rounded-[1.5rem] px-5 py-4 text-center font-bold shadow-md active:scale-95 transition-transform text-sm ${
+        fresh
+          ? 'bg-gradient-to-r from-violet-400 via-blue-400 to-teal-400 text-white'
+          : 'bg-gradient-to-r from-gray-300 via-gray-400 to-gray-400 text-white/80'
+      }`}>
+        {issue.title}
+      </div>
+    </Link>
+  )
+}
+
 export default async function PlayTopicsPage() {
   const supabase = createClient()
   const { data: issues } = await supabase
     .from('issue')
-    .select('id, title, status')
+    .select('id, title, status, created_at')
     .neq('status', 'draft')
     .order('created_at', { ascending: false })
+
+  const list = issues ?? []
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
@@ -39,12 +62,8 @@ export default async function PlayTopicsPage() {
 
       {/* Topic list */}
       <div className="w-full max-w-xs flex flex-col gap-3">
-        {(issues ?? []).slice(0, 4).map((issue) => (
-          <Link key={issue.id} href={`/playful/${issue.id}`} className="block">
-            <div className="bg-gradient-to-r from-violet-400 via-blue-400 to-teal-400 rounded-[1.5rem] px-5 py-4 text-center font-bold text-white shadow-md active:scale-95 transition-transform text-sm">
-              {issue.title}
-            </div>
-          </Link>
+        {list.slice(0, 4).map((issue) => (
+          <TopicButton key={issue.id} issue={issue} />
         ))}
 
         {/* Create new topic — always at position 5 */}
@@ -54,15 +73,11 @@ export default async function PlayTopicsPage() {
           </div>
         </Link>
 
-        {(issues ?? []).slice(4).map((issue) => (
-          <Link key={issue.id} href={`/playful/${issue.id}`} className="block">
-            <div className="bg-gradient-to-r from-violet-400 via-blue-400 to-teal-400 rounded-[1.5rem] px-5 py-4 text-center font-bold text-white shadow-md active:scale-95 transition-transform text-sm">
-              {issue.title}
-            </div>
-          </Link>
+        {list.slice(4).map((issue) => (
+          <TopicButton key={issue.id} issue={issue} />
         ))}
 
-        {(!issues || issues.length === 0) && (
+        {list.length === 0 && (
           <p className="text-center text-gray-400 text-sm mt-2">No topics yet.</p>
         )}
       </div>
