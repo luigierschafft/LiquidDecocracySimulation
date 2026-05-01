@@ -3,12 +3,19 @@
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
-import { Edit3, Check, X, Send, ChevronDown, ChevronRight, ImagePlus, Trash2 } from 'lucide-react'
+import { Edit3, Check, X, Send, ChevronDown, ChevronRight, ImagePlus, Trash2, Lightbulb } from 'lucide-react'
 import type { ExecutionSection, SectionProposal } from '@/lib/types/ev'
 import { ProposalDiff } from './ProposalDiff'
 
+interface Improvement {
+  id: string
+  text: string
+  created_at: string
+  author?: { display_name: string | null; email: string } | null
+}
+
 interface Props {
-  section: ExecutionSection
+  section: ExecutionSection & { improvements?: Improvement[] }
   isLead: boolean
   isMember: boolean
   userId: string | null
@@ -69,6 +76,23 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
   const fileRef = useRef<HTMLInputElement>(null)
 
   const pendingProposals = (section.proposals ?? []).filter((p) => p.status === 'pending')
+  const [improvements, setImprovements] = useState<Improvement[]>(section.improvements ?? [])
+  const [improvementText, setImprovementText] = useState('')
+  const [improvementLoading, setImprovementLoading] = useState(false)
+
+  async function submitImprovement() {
+    if (!userId || !improvementText.trim() || !section.id) return
+    setImprovementLoading(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('ev_section_improvements')
+      .insert({ section_id: section.id, author_id: userId, text: improvementText.trim() })
+      .select('*, author:member(display_name, email)')
+      .single()
+    if (data) setImprovements((prev) => [...prev, data])
+    setImprovementText('')
+    setImprovementLoading(false)
+  }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!userId || !section.id) return
@@ -254,6 +278,60 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                       )}
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Improvements — writable by team members */}
+          {(isMember || isLead) && section.id && (
+            <div className="pt-3 border-t border-gray-100 space-y-3">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                  Verbesserungsvorschläge
+                  {improvements.length > 0 && <span className="ml-1.5 font-normal text-gray-400">({improvements.length})</span>}
+                </p>
+              </div>
+
+              {improvements.length === 0 && (
+                <p className="text-xs text-gray-400 italic">Noch keine Vorschläge.</p>
+              )}
+
+              <div className="space-y-2">
+                {improvements.map((imp) => {
+                  const name = imp.author?.display_name || imp.author?.email || 'Anonym'
+                  return (
+                    <div key={imp.id} className="flex gap-2.5">
+                      <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 text-xs font-bold flex items-center justify-center shrink-0">
+                        {name[0]?.toUpperCase()}
+                      </div>
+                      <div className="flex-1 bg-amber-50 rounded-lg px-3 py-2">
+                        <p className="text-xs font-medium text-gray-700 mb-0.5">{name}</p>
+                        <p className="text-sm text-gray-800">{imp.text}</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {userId && (
+                <div className="flex gap-2">
+                  <textarea
+                    value={improvementText}
+                    onChange={(e) => setImprovementText(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitImprovement() }}
+                    placeholder="Verbesserungsidee schreiben…"
+                    rows={2}
+                    className="flex-1 border border-amber-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-amber-400 bg-amber-50/50"
+                  />
+                  <button
+                    onClick={submitImprovement}
+                    disabled={improvementLoading || !improvementText.trim()}
+                    className="self-end bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <Send className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </div>

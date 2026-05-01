@@ -58,20 +58,23 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     .eq('plan_id', plan.id)
     .order('sort_order', { ascending: true })
 
-  // Fetch proposals separately
+  // Fetch proposals + improvements separately
   const sectionIds = (dbSections ?? []).map((s: any) => s.id)
-  const { data: proposals } = sectionIds.length > 0
-    ? await supabase
-        .from('ev_section_proposals')
-        .select('*, author:member(display_name, email)')
-        .in('section_id', sectionIds)
-    : { data: [] }
+  const [{ data: proposals }, { data: improvements }] = await Promise.all([
+    sectionIds.length > 0
+      ? supabase.from('ev_section_proposals').select('*, author:member(display_name, email)').in('section_id', sectionIds)
+      : Promise.resolve({ data: [] }),
+    sectionIds.length > 0
+      ? supabase.from('ev_section_improvements').select('*, author:member(display_name, email)').in('section_id', sectionIds).order('created_at', { ascending: true })
+      : Promise.resolve({ data: [] }),
+  ])
 
-  // Merge proposals into sections; fallback to template if DB empty
+  // Merge into sections; fallback to template if DB empty
   const finalSections = (dbSections && dbSections.length > 0)
     ? dbSections.map((s: any) => ({
         ...s,
         proposals: (proposals ?? []).filter((p: any) => p.section_id === s.id),
+        improvements: (improvements ?? []).filter((i: any) => i.section_id === s.id),
       }))
     : SECTION_TEMPLATE.map((tmpl) => ({
         id: null,
@@ -81,6 +84,7 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
         content: '',
         sort_order: tmpl.sort_order,
         proposals: [],
+        improvements: [],
       }))
 
   const team = plan.team ?? []
