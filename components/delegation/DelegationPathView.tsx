@@ -24,6 +24,9 @@ interface Props {
   currentUserId: string
 }
 
+// A single step in a chain: the person + which delegation scope got them here
+type ChainStep = { member: Member; scope: string }
+
 function Initial({ member }: { member: Member | null }) {
   const name = getMemberDisplayName(member)
   return (
@@ -39,12 +42,26 @@ function scopeLabel(d: DelegationRow): string {
   return 'Global'
 }
 
-// Build transitive chain from startId: returns arrays of members in each chain path
+function ScopeBadge({ label }: { label: string }) {
+  const isArea = label.startsWith('Area')
+  const isTopic = label.startsWith('Topic')
+  return (
+    <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+      isTopic ? 'bg-purple-100 text-purple-700' :
+      isArea  ? 'bg-blue-100 text-blue-700' :
+                'bg-sand text-foreground/50'
+    }`}>
+      {label}
+    </span>
+  )
+}
+
+// Build transitive chains, carrying scope info per link
 function buildChain(
   startId: string,
   delegations: DelegationRow[],
   visited = new Set<string>()
-): Member[][] {
+): ChainStep[][] {
   if (visited.has(startId)) return []
   const next = new Set(visited)
   next.add(startId)
@@ -52,15 +69,16 @@ function buildChain(
   const outgoing = delegations.filter((d) => d.from_member_id === startId)
   if (outgoing.length === 0) return []
 
-  const chains: Member[][] = []
+  const chains: ChainStep[][] = []
   for (const d of outgoing) {
     if (!d.to_member) continue
+    const step: ChainStep = { member: d.to_member, scope: scopeLabel(d) }
     const sub = buildChain(d.to_member_id, delegations, next)
     if (sub.length === 0) {
-      chains.push([d.to_member])
+      chains.push([step])
     } else {
       for (const s of sub) {
-        chains.push([d.to_member, ...s])
+        chains.push([step, ...s])
       }
     }
   }
@@ -75,7 +93,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
   return (
     <div className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
-        {/* Outgoing: who I delegate to */}
+        {/* Outgoing */}
         <div className="card space-y-3">
           <h3 className="font-semibold text-sm flex items-center gap-2">
             <ArrowUp className="w-4 h-4 text-accent" />
@@ -90,7 +108,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
                   <Initial member={d.to_member} />
                   <div>
                     <p className="text-sm font-medium">{getMemberDisplayName(d.to_member)}</p>
-                    <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
+                    <ScopeBadge label={scopeLabel(d)} />
                   </div>
                 </div>
               ))}
@@ -98,7 +116,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
           )}
         </div>
 
-        {/* Incoming: who delegates to me */}
+        {/* Incoming */}
         <div className="card space-y-3">
           <h3 className="font-semibold text-sm flex items-center gap-2">
             <ArrowDown className="w-4 h-4 text-auro-green" />
@@ -119,7 +137,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
                   <Initial member={d.from_member} />
                   <div>
                     <p className="text-sm font-medium">{getMemberDisplayName(d.from_member)}</p>
-                    <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
+                    <ScopeBadge label={scopeLabel(d)} />
                   </div>
                 </div>
               ))}
@@ -128,23 +146,26 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
         </div>
       </div>
 
-      {/* Delegation chain — transitive */}
+      {/* Delegation chain — transitive with scope per link */}
       {chains.length > 0 && (
         <div className="card space-y-3">
           <h3 className="font-semibold text-sm flex items-center gap-2">
             <ArrowRight className="w-4 h-4 text-accent" />
             Delegation chain
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {chains.map((chain, i) => (
               <div key={i} className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-medium">You</span>
-                {chain.map((member, j) => (
-                  <span key={j} className="flex items-center gap-2">
-                    <ArrowRight className="w-3 h-3 text-foreground/30 flex-shrink-0" />
+                {chain.map((step, j) => (
+                  <span key={j} className="flex items-center gap-1.5">
+                    <span className="flex flex-col items-center gap-0.5">
+                      <ArrowRight className="w-3 h-3 text-foreground/30" />
+                      <ScopeBadge label={step.scope} />
+                    </span>
                     <span className="flex items-center gap-1.5">
-                      <Initial member={member} />
-                      <span className="text-sm font-medium">{getMemberDisplayName(member)}</span>
+                      <Initial member={step.member} />
+                      <span className="text-sm font-medium">{getMemberDisplayName(step.member)}</span>
                     </span>
                   </span>
                 ))}

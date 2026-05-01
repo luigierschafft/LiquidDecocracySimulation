@@ -20,6 +20,7 @@ export function NewProposalForm() {
 
   async function handleSubmit(e: React.FormEvent, asDraft = false) {
     e.preventDefault()
+    if (!form.areaId) { setError('Please select an area.'); return }
     setLoading(true)
     setError(null)
 
@@ -31,7 +32,7 @@ export function NewProposalForm() {
       .insert({
         title: form.title,
         author_id: user.id,
-        area_id: form.areaId || null,
+        area_id: form.areaId,
         status: asDraft ? 'draft' : 'admission',
       })
       .select()
@@ -68,8 +69,9 @@ export function NewProposalForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1.5">Area (optional)</label>
+          <label className="block text-sm font-medium mb-1.5">Area *</label>
           <select
+            required
             value={form.areaId}
             onChange={(e) => setForm((f) => ({ ...f, areaId: e.target.value }))}
             className="input"
@@ -93,7 +95,7 @@ export function NewProposalForm() {
           >
             Save as Draft
           </button>
-          <Button type="submit" loading={loading}>
+          <Button type="submit" loading={loading} disabled={!form.title.trim() || !form.areaId}>
             Publish Topic
           </Button>
         </div>
