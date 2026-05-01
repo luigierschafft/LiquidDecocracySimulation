@@ -21,7 +21,7 @@ function formatInline(text: string): string {
 }
 
 function RenderedContent({ text }: { text: string }) {
-  if (!text) return <p className="text-sm text-gray-400 italic">Noch kein Inhalt. Klicke „Bearbeiten" um anzufangen.</p>
+  if (!text) return <p className="text-sm text-gray-400 italic">Noch kein Inhalt &mdash; klicke Bearbeiten um anzufangen.</p>
   return (
     <div className="prose prose-sm max-w-none text-gray-800">
       {text.split('\n').map((line, i) => {
@@ -242,7 +242,8 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                 <div className="grid grid-cols-2 gap-2">
                   {photos.map((url) => (
                     <div key={url} className="relative group rounded-lg overflow-hidden border border-gray-200">
-                      <img src={url} alt="" className="w-full h-32 object-cover" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="section photo" className="w-full h-32 object-cover" />
                       {(isLead || isMember) && userId && (
                         <button
                           onClick={() => handlePhotoDelete(url)}
