@@ -1,0 +1,2 @@
+ALTER TABLE public.ev_argument_ratings
+  ADD COLUMN IF NOT EXISTS is_proxy BOOLEAN NOT NULL DEFAULT FALSE;

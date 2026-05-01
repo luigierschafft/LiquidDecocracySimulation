@@ -66,7 +66,7 @@ export async function applyProxyVotes(opts: {
   idValue: string
   userField: string
   voteField: string
-  voteValue: string
+  voteValue: string | number
 }) {
   const { supabase, voterId, issueId, areaId, tableName, idField, idValue, userField, voteField, voteValue } = opts
 

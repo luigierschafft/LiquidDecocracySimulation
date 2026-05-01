@@ -35,19 +35,21 @@ function MiniScale({ nodeId, userId }: { nodeId: string; userId: string | null }
   }, [nodeId, userId, initialized])
 
   async function handleClick(val: number) {
-    if (loading) return
+    if (loading || !userId) return
     const next = val === selected ? null : val
     setSelected(next)
-    if (!userId) return
     setLoading(true)
-    const supabase = createClient()
     if (next === null) {
+      // Toggle off — clear rating directly (no delegation needed for removal)
+      const supabase = createClient()
       await supabase.from('ev_argument_ratings').delete().eq('node_id', nodeId).eq('user_id', userId)
     } else {
-      await supabase.from('ev_argument_ratings').upsert(
-        { node_id: nodeId, user_id: userId, rating: next },
-        { onConflict: 'node_id,user_id' }
-      )
+      // Apply rating with liquid democracy proxy propagation
+      await fetch('/api/vote/argument', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ node_id: nodeId, rating: next }),
+      })
     }
     setLoading(false)
   }

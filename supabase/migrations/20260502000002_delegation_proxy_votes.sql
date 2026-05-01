@@ -10,3 +10,6 @@ ALTER TABLE public.ev_statement_ratings
 
 ALTER TABLE public.ev_proposal_votes
   ADD COLUMN IF NOT EXISTS is_proxy BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE public.ev_argument_ratings
+  ADD COLUMN IF NOT EXISTS is_proxy BOOLEAN NOT NULL DEFAULT FALSE;
