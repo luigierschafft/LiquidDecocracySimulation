@@ -160,6 +160,7 @@ export interface ExecutionSection {
   sort_order: number
   updated_at: string
   updated_by: string | null
+  photos?: string | null
   updater?: { display_name: string | null; email: string } | null
   proposals?: SectionProposal[]
 }
