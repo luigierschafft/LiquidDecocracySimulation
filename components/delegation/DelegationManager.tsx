@@ -79,15 +79,15 @@ export function DelegationManager({ userId, delegations: initial, members, areas
       {/* Active delegations */}
       <div className="card space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold">Aktive Delegationen</h2>
+          <h2 className="font-semibold">Active Delegations</h2>
           <Button size="sm" onClick={() => setShowForm(!showForm)}>
             <Plus className="w-4 h-4 mr-1" />
-            Hinzufügen
+            Add
           </Button>
         </div>
 
         {delegations.length === 0 ? (
-          <p className="text-sm text-foreground/40">Keine Delegationen. Du stimmst direkt über alle Themen ab.</p>
+          <p className="text-sm text-foreground/40">No delegations yet. You vote directly on all topics.</p>
         ) : (
           <div className="divide-y divide-sand">
             {delegations.map((d: any) => {
@@ -117,17 +117,17 @@ export function DelegationManager({ userId, delegations: initial, members, areas
       {/* Add form */}
       {showForm && (
         <form onSubmit={addDelegation} className="card space-y-4">
-          <h3 className="font-semibold">Neue Delegation</h3>
+          <h3 className="font-semibold">New Delegation</h3>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Delegieren an</label>
+            <label className="block text-sm font-medium mb-1.5">Delegate to</label>
             <select
               required
               value={form.toMemberId}
               onChange={(e) => setForm((f) => ({ ...f, toMemberId: e.target.value }))}
               className="input"
             >
-              <option value="">Mitglied auswählen…</option>
+              <option value="">Select member…</option>
               {members.map((m) => (
                 <option key={m.id} value={m.id}>{getMemberDisplayName(m)}</option>
               ))}
@@ -135,7 +135,7 @@ export function DelegationManager({ userId, delegations: initial, members, areas
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1.5">Bereich</label>
+            <label className="block text-sm font-medium mb-1.5">Scope</label>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -173,7 +173,7 @@ export function DelegationManager({ userId, delegations: initial, members, areas
                 onChange={(e) => setForm((f) => ({ ...f, issueId: e.target.value }))}
                 className="input"
               >
-                <option value="">Topic auswählen…</option>
+                <option value="">Select topic…</option>
                 {issues.map((issue) => (
                   <option key={issue.id} value={issue.id}>{issue.title}</option>
                 ))}
@@ -190,7 +190,7 @@ export function DelegationManager({ userId, delegations: initial, members, areas
                 onChange={(e) => setForm((f) => ({ ...f, areaId: e.target.value }))}
                 className="input"
               >
-                <option value="">Area auswählen…</option>
+                <option value="">Select area…</option>
                 {areas.map((a: any) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
@@ -199,19 +199,19 @@ export function DelegationManager({ userId, delegations: initial, members, areas
           )}
 
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>Abbrechen</Button>
-            <Button type="submit" loading={loading}>Delegation speichern</Button>
+            <Button type="button" variant="secondary" onClick={() => setShowForm(false)}>Cancel</Button>
+            <Button type="submit" loading={loading}>Save Delegation</Button>
           </div>
         </form>
       )}
 
       <div className="card bg-sand/30 text-sm text-foreground/60 space-y-1">
-        <p className="font-medium text-foreground/70">So funktioniert Delegation:</p>
+        <p className="font-medium text-foreground/70">How delegation works:</p>
         <ul className="space-y-0.5 list-disc list-inside">
-          <li>Wähle ein Topic oder eine Area und eine Person der du vertraust</li>
-          <li>Wenn dein Delegierter abstimmt, zählt seine Stimme auch für dich</li>
-          <li>Direkt abstimmen überschreibt immer deine Delegation</li>
-          <li>Delegationsketten werden automatisch aufgelöst</li>
+          <li>Choose a topic or area and a person you trust</li>
+          <li>When your delegate votes, their vote also counts for you</li>
+          <li>Voting directly always overrides your delegation</li>
+          <li>Delegation chains are resolved automatically</li>
         </ul>
       </div>
     </div>
