@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/browser'
 import type { VoteValue } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { ThumbsUp, ThumbsDown, Minus, XCircle } from 'lucide-react'
@@ -48,21 +47,19 @@ export function VoteButton({ initiativeId, currentVote, onVote, strongNoEnabled 
   const options = strongNoEnabled ? baseOptions : baseOptions.filter((o) => o.value !== 'strong_no')
   const [selected, setSelected] = useState<VoteValue | null>(currentVote)
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
   async function handleVote(value: VoteValue) {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
+    const res = await fetch('/api/vote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initiative_id: initiativeId, value }),
+    })
+    if (res.status === 401) {
       window.location.href = '/auth/login'
       return
     }
-
-    const { error } = await supabase
-      .from('vote')
-      .upsert({ initiative_id: initiativeId, member_id: user.id, value }, { onConflict: 'initiative_id,member_id' })
-
-    if (!error) {
+    if (res.ok) {
       setSelected(value)
       onVote?.(value)
     }

@@ -7,7 +7,6 @@ interface Member {
   id: string
   display_name: string | null
   email: string
-  avatar_url?: string | null
 }
 
 interface DelegationRow {
@@ -24,19 +23,6 @@ interface Props {
   currentUserId: string | null
 }
 
-function Avatar({ member, size = 5 }: { member: Member | null; size?: number }) {
-  const name = getMemberDisplayName(member)
-  if (member?.avatar_url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={member.avatar_url} alt={name} className={`w-${size} h-${size} rounded-full object-cover flex-shrink-0`} />
-  }
-  return (
-    <div className={`w-${size} h-${size} rounded-full bg-accent/15 text-accent flex items-center justify-center text-[10px] font-bold flex-shrink-0`}>
-      {name[0]?.toUpperCase()}
-    </div>
-  )
-}
-
 function scopeLabel(d: DelegationRow): string {
   if (d.issue) return `Topic: ${d.issue.title}`
   if (d.area) return `Area: ${d.area.name}`
@@ -46,12 +32,14 @@ function scopeLabel(d: DelegationRow): string {
 function MemberBadge({ member, highlight }: { member: Member | null; highlight: boolean }) {
   const name = getMemberDisplayName(member)
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium border ${
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
       highlight
         ? 'bg-accent/10 border-accent/30 text-accent'
         : 'bg-sand border-sand text-foreground/70'
     }`}>
-      <Avatar member={member} size={4} />
+      <span className="w-4 h-4 rounded-full bg-current/20 flex items-center justify-center text-[10px] font-bold">
+        {name[0]?.toUpperCase()}
+      </span>
       {name}
     </span>
   )
@@ -67,7 +55,6 @@ export function DelegationNetwork({ delegations, currentUserId }: Props) {
     )
   }
 
-  // Group by to_member + scope label so same-target same-scope delegations are merged
   type Entry = { to: Member | null; froms: Member[]; scope: string }
   const toMap = new Map<string, Entry>()
 

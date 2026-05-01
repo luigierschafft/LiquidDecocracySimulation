@@ -11,6 +11,7 @@ interface Props {
   avgRating: number | null
   ratings: any[]
   onRatingChange: (rating: number | null, newAvg: number | null) => void
+  onVoteChange?: (vote: 'agree' | 'pass' | 'disagree' | null) => void
 }
 
 function interpolateColor(t: number): string {
@@ -21,23 +22,34 @@ function interpolateColor(t: number): string {
   return `rgb(${r},${g},${b})`
 }
 
-export function StatementRating({ statementId, userId, currentRating, currentVote, avgRating, ratings, onRatingChange }: Props) {
+export function StatementRating({ statementId, userId, currentRating, currentVote, avgRating, ratings, onRatingChange, onVoteChange }: Props) {
   const [selectedRating, setSelectedRating] = useState<number | null>(currentRating)
   const [selectedVote, setSelectedVote] = useState<'agree' | 'pass' | 'disagree' | null>(currentVote)
   const [loadingRating, setLoadingRating] = useState(false)
   const [loadingVote, setLoadingVote] = useState(false)
 
-  // ── Vote buttons (agree / pass / disagree) — independent from slider ─────
+  // ── Vote buttons (agree / pass / disagree) — with liquid democracy ───────
   async function handleVote(vote: 'agree' | 'pass' | 'disagree') {
     if (loadingVote) return
     const next = vote === selectedVote ? null : vote
     setLoadingVote(true)
-    const supabase = createClient()
-    await supabase.from('ev_statement_ratings').upsert(
-      { statement_id: statementId, user_id: userId, vote: next },
-      { onConflict: 'statement_id,user_id' }
-    )
+    if (next !== null) {
+      // Use API route so delegation proxy votes are applied
+      await fetch('/api/vote/statement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statement_id: statementId, vote: next }),
+      })
+    } else {
+      // Toggle off: clear this user's vote directly
+      const supabase = createClient()
+      await supabase.from('ev_statement_ratings')
+        .update({ vote: null })
+        .eq('statement_id', statementId)
+        .eq('user_id', userId)
+    }
     setSelectedVote(next)
+    onVoteChange?.(next)
     setLoadingVote(false)
   }
 

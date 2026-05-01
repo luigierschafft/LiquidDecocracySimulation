@@ -15,10 +15,11 @@ export default async function DelegationPage() {
   const modules = await getEffectiveModules(user.id)
   if (!modules.delegation) notFound()
 
-  const [{ data: delegations }, { data: members }, { data: areas }] = await Promise.all([
-    supabase.from('delegation').select('*, to_member:member!delegation_to_member_id_fkey(*), area(*), issue(title)').eq('from_member_id', user.id),
-    supabase.from('member').select('id, display_name, email').neq('id', user.id).eq('is_approved', true),
+  const [{ data: delegations }, { data: members }, { data: areas }, { data: issues }] = await Promise.all([
+    supabase.from('delegation').select('*, to_member:member!delegation_to_member_id_fkey(*), area(*), issue(id, title)').eq('from_member_id', user.id),
+    supabase.from('member').select('id, display_name, email, avatar_url').neq('id', user.id).eq('is_approved', true),
     supabase.from('area').select('*').order('name'),
+    supabase.from('issue').select('id, title').order('created_at', { ascending: false }),
   ])
 
   return (
@@ -44,6 +45,7 @@ export default async function DelegationPage() {
         delegations={delegations ?? []}
         members={members ?? []}
         areas={areas ?? []}
+        issues={issues ?? []}
       />
     </div>
   )

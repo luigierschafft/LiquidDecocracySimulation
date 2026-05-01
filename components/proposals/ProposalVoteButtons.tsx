@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
 import type { ProposalVote } from '@/lib/types/ev'
 
@@ -50,17 +49,11 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
   async function handleVote(value: VoteValue) {
     if (loading) return
     setLoading(true)
-    const supabase = createClient()
-
-    await supabase.from('ev_proposal_votes').upsert(
-      {
-        proposal_id: proposalId,
-        user_id: userId,
-        vote: value,
-      },
-      { onConflict: 'proposal_id,user_id' }
-    )
-
+    await fetch('/api/vote/proposal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposal_id: proposalId, vote: value }),
+    })
     setSelected(value)
     setLoading(false)
     router.refresh()

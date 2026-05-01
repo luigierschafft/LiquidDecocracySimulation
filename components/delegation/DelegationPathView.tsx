@@ -24,14 +24,10 @@ interface Props {
   currentUserId: string
 }
 
-function Avatar({ member, size = 8 }: { member: Member | null; size?: number }) {
+function Initial({ member }: { member: Member | null }) {
   const name = getMemberDisplayName(member)
-  if (member?.avatar_url) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={member.avatar_url} alt={name} className={`w-${size} h-${size} rounded-full object-cover flex-shrink-0`} />
-  }
   return (
-    <div className={`w-${size} h-${size} rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>
+    <div className="w-7 h-7 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-bold flex-shrink-0">
       {name[0]?.toUpperCase()}
     </div>
   )
@@ -91,7 +87,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
             <div className="space-y-2.5">
               {myOutgoing.map((d, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <Avatar member={d.to_member} />
+                  <Initial member={d.to_member} />
                   <div>
                     <p className="text-sm font-medium">{getMemberDisplayName(d.to_member)}</p>
                     <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
@@ -120,7 +116,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
             <div className="space-y-2.5">
               {myIncoming.map((d, i) => (
                 <div key={i} className="flex items-center gap-2.5">
-                  <Avatar member={d.from_member} />
+                  <Initial member={d.from_member} />
                   <div>
                     <p className="text-sm font-medium">{getMemberDisplayName(d.from_member)}</p>
                     <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
@@ -147,7 +143,7 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
                   <span key={j} className="flex items-center gap-2">
                     <ArrowRight className="w-3 h-3 text-foreground/30 flex-shrink-0" />
                     <span className="flex items-center gap-1.5">
-                      <Avatar member={member} size={6} />
+                      <Initial member={member} />
                       <span className="text-sm font-medium">{getMemberDisplayName(member)}</span>
                     </span>
                   </span>
