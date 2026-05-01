@@ -146,34 +146,50 @@ export function DelegationPathView({ delegations, currentUserId }: Props) {
         </div>
       </div>
 
-      {/* Delegation chain — transitive with scope per link */}
-      {chains.length > 0 && (
-        <div className="card space-y-3">
-          <h3 className="font-semibold text-sm flex items-center gap-2">
-            <ArrowRight className="w-4 h-4 text-accent" />
-            Delegation chain
-          </h3>
-          <div className="space-y-4">
-            {chains.map((chain, i) => (
-              <div key={i} className="flex items-center gap-2 flex-wrap">
-                <span className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-medium">You</span>
-                {chain.map((step, j) => (
-                  <span key={j} className="flex items-center gap-1.5">
-                    <span className="flex flex-col items-center gap-0.5">
-                      <ArrowRight className="w-3 h-3 text-foreground/30" />
-                      <ScopeBadge label={step.scope} />
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Initial member={step.member} />
-                      <span className="text-sm font-medium">{getMemberDisplayName(step.member)}</span>
-                    </span>
-                  </span>
-                ))}
+      {/* My Delegation Chain — grouped by first-hop scope */}
+      {chains.length > 0 && (() => {
+        // Group chains by the scope of the first delegation (from "You")
+        const groups = new Map<string, ChainStep[][]>()
+        for (const chain of chains) {
+          const key = chain[0]?.scope ?? 'Global'
+          if (!groups.has(key)) groups.set(key, [])
+          groups.get(key)!.push(chain)
+        }
+        return (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm flex items-center gap-2">
+              <ArrowRight className="w-4 h-4 text-accent" />
+              My Delegation Chain
+            </h3>
+            {Array.from(groups.entries()).map(([scopeKey, groupChains]) => (
+              <div key={scopeKey} className="card space-y-3">
+                <p className="text-xs font-semibold text-foreground/50 uppercase tracking-wide">
+                  {scopeKey}
+                </p>
+                <div className="space-y-3">
+                  {groupChains.map((chain, i) => (
+                    <div key={i} className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-medium">You</span>
+                      {chain.map((step, j) => (
+                        <span key={j} className="flex items-center gap-1.5">
+                          <span className="flex flex-col items-center gap-0.5">
+                            <ArrowRight className="w-3 h-3 text-foreground/30" />
+                            {j > 0 && <ScopeBadge label={step.scope} />}
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Initial member={step.member} />
+                            <span className="text-sm font-medium">{getMemberDisplayName(step.member)}</span>
+                          </span>
+                        </span>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
