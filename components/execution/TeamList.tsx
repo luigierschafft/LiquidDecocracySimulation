@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
 import type { ExecutionTeamMember } from '@/lib/types/ev'
-import { Users, UserPlus, Crown, Plus } from 'lucide-react'
+import { Users, UserPlus, Crown, Plus, Check, X } from 'lucide-react'
 
 interface Props {
   team: ExecutionTeamMember[]
@@ -37,6 +37,8 @@ export function TeamList({ team, planId, userId }: Props) {
   const isAlreadyMember = userId ? team.some((m) => m.user_id === userId) : false
   const isLead = userId ? team.some((m) => m.user_id === userId && m.is_lead) : false
   const hasLead = team.some((m) => m.is_lead)
+  const activeMembers = team.filter((m) => m.status === 'active')
+  const pendingRequests = team.filter((m) => m.status === 'interested')
 
   async function toggleLead(memberId: string, currentlyLead: boolean) {
     setTogglingLead(memberId)
@@ -67,12 +69,24 @@ export function TeamList({ team, planId, userId }: Props) {
       plan_id: planId,
       user_id: userId,
       role: roleText.trim() || null,
-      status: 'active',
+      status: asLead ? 'active' : 'interested',
       is_lead: asLead,
     })
     setJoining(false)
     setShowForm(false)
     setRoleText('')
+    router.refresh()
+  }
+
+  async function handleApprove(memberId: string) {
+    const supabase = createClient()
+    await supabase.from('ev_execution_team').update({ status: 'active' }).eq('id', memberId)
+    router.refresh()
+  }
+
+  async function handleRemove(memberId: string) {
+    const supabase = createClient()
+    await supabase.from('ev_execution_team').delete().eq('id', memberId)
     router.refresh()
   }
 
@@ -102,12 +116,12 @@ export function TeamList({ team, planId, userId }: Props) {
         <span className="text-xs text-gray-400">({team.length})</span>
       </div>
 
-      {team.length === 0 && (
+      {activeMembers.length === 0 && (
         <p className="text-xs text-gray-400">No team members yet. Be the first to join as Team Lead.</p>
       )}
 
       <div className="space-y-2">
-        {team.map((member) => {
+        {activeMembers.map((member) => {
           const name = member.member?.display_name || member.member?.email || member.user_id
           return (
             <div key={member.id} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-50 last:border-0">
@@ -121,29 +135,57 @@ export function TeamList({ team, planId, userId }: Props) {
                   {member.role && <p className="text-xs text-gray-400">{member.role}</p>}
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                {isLead && member.user_id !== userId && (
-                  <button
-                    onClick={() => toggleLead(member.id, member.is_lead)}
-                    disabled={togglingLead === member.id}
-                    className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
-                      member.is_lead
-                        ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                        : 'bg-gray-100 text-gray-500 hover:bg-amber-100 hover:text-amber-700'
-                    }`}
-                    title={member.is_lead ? 'Remove lead role' : 'Make team lead'}
-                  >
-                    {member.is_lead ? 'Remove Lead' : 'Make Lead'}
-                  </button>
-                )}
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${STATUS_STYLES[member.status]}`}>
-                  {STATUS_LABELS[member.status]}
-                </span>
-              </div>
+              {isLead && member.user_id !== userId && (
+                <button
+                  onClick={() => toggleLead(member.id, member.is_lead)}
+                  disabled={togglingLead === member.id}
+                  className={`text-xs px-2 py-0.5 rounded-full font-medium transition-colors ${
+                    member.is_lead
+                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      : 'bg-gray-100 text-gray-500 hover:bg-amber-100 hover:text-amber-700'
+                  }`}
+                >
+                  {member.is_lead ? 'Remove Lead' : 'Make Lead'}
+                </button>
+              )}
             </div>
           )
         })}
       </div>
+
+      {/* Pending requests — only visible to lead */}
+      {isLead && pendingRequests.length > 0 && (
+        <div className="pt-2 border-t border-gray-100 space-y-2">
+          <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Anfragen ({pendingRequests.length})</p>
+          {pendingRequests.map((member) => {
+            const name = member.member?.display_name || member.member?.email || member.user_id
+            return (
+              <div key={member.id} className="flex items-center justify-between gap-2 py-1">
+                <div>
+                  <p className="text-sm text-gray-800">{name}</p>
+                  {member.role && <p className="text-xs text-gray-400">{member.role}</p>}
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => handleApprove(member.id)}
+                    className="p-1.5 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                    title="Annehmen"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleRemove(member.id)}
+                    className="p-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                    title="Ablehnen"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Join team */}
       {userId && !isAlreadyMember && (
@@ -165,15 +207,16 @@ export function TeamList({ team, planId, userId }: Props) {
                     className="flex-1 flex items-center justify-center gap-1.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
                   >
                     <Crown className="w-3.5 h-3.5" />
-                    {joining ? 'Joining…' : 'Join as Lead'}
+                    {joining ? '…' : 'Als Lead beitreten'}
                   </button>
                 )}
                 <button
                   onClick={() => handleJoin(false)}
                   disabled={joining}
-                  className="flex-1 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-xs font-medium py-2 rounded-lg transition-colors"
                 >
-                  {joining ? 'Joining…' : 'Join as Member'}
+                  <UserPlus className="w-3.5 h-3.5" />
+                  {joining ? '…' : 'Anfrage senden'}
                 </button>
               </div>
               <button

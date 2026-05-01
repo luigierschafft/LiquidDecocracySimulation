@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 55: Truth Layer — flag potentially false claims
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const { content } = await request.json()
   if (!content?.trim()) return NextResponse.json({ error: 'content required' }, { status: 400 })
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 500,
     messages: [{
@@ -21,5 +21,5 @@ export async function POST(request: Request) {
     }],
   })
 
-  return NextResponse.json({ result: (message.content[0] as any).text ?? '' })
+  return NextResponse.json({ result: completion.choices[0]?.message?.content ?? '' })
 }

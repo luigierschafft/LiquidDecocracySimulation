@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 53: Perspective Switch — show alternative viewpoints
@@ -22,11 +22,11 @@ export async function POST(request: Request) {
     prompt = `Analyze this statement for potential cognitive biases or assumptions: "${content}"\n\nIdentify 2-3 possible biases (e.g. confirmation bias, availability heuristic, in-group favoritism) and briefly explain how they might be influencing this view. Be respectful and educational.`
   }
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 400,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  return NextResponse.json({ result: (message.content[0] as any).text ?? '' })
+  return NextResponse.json({ result: completion.choices[0]?.message?.content ?? '' })
 }

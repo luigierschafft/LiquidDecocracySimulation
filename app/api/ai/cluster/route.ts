@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 49: Opinion Clustering — group similar opinions by theme
@@ -40,11 +40,11 @@ export async function POST(request: Request) {
     prompt = `Group these community opinions into 3-5 thematic clusters. For each cluster, give it a short name and list the opinion numbers that belong to it.\n\nOpinions:\n${numbered}`
   }
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 500,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  return NextResponse.json({ result: (message.content[0] as any).text ?? '' })
+  return NextResponse.json({ result: completion.choices[0]?.message?.content ?? '' })
 }

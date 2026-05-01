@@ -1,8 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
+import Groq from 'groq-sdk'
 
-// Shared Anthropic client for all AI module API routes
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-})
+// Shared Groq client for all AI module API routes
+export const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 
-export const AI_MODEL = 'claude-haiku-4-5-20251001'
+export const AI_MODEL = 'llama-3.3-70b-versatile'

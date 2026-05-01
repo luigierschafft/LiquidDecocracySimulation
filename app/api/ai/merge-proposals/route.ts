@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 21: AI Proposal Merger — generate a merged proposal from two existing ones
@@ -39,13 +39,13 @@ Rules:
 - Keep concrete details (costs, timelines, affected areas) from both where possible
 - Do not add explanations outside the JSON`
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 1200,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  const raw = (message.content[0] as any).text ?? ''
+  const raw = completion.choices[0]?.message?.content ?? ''
 
   try {
     const json = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}')

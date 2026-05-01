@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 44: Argument Extraction — key points from discussion
@@ -46,11 +46,11 @@ export async function POST(request: Request) {
     prompt = `Analyze this community discussion and identify 3-5 important perspectives or considerations that are MISSING or underrepresented. Format as a numbered list with a brief explanation for each gap.\n\n${allText}`
   }
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 500,
     messages: [{ role: 'user', content: prompt }],
   })
 
-  return NextResponse.json({ result: (message.content[0] as any).text ?? '' })
+  return NextResponse.json({ result: completion.choices[0]?.message?.content ?? '' })
 }

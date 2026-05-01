@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 59: Guided Exploration — AI answers user questions about a topic
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const { issueTitle, question } = await request.json()
   if (!question?.trim()) return NextResponse.json({ error: 'question required' }, { status: 400 })
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 300,
     messages: [{
@@ -20,5 +20,5 @@ export async function POST(request: Request) {
     }],
   })
 
-  return NextResponse.json({ answer: (message.content[0] as any).text ?? '' })
+  return NextResponse.json({ answer: completion.choices[0]?.message?.content ?? '' })
 }

@@ -77,25 +77,29 @@ export function ExecutionComments({ planId, userId, comments: initial }: Props) 
           )
         })}
 
-        {userId && (
-          <div className="flex gap-2 pt-2 border-t border-gray-100">
-            <textarea
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit() }}
-              placeholder="Add a comment…"
-              rows={2}
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-            <button
-              onClick={submit}
-              disabled={loading || !text.trim()}
-              className="self-end bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm px-3 py-2 rounded-lg transition-colors"
-            >
-              <Send className="w-4 h-4" />
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2 pt-2 border-t border-gray-100">
+          {userId ? (
+            <>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submit() }}
+                placeholder="Kommentar schreiben… (Ctrl+Enter zum Senden)"
+                rows={2}
+                className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <button
+                onClick={submit}
+                disabled={loading || !text.trim()}
+                className="self-end bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm px-3 py-2 rounded-lg transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </>
+          ) : (
+            <p className="text-sm text-gray-400 italic">Bitte einloggen um einen Kommentar zu schreiben.</p>
+          )}
+        </div>
       </div>
     </div>
   )

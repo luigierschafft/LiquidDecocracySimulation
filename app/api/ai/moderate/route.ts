@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 48: AI Moderation — check content before posting
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const { content } = await request.json()
   if (!content?.trim()) return NextResponse.json({ error: 'content required' }, { status: 400 })
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 100,
     messages: [{
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   })
 
   try {
-    const text = (message.content[0] as any).text ?? '{}'
+    const text = completion.choices[0]?.message?.content ?? '{}'
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { approved: true }
     return NextResponse.json(result)

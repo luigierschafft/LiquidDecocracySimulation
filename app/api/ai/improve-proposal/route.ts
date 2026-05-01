@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 47: AI Proposal Improvement — suggest improvements to a proposition
@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const { title, content } = await request.json()
   if (!content?.trim()) return NextResponse.json({ error: 'content required' }, { status: 400 })
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 600,
     messages: [{
@@ -20,5 +20,5 @@ export async function POST(request: Request) {
     }],
   })
 
-  return NextResponse.json({ suggestions: (message.content[0] as any).text ?? '' })
+  return NextResponse.json({ suggestions: completion.choices[0]?.message?.content ?? '' })
 }

@@ -43,28 +43,45 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     )
   }
 
-  // Ensure sections exist (create from template if needed)
-  const { data: existingSections } = await supabase
-    .from('ev_execution_sections')
-    .select('id')
-    .eq('plan_id', plan.id)
-    .limit(1)
-
-  if (!existingSections || existingSections.length === 0) {
-    for (const tmpl of SECTION_TEMPLATE) {
-      await supabase.from('ev_execution_sections').upsert(
-        { plan_id: plan.id, key: tmpl.key, title: tmpl.title, content: '', sort_order: tmpl.sort_order },
-        { onConflict: 'plan_id,key' }
-      )
-    }
+  // Ensure all template sections exist in DB
+  for (const tmpl of SECTION_TEMPLATE) {
+    await supabase.from('ev_execution_sections').upsert(
+      { plan_id: plan.id, key: tmpl.key, title: tmpl.title, content: '', sort_order: tmpl.sort_order },
+      { onConflict: 'plan_id,key', ignoreDuplicates: true }
+    )
   }
 
-  // Fetch sections with pending proposals
-  const { data: finalSections } = await supabase
+  // Fetch sections (without proposal join to avoid FK resolution issues)
+  const { data: dbSections } = await supabase
     .from('ev_execution_sections')
-    .select('*, proposals:ev_section_proposals(*, author:member(display_name, email))')
+    .select('*')
     .eq('plan_id', plan.id)
     .order('sort_order', { ascending: true })
+
+  // Fetch proposals separately
+  const sectionIds = (dbSections ?? []).map((s: any) => s.id)
+  const { data: proposals } = sectionIds.length > 0
+    ? await supabase
+        .from('ev_section_proposals')
+        .select('*, author:member(display_name, email)')
+        .in('section_id', sectionIds)
+    : { data: [] }
+
+  // Merge proposals into sections; fallback to template if DB empty
+  const finalSections = (dbSections && dbSections.length > 0)
+    ? dbSections.map((s: any) => ({
+        ...s,
+        proposals: (proposals ?? []).filter((p: any) => p.section_id === s.id),
+      }))
+    : SECTION_TEMPLATE.map((tmpl) => ({
+        id: null,
+        plan_id: plan.id,
+        key: tmpl.key,
+        title: tmpl.title,
+        content: '',
+        sort_order: tmpl.sort_order,
+        proposals: [],
+      }))
 
   const team = plan.team ?? []
   const isLead = user ? team.some((m: any) => m.user_id === user.id && m.is_lead) : false
@@ -74,7 +91,7 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   )
 
-  const allSectionsEmpty = (finalSections ?? []).every((s: any) => !s.content)
+  const allSectionsEmpty = finalSections.every((s: any) => !s.content)
 
   return (
     <div className="space-y-8">
@@ -94,9 +111,9 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
           )}
         </div>
 
-        {(finalSections ?? []).map((section: any) => (
+        {finalSections.map((section: any) => (
           <SectionEditor
-            key={section.id}
+            key={section.id ?? section.key}
             section={section}
             isLead={isLead}
             isMember={isMember}

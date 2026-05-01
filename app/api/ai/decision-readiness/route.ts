@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 58: Decision Readiness — score how ready the community is to decide
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const argCount = argsResult.count ?? 0
   const initiativeCount = initResult.count ?? 0
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 250,
     messages: [{
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   })
 
   try {
-    const text = (message.content[0] as any).text ?? '{}'
+    const text = completion.choices[0]?.message?.content ?? '{}'
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     const result = jsonMatch ? JSON.parse(jsonMatch[0]) : { score: 50, assessment: 'Moderate discussion activity.', missing: 'More community input needed.' }
     return NextResponse.json(result)

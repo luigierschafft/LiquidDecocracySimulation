@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { anthropic, AI_MODEL } from '@/lib/ai/client'
+import { groq, AI_MODEL } from '@/lib/ai/client'
 import { createClient } from '@/lib/supabase/server'
 
 // Module 43: AI Summaries — summarize all opinions on a topic
@@ -27,7 +27,7 @@ export async function POST(request: Request) {
     .map((o, i) => `${i + 1}. [${o.intent ?? 'comment'}] ${o.content}`)
     .join('\n')
 
-  const message = await anthropic.messages.create({
+  const completion = await groq.chat.completions.create({
     model: AI_MODEL,
     max_tokens: 400,
     messages: [{
@@ -36,6 +36,6 @@ export async function POST(request: Request) {
     }],
   })
 
-  const summary = (message.content[0] as any).text ?? ''
+  const summary = completion.choices[0]?.message?.content ?? ''
   return NextResponse.json({ summary })
 }
