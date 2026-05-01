@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
-import { Edit3, Check, X, Send, ChevronDown, ChevronUp, ImagePlus, Trash2 } from 'lucide-react'
+import { Edit3, Check, X, Send, ChevronDown, ChevronRight, ImagePlus, Trash2 } from 'lucide-react'
 import type { ExecutionSection, SectionProposal } from '@/lib/types/ev'
 import { ProposalDiff } from './ProposalDiff'
 
@@ -21,7 +21,7 @@ function formatInline(text: string): string {
 }
 
 function RenderedContent({ text }: { text: string }) {
-  if (!text) return <p className="text-sm text-gray-400 italic">No content yet.</p>
+  if (!text) return <p className="text-sm text-gray-400 italic">Noch kein Inhalt. Klicke „Bearbeiten" um anzufangen.</p>
   return (
     <div className="prose prose-sm max-w-none text-gray-800">
       {text.split('\n').map((line, i) => {
@@ -41,9 +41,23 @@ function RenderedContent({ text }: { text: string }) {
   )
 }
 
+function PreviewText({ text }: { text: string }) {
+  if (!text) return <span className="text-gray-400 italic text-xs">Kein Inhalt — klicken zum Aufklappen</span>
+  // Strip markdown symbols for preview
+  const plain = text
+    .replace(/#{1,3} /g, '')
+    .replace(/\*\*(.+?)\*\*/g, '$1')
+    .replace(/\*(.+?)\*/g, '$1')
+    .replace(/- /g, '')
+    .replace(/\n+/g, ' ')
+    .trim()
+  const preview = plain.length > 120 ? plain.slice(0, 120) + '…' : plain
+  return <span className="text-xs text-gray-500 truncate">{preview}</span>
+}
+
 export function SectionEditor({ section, isLead, isMember, userId }: Props) {
   const router = useRouter()
-  const [collapsed, setCollapsed] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
   const [editText, setEditText] = useState(section.content)
   const [comment, setComment] = useState('')
@@ -53,6 +67,8 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
   })
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+
+  const pendingProposals = (section.proposals ?? []).filter((p) => p.status === 'pending')
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     if (!userId || !section.id) return
@@ -86,8 +102,6 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
     router.refresh()
   }
 
-  const pendingProposals = (section.proposals ?? []).filter((p) => p.status === 'pending')
-
   async function handleDirectSave() {
     if (!userId) return
     setSaving(true)
@@ -120,25 +134,31 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      {/* Header */}
+      {/* Header — always visible, click to expand/collapse */}
       <button
-        onClick={() => setCollapsed((v) => !v)}
-        className="w-full flex items-center justify-between px-5 py-3 hover:bg-gray-50 transition-colors"
+        onClick={() => { setExpanded((v) => !v); if (editing) setEditing(false) }}
+        className="w-full flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 transition-colors text-left"
       >
-        <h3 className="text-sm font-semibold text-gray-700">{section.title}</h3>
-        <div className="flex items-center gap-2">
-          {pendingProposals.length > 0 && (
-            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-              {pendingProposals.length} pending
-            </span>
-          )}
-          {collapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
-        </div>
+        {expanded
+          ? <ChevronDown className="w-4 h-4 text-purple-500 shrink-0" />
+          : <ChevronRight className="w-4 h-4 text-gray-400 shrink-0" />
+        }
+        <h3 className="text-sm font-semibold text-gray-700 shrink-0 w-40">{section.title}</h3>
+        {!expanded && (
+          <div className="flex-1 min-w-0 overflow-hidden">
+            <PreviewText text={section.content} />
+          </div>
+        )}
+        {pendingProposals.length > 0 && (
+          <span className="ml-auto shrink-0 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+            {pendingProposals.length} pending
+          </span>
+        )}
       </button>
 
-      {!collapsed && (
-        <div className="px-5 pb-5 space-y-4">
-          {/* Content or Editor */}
+      {/* Expanded content */}
+      {expanded && (
+        <div className="px-5 pb-5 pt-1 space-y-4 border-t border-gray-100">
           {editing ? (
             <div className="space-y-3">
               <textarea
@@ -146,14 +166,15 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                 onChange={(e) => setEditText(e.target.value)}
                 rows={12}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono resize-y focus:outline-none focus:ring-2 focus:ring-purple-500"
-                placeholder="Write content here. Markdown supported (# headings, **bold**, - lists)."
+                placeholder="Inhalt eingeben. Markdown wird unterstützt (# Überschrift, **fett**, - Liste)."
+                autoFocus
               />
               {!isLead && (
                 <input
                   type="text"
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
-                  placeholder="Reason for this change (optional)…"
+                  placeholder="Begründung für diese Änderung (optional)…"
                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
               )}
@@ -162,7 +183,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                   onClick={() => { setEditing(false); setEditText(section.content); setComment('') }}
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" /> Cancel
+                  <X className="w-3.5 h-3.5" /> Abbrechen
                 </button>
                 {isLead ? (
                   <button
@@ -170,7 +191,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                     disabled={saving || editText === section.content}
                     className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
                   >
-                    <Check className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save'}
+                    <Check className="w-3.5 h-3.5" /> {saving ? 'Speichern…' : 'Speichern'}
                   </button>
                 ) : (
                   <button
@@ -178,7 +199,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                     disabled={saving || editText === section.content}
                     className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 transition-colors"
                   >
-                    <Send className="w-3.5 h-3.5" /> {saving ? 'Sending…' : 'Suggest Edit'}
+                    <Send className="w-3.5 h-3.5" /> {saving ? '…' : 'Änderung vorschlagen'}
                   </button>
                 )}
               </div>
@@ -192,7 +213,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                   className="mt-3 flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  {isLead ? 'Edit' : 'Suggest Edit'}
+                  {isLead ? 'Bearbeiten' : 'Änderung vorschlagen'}
                 </button>
               )}
             </div>
@@ -202,7 +223,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
           {(photos.length > 0 || ((isLead || isMember) && userId && section.id)) && (
             <div className="pt-3 border-t border-gray-100 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Photos</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fotos</p>
                 {(isLead || isMember) && userId && section.id && (
                   <>
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
@@ -212,7 +233,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                       className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
                     >
                       <ImagePlus className="w-3.5 h-3.5" />
-                      {uploading ? 'Uploading…' : 'Add Photo'}
+                      {uploading ? 'Hochladen…' : 'Foto hinzufügen'}
                     </button>
                   </>
                 )}
@@ -240,7 +261,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
           {/* Pending proposals — visible to lead */}
           {isLead && pendingProposals.length > 0 && (
             <div className="space-y-3 pt-3 border-t border-gray-100">
-              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Pending Suggestions</p>
+              <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Ausstehende Vorschläge</p>
               {pendingProposals.map((p) => (
                 <ProposalDiff key={p.id} proposal={p} sectionContent={section.content} userId={userId} />
               ))}
