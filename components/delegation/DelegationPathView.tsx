@@ -1,18 +1,22 @@
 'use client'
 
-// Module 40: Network Views — personal upward/downward delegation chains
-import { ArrowDown, ArrowUp, Users } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUp, Users } from 'lucide-react'
 import { getMemberDisplayName } from '@/lib/utils'
 
-interface SimpleDelegate {
+interface Member {
   id: string
   display_name: string | null
   email: string
+  avatar_url?: string | null
 }
 
 interface DelegationRow {
-  from_member: SimpleDelegate | null
-  to_member: SimpleDelegate | null
+  from_member_id: string
+  to_member_id: string
+  from_member: Member | null
+  to_member: Member | null
+  area: { id: string; name: string } | null
+  issue: { id: string; title: string } | null
 }
 
 interface Props {
@@ -20,63 +24,139 @@ interface Props {
   currentUserId: string
 }
 
+function Avatar({ member, size = 8 }: { member: Member | null; size?: number }) {
+  const name = getMemberDisplayName(member)
+  if (member?.avatar_url) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={member.avatar_url} alt={name} className={`w-${size} h-${size} rounded-full object-cover flex-shrink-0`} />
+  }
+  return (
+    <div className={`w-${size} h-${size} rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-bold flex-shrink-0`}>
+      {name[0]?.toUpperCase()}
+    </div>
+  )
+}
+
+function scopeLabel(d: DelegationRow): string {
+  if (d.issue) return `Topic: ${d.issue.title}`
+  if (d.area) return `Area: ${d.area.name}`
+  return 'Global'
+}
+
+// Build transitive chain from startId: returns arrays of members in each chain path
+function buildChain(
+  startId: string,
+  delegations: DelegationRow[],
+  visited = new Set<string>()
+): Member[][] {
+  if (visited.has(startId)) return []
+  const next = new Set(visited)
+  next.add(startId)
+
+  const outgoing = delegations.filter((d) => d.from_member_id === startId)
+  if (outgoing.length === 0) return []
+
+  const chains: Member[][] = []
+  for (const d of outgoing) {
+    if (!d.to_member) continue
+    const sub = buildChain(d.to_member_id, delegations, next)
+    if (sub.length === 0) {
+      chains.push([d.to_member])
+    } else {
+      for (const s of sub) {
+        chains.push([d.to_member, ...s])
+      }
+    }
+  }
+  return chains
+}
+
 export function DelegationPathView({ delegations, currentUserId }: Props) {
-  // Who I delegate to (upward chain)
-  const myOutgoing = delegations.filter((d) => d.from_member?.id === currentUserId)
-  // Who delegates to me (downward — direct only)
-  const myIncoming = delegations.filter((d) => d.to_member?.id === currentUserId)
+  const myOutgoing = delegations.filter((d) => d.from_member_id === currentUserId)
+  const myIncoming = delegations.filter((d) => d.to_member_id === currentUserId)
+  const chains = buildChain(currentUserId, delegations)
 
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
-      {/* Outgoing: who I trust */}
-      <div className="card space-y-3">
-        <h3 className="font-semibold text-sm flex items-center gap-2">
-          <ArrowUp className="w-4 h-4 text-accent" />
-          I delegate to
-        </h3>
-        {myOutgoing.length === 0 ? (
-          <p className="text-xs text-foreground/40">You have no global delegation.</p>
-        ) : (
-          <div className="space-y-2">
-            {myOutgoing.map((d, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <span className="w-6 h-6 rounded-full bg-accent/15 text-accent flex items-center justify-center text-[11px] font-bold flex-shrink-0">
-                  {getMemberDisplayName(d.to_member)[0]?.toUpperCase()}
-                </span>
-                <span className="font-medium">{getMemberDisplayName(d.to_member)}</span>
-              </div>
-            ))}
-          </div>
-        )}
+    <div className="space-y-4">
+      <div className="grid sm:grid-cols-2 gap-4">
+        {/* Outgoing: who I delegate to */}
+        <div className="card space-y-3">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <ArrowUp className="w-4 h-4 text-accent" />
+            I delegate to
+          </h3>
+          {myOutgoing.length === 0 ? (
+            <p className="text-xs text-foreground/40">You have no delegations.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {myOutgoing.map((d, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <Avatar member={d.to_member} />
+                  <div>
+                    <p className="text-sm font-medium">{getMemberDisplayName(d.to_member)}</p>
+                    <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Incoming: who delegates to me */}
+        <div className="card space-y-3">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <ArrowDown className="w-4 h-4 text-auro-green" />
+            Who delegates to me
+            {myIncoming.length > 0 && (
+              <span className="ml-auto text-xs font-normal text-foreground/50 flex items-center gap-1">
+                <Users className="w-3 h-3" />
+                {myIncoming.length}
+              </span>
+            )}
+          </h3>
+          {myIncoming.length === 0 ? (
+            <p className="text-xs text-foreground/40">No one delegates to you.</p>
+          ) : (
+            <div className="space-y-2.5">
+              {myIncoming.map((d, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <Avatar member={d.from_member} />
+                  <div>
+                    <p className="text-sm font-medium">{getMemberDisplayName(d.from_member)}</p>
+                    <p className="text-xs text-foreground/40">{scopeLabel(d)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Incoming: who trusts me */}
-      <div className="card space-y-3">
-        <h3 className="font-semibold text-sm flex items-center gap-2">
-          <ArrowDown className="w-4 h-4 text-auro-green" />
-          Who delegates to me
-          {myIncoming.length > 0 && (
-            <span className="ml-auto text-xs font-normal text-foreground/50 flex items-center gap-1">
-              <Users className="w-3 h-3" />
-              {myIncoming.length}
-            </span>
-          )}
-        </h3>
-        {myIncoming.length === 0 ? (
-          <p className="text-xs text-foreground/40">No one delegates to you globally.</p>
-        ) : (
-          <div className="space-y-2">
-            {myIncoming.map((d, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <span className="w-6 h-6 rounded-full bg-auro-green/15 text-auro-green flex items-center justify-center text-[11px] font-bold flex-shrink-0">
-                  {getMemberDisplayName(d.from_member)[0]?.toUpperCase()}
-                </span>
-                <span className="font-medium">{getMemberDisplayName(d.from_member)}</span>
+      {/* Delegation chain — transitive */}
+      {chains.length > 0 && (
+        <div className="card space-y-3">
+          <h3 className="font-semibold text-sm flex items-center gap-2">
+            <ArrowRight className="w-4 h-4 text-accent" />
+            Delegation chain
+          </h3>
+          <div className="space-y-3">
+            {chains.map((chain, i) => (
+              <div key={i} className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs px-2 py-1 rounded-full bg-accent/10 text-accent font-medium">You</span>
+                {chain.map((member, j) => (
+                  <span key={j} className="flex items-center gap-2">
+                    <ArrowRight className="w-3 h-3 text-foreground/30 flex-shrink-0" />
+                    <span className="flex items-center gap-1.5">
+                      <Avatar member={member} size={6} />
+                      <span className="text-sm font-medium">{getMemberDisplayName(member)}</span>
+                    </span>
+                  </span>
+                ))}
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
