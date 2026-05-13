@@ -11,11 +11,18 @@ import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ExecutionPage({ params }: { params: { topicId: string } }) {
+export default async function ProposalPlanPage({ params }: { params: { topicId: string; proposalId: string } }) {
   const supabase = createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Fetch the proposal text to show context
+  const { data: proposal } = await supabase
+    .from('ev_topic_proposals')
+    .select('id, text')
+    .eq('id', params.proposalId)
+    .maybeSingle()
 
   const { data: plan } = await supabase
     .from('ev_execution_plans')
@@ -28,17 +35,25 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
       comments:ev_execution_comments(*, author:member(display_name, email))
     `
     )
-    .eq('issue_id', params.topicId)
+    .eq('proposal_id', params.proposalId)
     .maybeSingle()
 
   if (!plan) {
     return (
-      <div className="text-center py-16 text-gray-500">
-        <p className="text-lg font-medium">No execution workspace yet</p>
-        <p className="text-sm mt-2 mb-6">
-          Start a workspace to collaboratively build a project plan with your team.
-        </p>
-        {user && <CreateWorkspaceButton topicId={params.topicId} />}
+      <div className="space-y-6">
+        {proposal && (
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Proposal</p>
+            <p className="text-sm text-gray-800 leading-relaxed">{proposal.text}</p>
+          </div>
+        )}
+        <div className="text-center py-12 text-gray-500">
+          <p className="text-lg font-medium">No project plan yet</p>
+          <p className="text-sm mt-2 mb-6">
+            Start a workspace to collaboratively build a project plan for this proposal.
+          </p>
+          {user && <CreateWorkspaceButton topicId={params.topicId} proposalId={params.proposalId} />}
+        </div>
       </div>
     )
   }
@@ -51,14 +66,12 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
     )
   }
 
-  // Fetch sections (without proposal join to avoid FK resolution issues)
   const { data: dbSections } = await supabase
     .from('ev_execution_sections')
     .select('*')
     .eq('plan_id', plan.id)
     .order('sort_order', { ascending: true })
 
-  // Fetch proposals + improvements separately
   const sectionIds = (dbSections ?? []).map((s: any) => s.id)
   const [{ data: proposals }, { data: improvements }] = await Promise.all([
     sectionIds.length > 0
@@ -69,7 +82,6 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
       : Promise.resolve({ data: [] }),
   ])
 
-  // Merge into sections; fallback to template if DB empty
   const finalSections = (dbSections && dbSections.length > 0)
     ? dbSections.map((s: any) => ({
         ...s,
@@ -99,6 +111,13 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
 
   return (
     <div className="space-y-8">
+      {proposal && (
+        <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+          <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold mb-1">Proposal</p>
+          <p className="text-sm text-gray-800 leading-relaxed">{proposal.text}</p>
+        </div>
+      )}
+
       <ProjectHeader plan={plan} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -106,7 +125,6 @@ export default async function ExecutionPage({ params }: { params: { topicId: str
         <MilestoneTimeline milestones={plan.milestones ?? []} planId={plan.id} userId={user?.id ?? null} />
       </div>
 
-      {/* Project Plan Sections */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-semibold text-gray-700">Project Plan</h2>

@@ -39,6 +39,7 @@ export default async function ProposalsPage({ params }: { params: { topicId: str
             proposal={proposal}
             userId={user?.id ?? null}
             nextProposal={(proposals ?? [])[index + 1] ?? null}
+            topicId={params.topicId}
           />
         ))}
       </div>

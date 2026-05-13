@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
@@ -37,6 +38,14 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
     <div className="space-y-6">
       {user && <AddStatementForm topicId={params.topicId} />}
       <StatementList statements={statementsWithAvg} userId={user?.id ?? null} topicId={params.topicId} />
+      <div className="pt-4 flex flex-col items-center gap-3">
+        <Link href={`/topics/${params.topicId}/proposals`} className="btn-primary inline-flex items-center justify-center px-6 py-3 text-base">
+          Make a proposal on this topic
+        </Link>
+        <Link href={`/topics/${params.topicId}/analysis`} className="btn-secondary inline-flex items-center justify-center px-6 py-3 text-base">
+          See the analysis of this discussion
+        </Link>
+      </div>
     </div>
   )
 }

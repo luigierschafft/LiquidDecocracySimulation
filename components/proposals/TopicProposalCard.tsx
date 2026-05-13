@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import type { TopicProposal, ProposalVote, ProposalArgument } from '@/lib/types/ev'
 import { AiDiffPanel } from './AiDiffPanel'
 import { ProposalVoteButtons } from './ProposalVoteButtons'
@@ -31,9 +32,10 @@ interface Props {
   proposal: TopicProposal
   userId: string | null
   nextProposal: TopicProposal | null
+  topicId: string
 }
 
-export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
+export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: Props) {
   const router = useRouter()
   const votes: ProposalVote[] = proposal.votes ?? []
   const args: ProposalArgument[] = proposal.arguments ?? []
@@ -206,6 +208,15 @@ export function TopicProposalCard({ proposal, userId, nextProposal }: Props) {
           />
           <AiDiffPanel currentText={proposal.text} nextText={nextProposal?.text ?? null} />
         </div>
+      </div>
+
+      <div className="pt-2 border-t border-gray-100">
+        <Link
+          href={`/topics/${topicId}/plan/${proposal.id}`}
+          className="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm"
+        >
+          Write a project plan for this proposal
+        </Link>
       </div>
     </div>
   )

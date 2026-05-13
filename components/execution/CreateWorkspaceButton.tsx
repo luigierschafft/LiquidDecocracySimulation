@@ -7,9 +7,10 @@ import { Rocket } from 'lucide-react'
 
 interface Props {
   topicId: string
+  proposalId: string
 }
 
-export function CreateWorkspaceButton({ topicId }: Props) {
+export function CreateWorkspaceButton({ topicId, proposalId }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -22,7 +23,7 @@ export function CreateWorkspaceButton({ topicId }: Props) {
     // Create execution plan
     const { data: plan } = await supabase
       .from('ev_execution_plans')
-      .insert({ issue_id: topicId })
+      .insert({ issue_id: topicId, proposal_id: proposalId })
       .select('id')
       .single()
 

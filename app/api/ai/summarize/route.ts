@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     max_tokens: 400,
     messages: [{
       role: 'user',
-      content: `Summarize this community discussion in 3-5 bullet points. Be neutral and concise. Focus on the main themes and points of agreement/disagreement.\n\nDiscussion:\n${discussionText}`,
+      content: `Summarize this community discussion. Use plain text only — no asterisks, no markdown, no bold or italic formatting. Structure the output as short paragraphs with blank lines between them. Where helpful, use simple bullet lists with a dash (-) at the start of each item. Cover: the main topic, key opinions and ratings if mentioned, points of agreement and disagreement, and any open questions. Be neutral and concise.\n\nDiscussion:\n${discussionText}`,
     }],
   })
 
