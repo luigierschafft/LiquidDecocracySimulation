@@ -19,7 +19,6 @@ export function CouncilOfElders({ message }: Props) {
           <span className="text-2xl">🏛</span>
           <div>
             <p className="text-base font-semibold text-amber-900">Council of Elders</p>
-            <p className="text-xs text-amber-700/70 mt-0.5">Tap to read the community wisdom</p>
           </div>
         </div>
         {open
