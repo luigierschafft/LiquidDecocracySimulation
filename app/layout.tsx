@@ -3,6 +3,7 @@ import localFont from 'next/font/local'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { getEffectiveModules } from '@/lib/modules'
+import { MeditationProvider } from '@/components/meditation/MeditationProvider'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -33,7 +34,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           showNotifications={modules.notifications}
           showVotingCycles={modules.voting_cycles}
         />
-        <main className="min-h-screen">{children}</main>
+        <MeditationProvider
+          firstComment={modules.meditation_first_comment ?? false}
+          every15min={modules.meditation_every_15min ?? false}
+        >
+          <main className="min-h-screen">{children}</main>
+        </MeditationProvider>
       </body>
     </html>
   )

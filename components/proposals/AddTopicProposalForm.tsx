@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Plus } from 'lucide-react'
+import { useMeditation } from '@/components/meditation/MeditationProvider'
 
 interface Props {
   topicId: string
@@ -11,13 +12,12 @@ interface Props {
 
 export function AddTopicProposalForm({ topicId }: Props) {
   const router = useRouter()
+  const { requestWrite } = useMeditation()
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!text.trim()) return
+  async function doSubmit() {
     setLoading(true)
     setError(null)
 
@@ -47,6 +47,12 @@ export function AddTopicProposalForm({ topicId }: Props) {
     setText('')
     setLoading(false)
     router.refresh()
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!text.trim()) return
+    requestWrite(() => doSubmit())
   }
 
   return (

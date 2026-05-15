@@ -9,6 +9,7 @@ import { ProposedImprovements } from './ProposedImprovements'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
 import { Plus, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { useMeditation } from '@/components/meditation/MeditationProvider'
 
 type VoteValue = ProposalVote['vote']
 
@@ -37,6 +38,7 @@ interface Props {
 
 export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: Props) {
   const router = useRouter()
+  const { requestWrite } = useMeditation()
   const votes: ProposalVote[] = proposal.votes ?? []
   const args: ProposalArgument[] = proposal.arguments ?? []
 
@@ -55,8 +57,7 @@ export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: P
   const [argText, setArgText] = useState('')
   const [argLoading, setArgLoading] = useState(false)
 
-  async function handleAddArg() {
-    if (!argText.trim() || !userId || !addArgType) return
+  async function doAddArg() {
     setArgLoading(true)
     const supabase = createClient()
     await supabase.from('ev_proposal_arguments').insert({
@@ -69,6 +70,11 @@ export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: P
     setAddArgType(null)
     setArgLoading(false)
     router.refresh()
+  }
+
+  function handleAddArg() {
+    if (!argText.trim() || !userId || !addArgType) return
+    requestWrite(() => doAddArg())
   }
 
   return (
