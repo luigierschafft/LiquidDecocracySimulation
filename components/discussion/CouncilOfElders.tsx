@@ -30,7 +30,7 @@ export function CouncilOfElders({ message }: Props) {
       {open && (
         <div className="px-6 pb-6 border-t border-amber-200">
           <div className="mt-4 bg-white/70 rounded-xl px-5 py-4 border border-amber-100">
-            <p className="text-sm text-gray-700 leading-relaxed italic">"{message}"</p>
+            <p className="text-sm text-gray-700 leading-relaxed italic">&ldquo;{message}&rdquo;</p>
           </div>
           <p className="mt-3 text-xs text-amber-600/60 text-right">— The 12 Elders of Auroville</p>
         </div>
