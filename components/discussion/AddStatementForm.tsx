@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Plus, Link as LinkIcon } from 'lucide-react'
 import { useMeditation } from '@/components/meditation/MeditationProvider'
-import { CelebrationAnimation } from '@/components/ui/CelebrationAnimation'
+import { TurtleAnimation } from '@/components/ui/TurtleAnimation'
 
 interface ExistingStatement {
   id: string
@@ -142,7 +142,7 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }:
 
   return (
     <>
-      {showAnimation && <CelebrationAnimation size="medium" onComplete={() => setShowAnimation(false)} />}
+      {showAnimation && <TurtleAnimation onComplete={() => setShowAnimation(false)} />}
 
       {/* Duplicate Warning Modal */}
       {duplicateCheck?.isDuplicate && (

@@ -16,4 +16,7 @@ const ModulesContext = createContext<ModulesCtx>({
 })
 
 export function useModules() { return useContext(ModulesContext) }
-export { ModulesContext }
+
+export function ModulesProvider({ children, value }: { children: React.ReactNode; value: ModulesCtx }) {
+  return <ModulesContext.Provider value={value}>{children}</ModulesContext.Provider>
+}

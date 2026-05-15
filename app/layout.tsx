@@ -4,7 +4,7 @@ import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { getEffectiveModules } from '@/lib/modules'
 import { MeditationProvider } from '@/components/meditation/MeditationProvider'
-import { ModulesContext } from '@/components/ModulesContext'
+import { ModulesProvider } from '@/components/ModulesContext'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -35,7 +35,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           showNotifications={modules.notifications}
           showVotingCycles={modules.voting_cycles}
         />
-        <ModulesContext.Provider
+        <ModulesProvider
           value={{
             disapprove_reason: modules.disapprove_reason ?? false,
             strong_no_needs: modules.strong_no_needs ?? false,
@@ -49,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           >
             <main className="min-h-screen">{children}</main>
           </MeditationProvider>
-        </ModulesContext.Provider>
+        </ModulesProvider>
       </body>
     </html>
   )
