@@ -6,9 +6,10 @@ import type { TopicProposal, ProposalVote, ProposalArgument } from '@/lib/types/
 import { AiDiffPanel } from './AiDiffPanel'
 import { ProposalVoteButtons } from './ProposalVoteButtons'
 import { ProposedImprovements } from './ProposedImprovements'
+import { StoryModeModal } from './StoryModeModal'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
-import { Plus, ThumbsUp, ThumbsDown } from 'lucide-react'
+import { Plus, ThumbsUp, ThumbsDown, BookOpen } from 'lucide-react'
 import { useMeditation } from '@/components/meditation/MeditationProvider'
 
 type VoteValue = ProposalVote['vote']
@@ -54,6 +55,7 @@ export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: P
   const contraArgs = args.filter((a) => a.type === 'contra')
 
   const [addArgType, setAddArgType] = useState<'pro' | 'contra' | null>(null)
+  const [showStoryMode, setShowStoryMode] = useState(false)
   const [argText, setArgText] = useState('')
   const [argLoading, setArgLoading] = useState(false)
 
@@ -216,14 +218,28 @@ export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: P
         </div>
       </div>
 
-      <div className="pt-2 border-t border-gray-100">
+      <div className="pt-2 border-t border-gray-100 flex flex-wrap gap-2 items-center">
         <Link
           href={`/topics/${topicId}/plan/${proposal.id}`}
           className="btn-primary inline-flex items-center justify-center px-5 py-2.5 text-sm"
         >
           Write a project plan for this proposal
         </Link>
+        <button
+          onClick={() => setShowStoryMode(true)}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium rounded-lg border border-purple-200 text-purple-600 hover:bg-purple-50 transition-colors"
+        >
+          <BookOpen className="w-4 h-4" />
+          Story Mode
+        </button>
       </div>
+
+      {showStoryMode && (
+        <StoryModeModal
+          proposalText={proposal.text}
+          onClose={() => setShowStoryMode(false)}
+        />
+      )}
     </div>
   )
 }
