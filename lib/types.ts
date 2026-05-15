@@ -71,6 +71,8 @@ export interface Issue {
   voting_at: string | null
   closed_at: string | null
   created_at: string
+  duration?: string | null
+  closes_at?: string | null
   area?: Area
   policy?: Policy
   author?: Member

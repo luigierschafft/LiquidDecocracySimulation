@@ -12,7 +12,7 @@ export function NewProposalForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
-  const [form, setForm] = useState({ title: '', areaId: '' })
+  const [form, setForm] = useState({ title: '', areaId: '', duration: '3_months' })
 
   useEffect(() => {
     supabase.from('area').select('*').order('name').then(({ data }) => setAreas(data ?? []))
@@ -27,6 +27,12 @@ export function NewProposalForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/login'); return }
 
+    const closesAt =
+      form.duration === '1_week' ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+      : form.duration === '3_months' ? new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString()
+      : form.duration === '6_months' ? new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString()
+      : null
+
     const { data: issue, error: issueErr } = await supabase
       .from('issue')
       .insert({
@@ -34,6 +40,8 @@ export function NewProposalForm() {
         author_id: user.id,
         area_id: form.areaId,
         status: asDraft ? 'draft' : 'admission',
+        duration: form.duration,
+        closes_at: closesAt,
       })
       .select()
       .single()
@@ -79,6 +87,31 @@ export function NewProposalForm() {
             <option value="">Select area…</option>
             {areas.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-2">Discussion Duration</label>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { value: '1_week', label: '1 Week' },
+              { value: '3_months', label: '3 Months' },
+              { value: '6_months', label: '6 Months' },
+              { value: 'forever', label: 'Forever' },
+            ] as const).map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, duration: opt.value }))}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
+                  form.duration === opt.value
+                    ? 'bg-purple-600 text-white border-purple-600'
+                    : 'bg-white text-gray-600 border-gray-300 hover:border-purple-400 hover:text-purple-600'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}

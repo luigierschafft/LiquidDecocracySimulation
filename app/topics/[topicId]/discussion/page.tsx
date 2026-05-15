@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
+import { CouncilOfElders } from '@/components/discussion/CouncilOfElders'
 import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,18 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
 
   const modules = await getEffectiveModules(user?.id)
   const duplicateDetectionEnabled = modules.ai_duplicate_detection ?? false
+
+  // Fetch council message: topic-specific first, then global fallback
+  const { data: councilRows } = await supabase
+    .from('ev_council_message')
+    .select('message, issue_id')
+    .or(`issue_id.eq.${params.topicId},issue_id.is.null`)
+    .order('issue_id', { ascending: false }) // topic-specific first (not null before null)
+    .limit(2)
+
+  const councilMessage = councilRows?.find(r => r.issue_id === params.topicId)?.message
+    ?? councilRows?.find(r => r.issue_id === null)?.message
+    ?? 'Here a statement of 12 community-collected opinions from the 12 Elders is described as a joint statement.'
 
   const { data: statements } = await supabase
     .from('ev_statements')
@@ -50,6 +63,7 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
           See the analysis of this discussion
         </Link>
       </div>
+      <CouncilOfElders message={councilMessage} />
     </div>
   )
 }

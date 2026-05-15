@@ -55,6 +55,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
 
   const navLinks = [
     { href: '/topics', label: 'Topics', show: true },
+    { href: '/analytics', label: '📊 Analytics', show: true },
     { href: '/delegation', label: 'Delegation', show: showDelegation },
     { href: '/voting-cycles', label: 'Votes', show: false },
     { href: '/governance', label: 'Governance', show: false },

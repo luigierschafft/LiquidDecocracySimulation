@@ -31,9 +31,25 @@ interface Props {
   issue: Issue
   meta: TopicMeta | null
   topicId: string
+  proposalCount: number
+  planCount: number
 }
 
-export function TopicHeader({ issue, topicId }: Props) {
+function getTimelineInfo(issue: Issue) {
+  if (!issue.duration || issue.duration === 'forever' || !issue.closes_at) {
+    return { isForever: true, percentUsed: 0, daysRemaining: null }
+  }
+  const created = new Date(issue.created_at).getTime()
+  const closes = new Date(issue.closes_at).getTime()
+  const now = Date.now()
+  const total = closes - created
+  const elapsed = now - created
+  const percentUsed = Math.min(100, Math.max(0, (elapsed / total) * 100))
+  const daysRemaining = Math.max(0, Math.ceil((closes - now) / (1000 * 60 * 60 * 24)))
+  return { isForever: false, percentUsed, daysRemaining }
+}
+
+export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props) {
   const router = useRouter()
   const pathname = usePathname()
 
@@ -68,6 +84,31 @@ export function TopicHeader({ issue, topicId }: Props) {
             ))}
           </select>
         </div>
+        {(() => {
+          const { isForever, percentUsed, daysRemaining } = getTimelineInfo(issue)
+          return (
+            <div className="mt-3 space-y-1.5">
+              {isForever ? (
+                <p className="text-xs text-gray-400">Open forever</p>
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-purple-400 to-purple-600"
+                      style={{ width: `${percentUsed}%` }}
+                    />
+                  </div>
+                  <span className="text-xs text-gray-500 whitespace-nowrap">{daysRemaining} days left</span>
+                </div>
+              )}
+              <p className="text-xs text-gray-400">
+                <span className="text-purple-600 font-medium">{proposalCount}</span> Proposals
+                {' · '}
+                <span className="text-purple-600 font-medium">{planCount}</span> Plan Items
+              </p>
+            </div>
+          )
+        })()}
         <p className="mt-3 text-sm text-gray-500 leading-relaxed max-w-2xl">{current.description}</p>
       </div>
     </div>
