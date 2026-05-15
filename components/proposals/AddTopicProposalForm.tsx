@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Plus } from 'lucide-react'
 import { useMeditation } from '@/components/meditation/MeditationProvider'
+import { CelebrationAnimation } from '@/components/ui/CelebrationAnimation'
 
 interface Props {
   topicId: string
@@ -16,6 +17,7 @@ export function AddTopicProposalForm({ topicId }: Props) {
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showAnimation, setShowAnimation] = useState(false)
 
   async function doSubmit() {
     setLoading(true)
@@ -46,6 +48,7 @@ export function AddTopicProposalForm({ topicId }: Props) {
 
     setText('')
     setLoading(false)
+    setShowAnimation(true)
     router.refresh()
   }
 
@@ -56,6 +59,8 @@ export function AddTopicProposalForm({ topicId }: Props) {
   }
 
   return (
+    <>
+    {showAnimation && <CelebrationAnimation size="large" onComplete={() => setShowAnimation(false)} />}
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
       <h2 className="text-sm font-semibold text-gray-700 mb-3">Proposal einreichen</h2>
       <form onSubmit={handleSubmit} className="space-y-3">
@@ -77,5 +82,6 @@ export function AddTopicProposalForm({ topicId }: Props) {
         </button>
       </form>
     </div>
+    </>
   )
 }

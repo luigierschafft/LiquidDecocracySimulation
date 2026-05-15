@@ -79,7 +79,7 @@ export function StatementCard({ statement, userId }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
+    <div id={`statement-${statement.id}`} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
       <div
         className="cursor-pointer group"
         onClick={() => { setOpen((v) => !v); if (!open) setViewMode('split') }}

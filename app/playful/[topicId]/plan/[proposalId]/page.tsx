@@ -10,6 +10,7 @@ import { SectionEditor } from '@/components/execution/SectionEditor'
 import { GenerateDraftButton } from '@/components/execution/GenerateDraftButton'
 import { CreateWorkspaceButton } from '@/components/execution/CreateWorkspaceButton'
 import { SECTION_TEMPLATE } from '@/lib/execution/sections'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -105,13 +106,17 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
     .order('sort_order', { ascending: true })
 
   const sectionIds = (dbSections ?? []).map((s: any) => s.id)
-  const [{ data: sectionProposals }, { data: improvements }] = await Promise.all([
+  const [{ data: sectionProposals }, { data: improvements }, { data: sectionOwners }, modules] = await Promise.all([
     sectionIds.length > 0
       ? supabase.from('ev_section_proposals').select('*, author:member(display_name, email)').in('section_id', sectionIds)
       : Promise.resolve({ data: [] }),
     sectionIds.length > 0
       ? supabase.from('ev_section_improvements').select('*, author:member(display_name, email)').in('section_id', sectionIds).order('created_at', { ascending: true })
       : Promise.resolve({ data: [] }),
+    sectionIds.length > 0
+      ? supabase.from('ev_section_owners').select('section_id, user_id, member(display_name, email)').in('section_id', sectionIds)
+      : Promise.resolve({ data: [] }),
+    getEffectiveModules(user?.id ?? null),
   ])
 
   const finalSections = (dbSections && dbSections.length > 0)
@@ -119,6 +124,7 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
         ...s,
         proposals: (sectionProposals ?? []).filter((p: any) => p.section_id === s.id),
         improvements: (improvements ?? []).filter((i: any) => i.section_id === s.id),
+        owners: (sectionOwners ?? []).filter((o: any) => o.section_id === s.id),
       }))
     : SECTION_TEMPLATE.map((tmpl) => ({
         id: null,
@@ -129,6 +135,7 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
         sort_order: tmpl.sort_order,
         proposals: [],
         improvements: [],
+        owners: [],
       }))
 
   const team = plan.team ?? []
@@ -189,6 +196,8 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
               isLead={isLead}
               isMember={isMember}
               userId={user?.id ?? null}
+              owners={section.owners}
+              sectionOwnershipEnabled={modules.section_ownership ?? false}
             />
           ))}
         </div>

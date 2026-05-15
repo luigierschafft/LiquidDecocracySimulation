@@ -14,11 +14,18 @@ interface Improvement {
   author?: { display_name: string | null; email: string } | null
 }
 
+interface SectionOwner {
+  user_id: string
+  member?: { display_name: string | null; email: string } | null
+}
+
 interface Props {
   section: ExecutionSection & { improvements?: Improvement[] }
   isLead: boolean
   isMember: boolean
   userId: string | null
+  owners?: SectionOwner[]
+  sectionOwnershipEnabled?: boolean
 }
 
 function formatInline(text: string): string {
@@ -62,7 +69,7 @@ function PreviewText({ text }: { text: string }) {
   return <span className="text-xs text-gray-500 truncate">{preview}</span>
 }
 
-export function SectionEditor({ section, isLead, isMember, userId }: Props) {
+export function SectionEditor({ section, isLead, isMember, userId, owners: initialOwners, sectionOwnershipEnabled }: Props) {
   const router = useRouter()
   const [expanded, setExpanded] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -80,6 +87,11 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
   const [improvementText, setImprovementText] = useState('')
   const [improvementLoading, setImprovementLoading] = useState(false)
 
+  const [owners, setOwners] = useState<SectionOwner[]>(initialOwners ?? [])
+  const [claiming, setClaiming] = useState(false)
+  const isOwner = owners.some((o) => o.user_id === userId)
+  const effectiveIsLead = isLead || isOwner
+
   async function submitImprovement() {
     if (!userId || !improvementText.trim() || !section.id) return
     setImprovementLoading(true)
@@ -92,6 +104,27 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
     if (data) setImprovements((prev) => [...prev, data])
     setImprovementText('')
     setImprovementLoading(false)
+  }
+
+  async function handleClaimOwnership() {
+    if (!userId || !section.id || claiming) return
+    setClaiming(true)
+    if (isOwner) {
+      await fetch('/api/plan/claim-section', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section_id: section.id }),
+      })
+      setOwners((prev) => prev.filter((o) => o.user_id !== userId))
+    } else {
+      await fetch('/api/plan/claim-section', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section_id: section.id }),
+      })
+      setOwners((prev) => [...prev, { user_id: userId }])
+    }
+    setClaiming(false)
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -173,11 +206,34 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
             <PreviewText text={section.content} />
           </div>
         )}
-        {pendingProposals.length > 0 && (
-          <span className="ml-auto shrink-0 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-            {pendingProposals.length} pending
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-1.5 shrink-0">
+          {owners.length > 0 && (
+            <div className="flex items-center gap-0.5">
+              {owners.slice(0, 3).map((o) => {
+                const name = o.member?.display_name || o.member?.email || (o.user_id === userId ? 'Me' : '?')
+                return (
+                  <div
+                    key={o.user_id}
+                    title={name}
+                    className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center"
+                  >
+                    {name[0]?.toUpperCase()}
+                  </div>
+                )
+              })}
+              {owners.length > 3 && (
+                <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-500 text-xs font-bold flex items-center justify-center">
+                  +{owners.length - 3}
+                </div>
+              )}
+            </div>
+          )}
+          {pendingProposals.length > 0 && (
+            <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
+              {pendingProposals.length} pending
+            </span>
+          )}
+        </div>
       </button>
 
       {/* Expanded content */}
@@ -193,7 +249,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                 placeholder="Inhalt eingeben. Markdown wird unterstützt (# Überschrift, **fett**, - Liste)."
                 autoFocus
               />
-              {!isLead && (
+              {!effectiveIsLead && (
                 <input
                   type="text"
                   value={comment}
@@ -209,7 +265,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                 >
                   <X className="w-3.5 h-3.5" /> Abbrechen
                 </button>
-                {isLead ? (
+                {effectiveIsLead ? (
                   <button
                     onClick={handleDirectSave}
                     disabled={saving || editText === section.content}
@@ -231,24 +287,48 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
           ) : (
             <div>
               <RenderedContent text={section.content} />
-              {(isLead || isMember) && userId && (
+              {(effectiveIsLead || isMember) && userId && (
                 <button
                   onClick={() => { setEditing(true); setEditText(section.content) }}
                   className="mt-3 flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  {isLead ? 'Bearbeiten' : 'Änderung vorschlagen'}
+                  {effectiveIsLead ? 'Bearbeiten' : 'Änderung vorschlagen'}
                 </button>
+              )}
+              {sectionOwnershipEnabled && userId && section.id && (isMember || isLead) && (
+                <div className="mt-3">
+                  {isOwner ? (
+                    <div className="flex items-center gap-2 text-xs text-purple-700">
+                      <span className="font-medium">Du bist verantwortlich ✓</span>
+                      <button
+                        onClick={handleClaimOwnership}
+                        disabled={claiming}
+                        className="text-gray-400 hover:text-gray-600 underline disabled:opacity-50"
+                      >
+                        Zurückziehen
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleClaimOwnership}
+                      disabled={claiming}
+                      className="flex items-center gap-1.5 text-xs border border-purple-200 text-purple-600 px-3 py-1.5 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
+                    >
+                      🙋 {claiming ? '…' : "Ich kümmere mich darum"}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
           )}
 
           {/* Photo attachments */}
-          {(photos.length > 0 || ((isLead || isMember) && userId && section.id)) && (
+          {(photos.length > 0 || ((effectiveIsLead || isMember) && userId && section.id)) && (
             <div className="pt-3 border-t border-gray-100 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fotos</p>
-                {(isLead || isMember) && userId && section.id && (
+                {(effectiveIsLead || isMember) && userId && section.id && (
                   <>
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                     <button
@@ -268,7 +348,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
                     <div key={url} className="relative group rounded-lg overflow-hidden border border-gray-200">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={url} alt="section photo" className="w-full h-32 object-cover" />
-                      {(isLead || isMember) && userId && (
+                      {(effectiveIsLead || isMember) && userId && (
                         <button
                           onClick={() => handlePhotoDelete(url)}
                           className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -284,7 +364,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
           )}
 
           {/* Improvements — writable by team members */}
-          {(isMember || isLead) && section.id && (
+          {(isMember || effectiveIsLead) && section.id && (
             <div className="pt-3 border-t border-gray-100 space-y-3">
               <div className="flex items-center gap-2">
                 <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
@@ -338,7 +418,7 @@ export function SectionEditor({ section, isLead, isMember, userId }: Props) {
           )}
 
           {/* Pending proposals — visible to lead */}
-          {isLead && pendingProposals.length > 0 && (
+          {effectiveIsLead && pendingProposals.length > 0 && (
             <div className="space-y-3 pt-3 border-t border-gray-100">
               <p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Ausstehende Vorschläge</p>
               {pendingProposals.map((p) => (

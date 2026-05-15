@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -10,6 +11,9 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  const modules = await getEffectiveModules(user?.id)
+  const duplicateDetectionEnabled = modules.ai_duplicate_detection ?? false
 
   const { data: statements } = await supabase
     .from('ev_statements')
@@ -36,7 +40,7 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
 
   return (
     <div className="space-y-6">
-      {user && <AddStatementForm topicId={params.topicId} />}
+      {user && <AddStatementForm topicId={params.topicId} duplicateDetectionEnabled={duplicateDetectionEnabled} />}
       <StatementList statements={statementsWithAvg} userId={user?.id ?? null} topicId={params.topicId} />
       <div className="pt-4 flex flex-col items-center gap-3">
         <Link href={`/topics/${params.topicId}/proposals`} className="btn-primary inline-flex items-center justify-center px-6 py-3 text-base">
