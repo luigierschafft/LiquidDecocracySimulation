@@ -47,7 +47,7 @@ export default async function TransparencyPage() {
           <BarChart3 className="w-8 h-8 text-accent" />
           Transparency Dashboard
         </h1>
-        <p className="text-foreground/60 mt-1">Public statistics for the Flow Democracy community</p>
+        <p className="text-foreground/60 mt-1">Public statistics for the Autopoietic Agora community</p>
       </div>
 
       {/* Key stats */}

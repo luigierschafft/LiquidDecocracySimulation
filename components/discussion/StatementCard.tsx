@@ -79,11 +79,16 @@ export function StatementCard({ statement, userId }: Props) {
   }
 
   return (
-    <div
-      className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3 cursor-pointer"
-      onClick={() => { setOpen(true); setViewMode('split') }}
-    >
-      <p className="text-sm font-medium text-gray-900 leading-relaxed">{statement.text}</p>
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 space-y-3">
+      <div
+        className="cursor-pointer group"
+        onClick={() => { setOpen((v) => !v); if (!open) setViewMode('split') }}
+      >
+        <p className="text-sm font-medium text-gray-900 leading-relaxed group-hover:text-purple-700 transition-colors">{statement.text}</p>
+        <p className="text-xs text-gray-300 group-hover:text-purple-300 transition-colors mt-1">
+          {open ? 'Click to close discussion' : 'Click to open discussion'}
+        </p>
+      </div>
 
       {sourceLinks.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
@@ -122,9 +127,9 @@ export function StatementCard({ statement, userId }: Props) {
         </p>
       )}
 
-      <div className="pt-1 border-t border-gray-100 flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+      <div className="pt-1 border-t border-gray-100 flex items-center gap-2">
         <button
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => { setOpen((v) => !v); if (!open) setViewMode('split') }}
           className={`text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
             open
               ? 'bg-purple-600 text-white'

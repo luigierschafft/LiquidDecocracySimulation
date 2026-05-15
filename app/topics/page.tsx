@@ -70,7 +70,7 @@ export default async function TopicsPage({ searchParams }: Props) {
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Topics</h1>
+          <h1 className="text-3xl font-normal">Topics</h1>
           <p className="text-foreground/60 mt-1">Select a topic you want to discuss, learn, vote or work on</p>
         </div>
         {modules.proposal_creation && (

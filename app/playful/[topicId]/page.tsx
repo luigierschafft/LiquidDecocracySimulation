@@ -25,23 +25,24 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
 
-      <div className="w-full max-w-xs relative mb-4">
-        <h1 className="text-xl font-black text-gray-900 pr-16 leading-tight">{issue.title}</h1>
-        {!isNew && (
-          <span className="text-xs text-gray-400 font-medium">Demo topic</span>
-        )}
-      </div>
-
-      <div className="pointer-events-none mb-4">
+      {/* Mongoose — fixed bottom right */}
+      <div className="pointer-events-none fixed bottom-4 right-4 z-0">
         <Image
           src="/mongoose-ball.png"
           alt="Mongoose"
-          width={156}
-          height={156}
+          width={260}
+          height={260}
           placeholder="empty"
           style={{ background: 'transparent' }}
-          className="drop-shadow-lg"
+          className="drop-shadow-lg opacity-90"
         />
+      </div>
+
+      <div className="w-full max-w-xs relative mb-4">
+        <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>
+        {!isNew && (
+          <span className="text-xs text-gray-400 font-medium">Demo topic</span>
+        )}
       </div>
 
       <div className="w-full max-w-xs flex flex-col gap-4">
@@ -80,9 +81,16 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
         )}
 
         {/* Proposals — available for all */}
-        <Link href={`/topics/${issue.id}/proposals`} className="block">
+        <Link href={`/playful/${issue.id}/proposals`} className="block">
           <div className={btnClass}>
             Proposals
+          </div>
+        </Link>
+
+        {/* Plan — available for all */}
+        <Link href={`/playful/${issue.id}/plan`} className="block">
+          <div className={btnClass}>
+            Plans
           </div>
         </Link>
       </div>
@@ -93,8 +101,10 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
         </p>
       )}
 
-      <Link href="/playful/topics" className="mt-8 text-xs text-gray-400 underline">
-        ← Back to topics
+      <Link href="/playful/topics" className="block w-full max-w-xs mt-2">
+        <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-base font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
+          ← Back to topics
+        </div>
       </Link>
     </div>
   )

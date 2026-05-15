@@ -64,97 +64,36 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
   if (pathname.startsWith('/playful')) return null
 
   return (
-    <nav className="border-b border-sand bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link href="/" className="font-semibold text-accent text-lg tracking-tight shrink-0">
-          Flow Democracy
-          <span className="text-foreground/50 font-normal text-sm ml-2 hidden sm:inline">Auroville</span>
-        </Link>
+    <div className="fixed top-4 right-4 z-50">
+      <div className="relative">
+        <button
+          onClick={() => setMenuOpen((v) => !v)}
+          className="p-2.5 rounded-xl bg-white/90 backdrop-blur-sm border border-sand shadow-md hover:bg-white transition-colors"
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? <X className="w-5 h-5 text-foreground/70" /> : <Menu className="w-5 h-5 text-foreground/70" />}
+        </button>
 
-        {/* Desktop nav links */}
-        <div className="hidden md:flex items-center gap-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                pathname.startsWith(link.href)
-                  ? 'bg-sand text-foreground'
-                  : 'text-foreground/60 hover:text-foreground hover:bg-sand/50'
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-        </div>
-
-        {/* Desktop right */}
-        <div className="hidden md:flex items-center gap-2">
-          {user ? (
-            <>
-              {showNotifications && <NotificationBell userId={user.id} />}
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className={cn(
-                    'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors',
-                    pathname.startsWith('/admin')
-                      ? 'bg-accent/10 text-accent'
-                      : 'text-accent/70 hover:text-accent hover:bg-accent/10'
-                  )}
-                >
-                  Admin
-                </Link>
-              )}
-              <Link href="/profile" className="text-sm text-foreground/70 hover:text-foreground px-2">
-                Profile
+        {menuOpen && (
+          <div className="absolute right-0 top-12 w-52 bg-white/95 backdrop-blur-sm border border-sand rounded-xl shadow-lg py-2 space-y-0.5 px-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  pathname.startsWith(link.href)
+                    ? 'bg-sand text-foreground'
+                    : 'text-foreground/60 hover:text-foreground hover:bg-sand/50'
+                )}
+              >
+                {link.label}
               </Link>
-              <button onClick={signOut} className="btn-secondary text-sm py-1.5">
-                Sign out
-              </button>
-            </>
-          ) : (
-            <Link href={`/auth/login?next=${encodeURIComponent(pathname)}`} className="btn-primary text-sm py-1.5">
-              Sign in
-            </Link>
-          )}
-        </div>
-
-        {/* Mobile right: notification + hamburger */}
-        <div className="flex md:hidden items-center gap-2">
-          {user && showNotifications && <NotificationBell userId={user.id} />}
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="p-2 rounded-lg hover:bg-sand/50 transition-colors"
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile dropdown */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-sand bg-white/95 backdrop-blur-sm px-4 py-3 space-y-1">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                pathname.startsWith(link.href)
-                  ? 'bg-sand text-foreground'
-                  : 'text-foreground/60 hover:text-foreground hover:bg-sand/50'
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <div className="pt-2 border-t border-sand mt-2 space-y-1">
+            ))}
+            <div className="border-t border-sand my-1" />
             {user ? (
               <>
+                {showNotifications && <NotificationBell userId={user.id} />}
                 {isAdmin && (
                   <Link
                     href="/admin"
@@ -168,23 +107,21 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
                     Admin
                   </Link>
                 )}
-                <div className="flex items-center gap-2 pt-1">
-                  <Link href="/profile" className="flex-1 text-center text-sm text-foreground/70 hover:text-foreground px-3 py-2 rounded-lg hover:bg-sand/50">
-                    Profile
-                  </Link>
-                  <button onClick={signOut} className="flex-1 btn-secondary text-sm py-2">
-                    Sign out
-                  </button>
-                </div>
+                <Link href="/profile" className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/60 hover:text-foreground hover:bg-sand/50">
+                  Profile
+                </Link>
+                <button onClick={signOut} className="block w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-foreground/60 hover:text-foreground hover:bg-sand/50">
+                  Sign out
+                </button>
               </>
             ) : (
-              <Link href="/auth/login" className="block w-full text-center btn-primary text-sm py-2">
+              <Link href={`/auth/login?next=${encodeURIComponent(pathname)}`} className="block px-3 py-2 rounded-lg text-sm font-medium text-accent hover:bg-accent/10">
                 Sign in
               </Link>
             )}
           </div>
-        </div>
-      )}
-    </nav>
+        )}
+      </div>
+    </div>
   )
 }

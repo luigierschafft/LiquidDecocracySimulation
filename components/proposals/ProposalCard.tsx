@@ -19,7 +19,7 @@ export function ProposalCard({ issue }: ProposalCardProps) {
   return (
     <Link href={`/topics/${issue.id}/discussion`}>
       <div className={`card hover:shadow-md transition-all cursor-pointer ${isNew ? 'hover:border-accent/30' : 'opacity-50 grayscale'}`}>
-        <h3 className="font-semibold text-foreground leading-tight">{issue.title}</h3>
+        <h3 className="font-normal text-foreground leading-tight">{issue.title}</h3>
       </div>
     </Link>
   )
