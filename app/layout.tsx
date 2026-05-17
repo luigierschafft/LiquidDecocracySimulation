@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { getEffectiveModules } from '@/lib/modules'
 import { MeditationProvider } from '@/components/meditation/MeditationProvider'
 import { ModulesProvider } from '@/components/ModulesContext'
+import { AurovilleTextBanner } from '@/components/layout/AurovilleTextBanner'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -21,6 +22,8 @@ export const metadata: Metadata = {
   title: 'Liquid Democracy Auroville',
   description: 'Participatory governance for the Auroville community',
 }
+
+export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Load admin-level module defaults for nav visibility (no userId = global defaults)
@@ -41,13 +44,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             strong_no_needs: modules.strong_no_needs ?? false,
             position_paper: modules.position_paper ?? false,
             impact_level: modules.impact_level ?? false,
+            hate_speech_filter: modules.hate_speech_filter ?? false,
+            auroville_texts: modules.auroville_texts ?? false,
+            empathy_tool: modules.empathy_tool ?? false,
           }}
         >
           <MeditationProvider
             firstComment={modules.meditation_first_comment ?? false}
             every15min={modules.meditation_every_15min ?? false}
           >
-            <main className="min-h-screen">{children}</main>
+            <main className="min-h-screen">
+              {children}
+              <AurovilleTextBanner enabled={modules.auroville_texts ?? false} />
+            </main>
           </MeditationProvider>
         </ModulesProvider>
       </body>

@@ -6,6 +6,9 @@ interface ModulesCtx {
   strong_no_needs: boolean
   position_paper: boolean
   impact_level: boolean
+  hate_speech_filter: boolean
+  auroville_texts: boolean
+  empathy_tool: boolean
 }
 
 const ModulesContext = createContext<ModulesCtx>({
@@ -13,6 +16,9 @@ const ModulesContext = createContext<ModulesCtx>({
   strong_no_needs: false,
   position_paper: false,
   impact_level: false,
+  hate_speech_filter: false,
+  auroville_texts: false,
+  empathy_tool: false,
 })
 
 export function useModules() { return useContext(ModulesContext) }

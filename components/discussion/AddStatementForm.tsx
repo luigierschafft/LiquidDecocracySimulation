@@ -20,9 +20,10 @@ interface DuplicateCheckResult {
 interface Props {
   topicId: string
   duplicateDetectionEnabled?: boolean
+  hateSpeechFilterEnabled?: boolean
 }
 
-export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }: Props) {
+export function AddStatementForm({ topicId, duplicateDetectionEnabled = false, hateSpeechFilterEnabled = false }: Props) {
   const router = useRouter()
   const { requestWrite } = useMeditation()
   const [text, setText] = useState('')
@@ -35,6 +36,7 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }:
   const [duplicateCheck, setDuplicateCheck] = useState<DuplicateCheckResult | null>(null)
   const skipDuplicateCheckRef = useRef(false)
   const [showAnimation, setShowAnimation] = useState(false)
+  const [flaggedNotice, setFlaggedNotice] = useState(false)
 
   const remaining = 200 - text.length
 
@@ -80,6 +82,24 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }:
     // Reset the skip flag for future calls
     skipDuplicateCheckRef.current = false
 
+    // Hate speech check (Module 103)
+    let moderationStatus: string | undefined = undefined
+    if (hateSpeechFilterEnabled) {
+      try {
+        const modRes = await fetch('/api/moderate/content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text.trim() }),
+        })
+        const modData = await modRes.json()
+        if (modData.flagged) {
+          moderationStatus = 'pending'
+        }
+      } catch {
+        // Fail open: if moderation check errors, proceed normally
+      }
+    }
+
     const supabase = createClient()
     const {
       data: { user },
@@ -93,12 +113,15 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }:
     const source_links: string[] = []
     if (sourceUrl.trim()) source_links.push(sourceUrl.trim())
 
-    const { error: insertError } = await supabase.from('ev_statements').insert({
+    const insertPayload: Record<string, unknown> = {
       issue_id: topicId,
       text: text.trim(),
       author_id: user.id,
       source_links,
-    })
+    }
+    if (moderationStatus) insertPayload.moderation_status = moderationStatus
+
+    const { error: insertError } = await supabase.from('ev_statements').insert(insertPayload)
 
     if (insertError) {
       setError(insertError.message)
@@ -111,7 +134,11 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }:
     setShowUrl(false)
     setLoading(false)
     setDuplicateCheck(null)
-    setShowAnimation(true)
+    if (moderationStatus === 'pending') {
+      setFlaggedNotice(true)
+    } else {
+      setShowAnimation(true)
+    }
     router.refresh()
   }
 
@@ -175,6 +202,21 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false }:
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {flaggedNotice && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+          <p className="text-xs text-amber-800 leading-relaxed">
+            Your statement has been flagged for review and will be published once approved by a moderator.
+          </p>
+          <button
+            onClick={() => setFlaggedNotice(false)}
+            className="text-amber-500 hover:text-amber-700 text-xs shrink-0 mt-0.5"
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
         </div>
       )}
 

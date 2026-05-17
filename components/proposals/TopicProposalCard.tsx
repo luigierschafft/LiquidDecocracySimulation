@@ -35,9 +35,10 @@ interface Props {
   userId: string | null
   nextProposal: TopicProposal | null
   topicId: string
+  impactLevelEnabled?: boolean
 }
 
-export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: Props) {
+export function TopicProposalCard({ proposal, userId, nextProposal, topicId, impactLevelEnabled = false }: Props) {
   const router = useRouter()
   const { requestWrite } = useMeditation()
   const votes: ProposalVote[] = proposal.votes ?? []
@@ -116,7 +117,7 @@ export function TopicProposalCard({ proposal, userId, nextProposal, topicId }: P
           <div>
             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Your Vote</h4>
             {userId ? (
-              <ProposalVoteButtons proposalId={proposal.id} userId={userId} votes={votes} />
+              <ProposalVoteButtons proposalId={proposal.id} userId={userId} votes={votes} impactLevelEnabled={impactLevelEnabled} />
             ) : (
               <p className="text-xs text-gray-400">Log in to vote.</p>
             )}

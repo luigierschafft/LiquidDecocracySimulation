@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { TopicProposalCard } from '@/components/proposals/TopicProposalCard'
 import { AddTopicProposalForm } from '@/components/proposals/AddTopicProposalForm'
+import { getEffectiveModules } from '@/lib/modules'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,6 +10,8 @@ export default async function ProposalsPage({ params }: { params: { topicId: str
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  const modules = await getEffectiveModules(user?.id)
 
   const { data: proposals } = await supabase
     .from('ev_topic_proposals')
@@ -40,6 +43,7 @@ export default async function ProposalsPage({ params }: { params: { topicId: str
             userId={user?.id ?? null}
             nextProposal={(proposals ?? [])[index + 1] ?? null}
             topicId={params.topicId}
+            impactLevelEnabled={modules.impact_level ?? false}
           />
         ))}
       </div>

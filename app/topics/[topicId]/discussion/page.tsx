@@ -15,6 +15,7 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
 
   const modules = await getEffectiveModules(user?.id)
   const duplicateDetectionEnabled = modules.ai_duplicate_detection ?? false
+  const hateSpeechFilterEnabled = modules.hate_speech_filter ?? false
 
   // Fetch council message: topic-specific first, then global fallback
   const { data: councilRows } = await supabase
@@ -53,7 +54,7 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
 
   return (
     <div className="space-y-6">
-      {user && <AddStatementForm topicId={params.topicId} duplicateDetectionEnabled={duplicateDetectionEnabled} />}
+      {user && <AddStatementForm topicId={params.topicId} duplicateDetectionEnabled={duplicateDetectionEnabled} hateSpeechFilterEnabled={hateSpeechFilterEnabled} />}
       <StatementList statements={statementsWithAvg} userId={user?.id ?? null} topicId={params.topicId} />
       <CouncilOfElders message={councilMessage} />
       <div className="pt-4 flex flex-col items-center gap-3">

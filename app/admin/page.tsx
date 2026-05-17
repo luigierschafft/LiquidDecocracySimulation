@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Users, MapPin, Settings, SlidersHorizontal, Puzzle, Flag, BarChart3, BookOpen, Webhook, Sliders } from 'lucide-react'
+import { Users, MapPin, Settings, SlidersHorizontal, Puzzle, Flag, BarChart3, BookOpen, Webhook, Sliders, ShieldAlert } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +27,7 @@ export default async function AdminPage() {
     { href: '/admin/governance', icon: <BookOpen className="w-5 h-5" />, label: 'Governance Rules', desc: 'Edit the public governance rules document' },
     { href: '/admin/custom-governance', icon: <Sliders className="w-5 h-5" />, label: 'Custom Governance', desc: 'Override phase timings and quorum settings' },
     { href: '/admin/integrations', icon: <Webhook className="w-5 h-5" />, label: 'Integrations', desc: 'Webhooks and external system connections' },
+    { href: '/admin/moderation', icon: <ShieldAlert className="w-5 h-5" />, label: 'Content Moderation', desc: 'Review statements flagged for hate speech' },
   ]
 
   return (

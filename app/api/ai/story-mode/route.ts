@@ -1,6 +1,8 @@
 import { groq, AI_MODEL } from '@/lib/ai/client'
 import { NextRequest, NextResponse } from 'next/server'
 
+export const maxDuration = 120
+
 const AUROVILLE_CONTEXT = `
 Auroville is an experimental township in Tamil Nadu, South India, near Pondicherry.
 Key facts about Auroville:
@@ -14,60 +16,125 @@ Key facts about Auroville:
 - Community values: human unity, sustainability, spiritual growth
 `
 
-export async function POST(req: NextRequest) {
-  const { proposalText, topicTitle } = await req.json()
+// Escape unescaped control characters inside JSON string values
+function sanitizeJson(raw: string): string {
+  let inString = false
+  let escaped = false
+  let result = ''
+  for (const ch of raw) {
+    if (escaped) {
+      result += ch
+      escaped = false
+    } else if (ch === '\\' && inString) {
+      result += ch
+      escaped = true
+    } else if (ch === '"') {
+      result += ch
+      inString = !inString
+    } else if (inString && (ch === '\n' || ch === '\r' || ch === '\t')) {
+      if (ch === '\n') result += '\\n'
+      else if (ch === '\r') result += '\\r'
+      else result += '\\t'
+    } else {
+      result += ch
+    }
+  }
+  return result
+}
 
-  if (!proposalText) {
-    return NextResponse.json({ error: 'No proposal text' }, { status: 400 })
+async function generateImage(prompt: string, seed: number): Promise<string> {
+  const res = await fetch(
+    'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell',
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${process.env.HF_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          num_inference_steps: 4,
+          seed,
+        },
+      }),
+    }
+  )
+
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`HuggingFace error ${res.status}: ${errText.slice(0, 200)}`)
   }
 
-  const completion = await groq.chat.completions.create({
-    model: AI_MODEL,
-    messages: [
-      {
-        role: 'system',
-        content: `You are a storytelling AI for Auroville. ${AUROVILLE_CONTEXT}
+  const buffer = await res.arrayBuffer()
+  const base64 = Buffer.from(buffer).toString('base64')
+  const contentType = res.headers.get('content-type') ?? 'image/jpeg'
+  return `data:${contentType};base64,${base64}`
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { proposalText, topicTitle } = await req.json()
+
+    if (!proposalText) {
+      return NextResponse.json({ error: 'No proposal text' }, { status: 400 })
+    }
+
+    const completion = await groq.chat.completions.create({
+      model: AI_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a storytelling AI for Auroville. ${AUROVILLE_CONTEXT}
 
 You will receive a governance proposal and must return a JSON object with:
 1. "story": A vivid 3-4 paragraph narrative written from the perspective of an Auroville resident living in the future (5-10 years) where this proposal has been implemented. Write in first person, present tense. Describe daily life, the benefits, sensory details (the warmth, the sounds, the colors of the tropics), and how this specific proposal changed things. Include details from the proposal itself.
 
-2. "realisticPrompt": A detailed image generation prompt (150-200 words) for a PHOTOREALISTIC image showing Auroville with this proposal implemented. Must include: tropical Tamil Nadu setting, red earth, lush green vegetation, warm golden sunlight, specific elements from the proposal, real architectural style of Auroville, people of diverse nationalities. Style: cinematic photography, golden hour lighting, high detail.
+2. "realisticPrompt": An image prompt (50-70 words MAX) for a PHOTOREALISTIC photo of Auroville with this proposal implemented. Describe: specific visual elements from the proposal, Auroville tropical setting (red earth, palm trees, earth buildings), golden hour lighting, diverse people, cinematic photography style. No generic phrases. Be specific about what is visually shown.
 
-3. "comicPrompt": A detailed image generation prompt (150-200 words) for a COMIC/INFOGRAPHIC style illustration showing the key elements of this proposal in Auroville. Must include: comic book style, flat design illustration, labeled elements with short text annotations pointing to key features, Auroville tropical backdrop, the 3-5 most important points from the proposal shown as visual elements with small caption labels. Style: clean vector illustration, vibrant colors, informational diagram style.
+3. "comicPrompt": An image prompt (50-70 words MAX) for a COMIC BOOK ILLUSTRATION of this proposal in Auroville. Style keywords MUST be included: "flat design comic illustration, bold outlines, vibrant saturated colors, cartoon style, 2D art". Describe the main scene with 2-3 specific visual elements from the proposal in a fun illustrated style. Auroville tropical backdrop.
 
 Return ONLY valid JSON, no markdown.`,
-      },
-      {
-        role: 'user',
-        content: `Topic: ${topicTitle || 'Auroville Governance'}\n\nProposal:\n${proposalText}`,
-      },
-    ],
-    temperature: 0.8,
-    max_tokens: 2000,
-  })
+        },
+        {
+          role: 'user',
+          content: `Topic: ${topicTitle || 'Auroville Governance'}\n\nProposal:\n${proposalText}`,
+        },
+      ],
+      temperature: 0.8,
+      max_tokens: 2000,
+    })
 
-  const raw = completion.choices[0]?.message?.content ?? '{}'
+    const raw = completion.choices[0]?.message?.content ?? '{}'
 
-  let parsed: { story: string; realisticPrompt: string; comicPrompt: string }
-  try {
-    parsed = JSON.parse(raw)
-  } catch {
-    // Try to extract JSON from the response
-    const match = raw.match(/\{[\s\S]*\}/)
-    if (match) {
-      parsed = JSON.parse(match[0])
-    } else {
-      return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+    let parsed: { story: string; realisticPrompt: string; comicPrompt: string }
+    try {
+      parsed = JSON.parse(sanitizeJson(raw))
+    } catch {
+      const match = raw.match(/\{[\s\S]*\}/)
+      if (match) {
+        try {
+          parsed = JSON.parse(sanitizeJson(match[0]))
+        } catch {
+          return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+        }
+      } else {
+        return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
+      }
     }
+
+    const seed = Math.floor(Math.random() * 99999)
+
+    const realisticImageUrl = await generateImage(parsed.realisticPrompt, seed)
+    const comicImageUrl = await generateImage(parsed.comicPrompt, seed + 1)
+
+    return NextResponse.json({
+      story: parsed.story,
+      realisticImageUrl,
+      comicImageUrl,
+    })
+  } catch (e: any) {
+    console.error('[story-mode]', e)
+    return NextResponse.json({ error: e?.message ?? 'Internal server error' }, { status: 500 })
   }
-
-  // Build Pollinations.ai image URLs (free, no API key needed)
-  const realisticUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(parsed.realisticPrompt)}&width=1024&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random() * 99999)}`
-  const comicUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(parsed.comicPrompt)}&width=1024&height=768&model=flux&nologo=true&seed=${Math.floor(Math.random() * 99999)}`
-
-  return NextResponse.json({
-    story: parsed.story,
-    realisticImageUrl: realisticUrl,
-    comicImageUrl: comicUrl,
-  })
 }

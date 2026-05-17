@@ -9,6 +9,7 @@ import { DisapproveReasonModal } from './DisapproveReasonModal'
 import { StrongNoNeedsModal } from './StrongNoNeedsModal'
 import { PositionPaperModal } from './PositionPaperModal'
 import { ImpactLevelModal } from './ImpactLevelModal'
+import { EmpathyModal } from './EmpathyModal'
 
 type VoteValue = ProposalVote['vote']
 
@@ -44,6 +45,7 @@ interface Props {
   userId: string
   votes: ProposalVote[]
   onVoted?: (votes: ProposalVote[]) => void
+  impactLevelEnabled?: boolean
 }
 
 type ModalStep =
@@ -51,11 +53,14 @@ type ModalStep =
   | 'disapprove_reason'
   | 'strong_no_needs'
   | 'position_paper'
+  | 'empathy'
   | null
 
-export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Props) {
+export function ProposalVoteButtons({ proposalId, userId, votes, onVoted, impactLevelEnabled }: Props) {
   const router = useRouter()
   const modules = useModules()
+  // Prop takes priority over context (allows server-side-fresh value to override cached context)
+  const effectiveImpactLevel = impactLevelEnabled ?? modules.impact_level
 
   const currentVote = votes.find((v) => v.user_id === userId)?.vote ?? null
   const hasVotedOnThis = currentVote !== null
@@ -93,7 +98,7 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
     setPendingVote(value)
 
     // Step 1: impact_level (first vote only)
-    if (modules.impact_level && !hasVotedOnThis) {
+    if (effectiveImpactLevel && !hasVotedOnThis) {
       setActiveModal('impact_level')
       return
     }
@@ -114,9 +119,11 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
     await castVote(value)
     setPendingVote(null)
 
-    // Step 4: position paper
-    if (modules.position_paper) {
+    // Step 4: position paper → empathy
+    if (modules.position_paper ?? false) {
       setActiveModal('position_paper')
+    } else if (modules.empathy_tool) {
+      setActiveModal('empathy')
     }
   }
 
@@ -139,6 +146,8 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
 
     if (modules.position_paper) {
       setActiveModal('position_paper')
+    } else if (modules.empathy_tool) {
+      setActiveModal('empathy')
     }
   }
 
@@ -150,6 +159,8 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
 
     if (modules.position_paper) {
       setActiveModal('position_paper')
+    } else if (modules.empathy_tool) {
+      setActiveModal('empathy')
     }
   }
 
@@ -161,10 +172,21 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
 
     if (modules.position_paper) {
       setActiveModal('position_paper')
+    } else if (modules.empathy_tool) {
+      setActiveModal('empathy')
     }
   }
 
   function handlePositionPaperDone() {
+    if (modules.empathy_tool) {
+      setActiveModal('empathy')
+    } else {
+      setActiveModal(null)
+      setPendingVote(null)
+    }
+  }
+
+  function handleEmpathyDone() {
     setActiveModal(null)
     setPendingVote(null)
   }
@@ -216,6 +238,14 @@ export function ProposalVoteButtons({ proposalId, userId, votes, onVoted }: Prop
           proposalId={proposalId}
           voteValue={castVoteValue}
           onDone={handlePositionPaperDone}
+        />
+      )}
+
+      {activeModal === 'empathy' && castVoteValue !== null && (
+        <EmpathyModal
+          proposalId={proposalId}
+          voteValue={castVoteValue}
+          onDone={handleEmpathyDone}
         />
       )}
     </>
