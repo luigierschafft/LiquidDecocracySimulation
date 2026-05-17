@@ -17,11 +17,16 @@ interface StoryResult {
 
 type ImageState = 'loading' | 'loaded' | 'error'
 
-function StoryImage({ src, alt }: { src: string; alt: string }) {
+function StoryImage({ src, alt, seed }: { src: string; alt: string; seed: number }) {
   const [state, setState] = useState<ImageState>('loading')
+  const [imgSrc, setImgSrc] = useState(src)
 
   function handleError() {
-    setState('error')
+    if (!imgSrc.includes('picsum.photos')) {
+      setImgSrc(`https://picsum.photos/seed/${seed}/768/512`)
+    } else {
+      setState('error')
+    }
   }
 
   return (
@@ -47,8 +52,9 @@ function StoryImage({ src, alt }: { src: string; alt: string }) {
       )}
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={src}
+        src={imgSrc}
         alt={alt}
         className={`w-full rounded-xl transition-opacity duration-500 ${state === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
         onLoad={() => setState('loaded')}
@@ -159,6 +165,7 @@ export function StoryModeModal({ proposalText, topicTitle, onClose }: Props) {
                 <StoryImage
                   src={result.realisticImageUrl}
                   alt="Realistic vision of Auroville with proposal implemented"
+                  seed={1}
                 />
               </div>
 
@@ -170,6 +177,7 @@ export function StoryModeModal({ proposalText, topicTitle, onClose }: Props) {
                 <StoryImage
                   src={result.comicImageUrl}
                   alt="Comic illustration of proposal key elements"
+                  seed={2}
                 />
               </div>
 

@@ -42,34 +42,8 @@ function sanitizeJson(raw: string): string {
   return result
 }
 
-async function generateImage(prompt: string, seed: number): Promise<string> {
-  const res = await fetch(
-    'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell',
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          num_inference_steps: 4,
-          seed,
-        },
-      }),
-    }
-  )
-
-  if (!res.ok) {
-    const errText = await res.text()
-    throw new Error(`HuggingFace error ${res.status}: ${errText.slice(0, 200)}`)
-  }
-
-  const buffer = await res.arrayBuffer()
-  const base64 = Buffer.from(buffer).toString('base64')
-  const contentType = res.headers.get('content-type') ?? 'image/jpeg'
-  return `data:${contentType};base64,${base64}`
+function buildImageUrl(prompt: string, seed: number): string {
+  return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=768&height=512&seed=${seed}`
 }
 
 export async function POST(req: NextRequest) {
@@ -82,19 +56,19 @@ export async function POST(req: NextRequest) {
 
     const completion = await groq.chat.completions.create({
       model: AI_MODEL,
+      response_format: { type: 'json_object' },
       messages: [
         {
           role: 'system',
           content: `You are a storytelling AI for Auroville. ${AUROVILLE_CONTEXT}
 
-You will receive a governance proposal and must return a JSON object with:
-1. "story": A vivid 3-4 paragraph narrative written from the perspective of an Auroville resident living in the future (5-10 years) where this proposal has been implemented. Write in first person, present tense. Describe daily life, the benefits, sensory details (the warmth, the sounds, the colors of the tropics), and how this specific proposal changed things. Include details from the proposal itself.
+You will receive a governance proposal. Return a JSON object with exactly these three keys:
 
-2. "realisticPrompt": An image prompt (50-70 words MAX) for a PHOTOREALISTIC photo of Auroville with this proposal implemented. Describe: specific visual elements from the proposal, Auroville tropical setting (red earth, palm trees, earth buildings), golden hour lighting, diverse people, cinematic photography style. No generic phrases. Be specific about what is visually shown.
+"story": A vivid 3-4 paragraph narrative from the perspective of an Auroville resident living 10 years in the future where this proposal has been implemented. First person, present tense. Include sensory details of the tropical setting (red earth, palm trees, warm sun, sounds of birds). Show concretely how this proposal changed daily life.
 
-3. "comicPrompt": An image prompt (50-70 words MAX) for a COMIC BOOK ILLUSTRATION of this proposal in Auroville. Style keywords MUST be included: "flat design comic illustration, bold outlines, vibrant saturated colors, cartoon style, 2D art". Describe the main scene with 2-3 specific visual elements from the proposal in a fun illustrated style. Auroville tropical backdrop.
+"realisticPrompt": Image prompt (max 60 words) for a photorealistic photograph. Include: specific visual elements from the proposal, Auroville red-earth paths and tropical greenery, golden hour sunlight, diverse international community members, architectural details. End with: "photorealistic, cinematic photography, 8k, golden hour".
 
-Return ONLY valid JSON, no markdown.`,
+"comicPrompt": Image prompt (max 60 words) for a comic illustration. Include: specific visual elements from the proposal, Auroville tropical backdrop with palm trees and earth buildings, cheerful community members. End with: "flat design illustration, bold outlines, vibrant colors, cartoon style, 2D art".`,
         },
         {
           role: 'user',
@@ -105,28 +79,19 @@ Return ONLY valid JSON, no markdown.`,
       max_tokens: 2000,
     })
 
+    // With response_format: json_object, Groq always returns valid JSON
     const raw = completion.choices[0]?.message?.content ?? '{}'
+    const parsed = JSON.parse(sanitizeJson(raw)) as { story: string; realisticPrompt: string; comicPrompt: string }
 
-    let parsed: { story: string; realisticPrompt: string; comicPrompt: string }
-    try {
-      parsed = JSON.parse(sanitizeJson(raw))
-    } catch {
-      const match = raw.match(/\{[\s\S]*\}/)
-      if (match) {
-        try {
-          parsed = JSON.parse(sanitizeJson(match[0]))
-        } catch {
-          return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
-        }
-      } else {
-        return NextResponse.json({ error: 'Failed to parse AI response' }, { status: 500 })
-      }
+    if (!parsed.story || !parsed.realisticPrompt || !parsed.comicPrompt) {
+      return NextResponse.json({ error: 'AI response missing required fields' }, { status: 500 })
     }
 
     const seed = Math.floor(Math.random() * 99999)
 
-    const realisticImageUrl = await generateImage(parsed.realisticPrompt, seed)
-    const comicImageUrl = await generateImage(parsed.comicPrompt, seed + 1)
+    // Return URLs — browser loads images with spinner (no server timeout)
+    const realisticImageUrl = buildImageUrl(parsed.realisticPrompt, seed)
+    const comicImageUrl = buildImageUrl(parsed.comicPrompt, seed + 1)
 
     return NextResponse.json({
       story: parsed.story,
