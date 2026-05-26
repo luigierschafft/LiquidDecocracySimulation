@@ -14,9 +14,10 @@ interface NavbarProps {
   showGovernance?: boolean
   showNotifications?: boolean
   showVotingCycles?: boolean
+  currentPlatformName?: string | null
 }
 
-export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false, showVotingCycles = false }: NavbarProps) {
+export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false, showVotingCycles = false, currentPlatformName }: NavbarProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -91,6 +92,23 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
                 {link.label}
               </Link>
             ))}
+            {currentPlatformName && (
+              <>
+                <div className="border-t border-sand my-1" />
+                <div className="px-3 py-1.5">
+                  <p className="text-xs text-foreground/40 font-medium uppercase tracking-wide">Platform</p>
+                  <div className="flex items-center justify-between gap-2 mt-0.5">
+                    <span className="text-sm text-foreground/70 truncate">{currentPlatformName}</span>
+                    <Link
+                      href="/platform-select?choose=1"
+                      className="text-xs text-accent hover:underline shrink-0"
+                    >
+                      Switch
+                    </Link>
+                  </div>
+                </div>
+              </>
+            )}
             <div className="border-t border-sand my-1" />
             {user ? (
               <>

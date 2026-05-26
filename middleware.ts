@@ -2,6 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { PROTECTED_ROUTES, ADMIN_ROUTES } from '@/lib/config/routes'
 
+const PLATFORM_EXEMPT = ['/auth', '/platform-select', '/api', '/_next']
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -26,16 +28,20 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isProtected = PROTECTED_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r))
-  const isAdmin = ADMIN_ROUTES.some((r) => request.nextUrl.pathname.startsWith(r))
+  const path = request.nextUrl.pathname
+  const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
+  const isAdmin = ADMIN_ROUTES.some((r) => path.startsWith(r))
+  const isPlatformExempt = PLATFORM_EXEMPT.some((r) => path.startsWith(r)) || path === '/'
 
+  // 1. Auth guard: redirect to login if not authenticated
   if ((isProtected || isAdmin) && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
-    url.searchParams.set('next', request.nextUrl.pathname)
+    url.searchParams.set('next', path)
     return NextResponse.redirect(url)
   }
 
+  // 2. Admin guard
   if (isAdmin && user) {
     const { data: member } = await supabase
       .from('member')
@@ -45,6 +51,16 @@ export async function middleware(request: NextRequest) {
 
     if (!member?.is_admin) {
       return NextResponse.redirect(new URL('/', request.url))
+    }
+  }
+
+  // 3. Platform guard: authenticated users without a platform cookie go to platform-select
+  if (user && !isPlatformExempt) {
+    const platformCookie = request.cookies.get('x-platform')?.value
+    if (!platformCookie) {
+      return NextResponse.redirect(
+        new URL(`/platform-select?next=${encodeURIComponent(path)}`, request.url)
+      )
     }
   }
 

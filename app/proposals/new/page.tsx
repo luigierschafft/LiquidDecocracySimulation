@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getAppSetting } from '@/lib/data/settings'
 import { NewProposalForm } from './NewProposalForm'
+import { getCurrentPlatformId } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,5 +23,6 @@ export default async function NewProposalPage() {
     if (!member?.is_admin) redirect('/')
   }
 
-  return <NewProposalForm />
+  const platformId = await getCurrentPlatformId()
+  return <NewProposalForm platformId={platformId} />
 }

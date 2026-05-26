@@ -1,4 +1,25 @@
 export type IssueStatus = 'draft' | 'admission' | 'discussion' | 'verification' | 'voting' | 'closed'
+
+export interface Platform {
+  id: string
+  slug: string
+  name: string
+  description: string | null
+  is_invite_only: boolean
+  created_at: string
+}
+
+export interface PlatformMember {
+  id: string
+  platform_id: string
+  user_id: string
+  role: 'admin' | 'member'
+  status: 'pending' | 'approved' | 'rejected'
+  invited_by: string | null
+  created_at: string
+  platform?: Platform
+  member?: Member
+}
 export type VoteValue = 'approve' | 'oppose' | 'abstain' | 'strong_no'
 export type TopicCreationSetting = 'all_members' | 'admin_only'
 export type ProposalCreationSetting = 'all_members' | 'admin_only'

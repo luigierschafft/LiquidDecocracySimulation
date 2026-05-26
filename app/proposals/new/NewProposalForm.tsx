@@ -6,7 +6,11 @@ import { createClient } from '@/lib/supabase/browser'
 import { Button } from '@/components/ui/Button'
 import type { Area } from '@/lib/types'
 
-export function NewProposalForm() {
+interface Props {
+  platformId: string | null
+}
+
+export function NewProposalForm({ platformId }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
@@ -42,6 +46,7 @@ export function NewProposalForm() {
         status: asDraft ? 'draft' : 'admission',
         duration: form.duration,
         closes_at: closesAt,
+        ...(platformId ? { platform_id: platformId } : {}),
       })
       .select()
       .single()

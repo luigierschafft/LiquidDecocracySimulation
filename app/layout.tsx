@@ -6,6 +6,7 @@ import { getEffectiveModules } from '@/lib/modules'
 import { MeditationProvider } from '@/components/meditation/MeditationProvider'
 import { ModulesProvider } from '@/components/ModulesContext'
 import { AurovilleTextBanner } from '@/components/layout/AurovilleTextBanner'
+import { getCurrentPlatform } from '@/lib/platform'
 
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
@@ -27,7 +28,10 @@ export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Load admin-level module defaults for nav visibility (no userId = global defaults)
-  const modules = await getEffectiveModules(null)
+  const [modules, currentPlatform] = await Promise.all([
+    getEffectiveModules(null),
+    getCurrentPlatform(),
+  ])
 
   return (
     <html lang="en">
@@ -37,6 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           showGovernance={modules.governance_rules}
           showNotifications={modules.notifications}
           showVotingCycles={modules.voting_cycles}
+          currentPlatformName={currentPlatform?.name ?? null}
         />
         <ModulesProvider
           value={{
