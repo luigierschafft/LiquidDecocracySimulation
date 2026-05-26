@@ -76,7 +76,7 @@ export function PlatformAdminClient({ platforms, memberships }: Props) {
     const { data: inserted, error } = await supabase
       .from('platform_member')
       .insert({ platform_id: invitePlatformId, user_id: memberData.id, role: 'member', status: 'approved' })
-      .select('*, platform:platform(name, slug), member:member(id, email, display_name)')
+      .select('*, platform:platform(name, slug), member:member!platform_member_user_id_fkey(id, email, display_name)')
       .single()
 
     if (error) {

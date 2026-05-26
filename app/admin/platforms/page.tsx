@@ -10,7 +10,7 @@ export default async function AdminPlatformsPage() {
     supabase.from('platform').select('*').order('created_at'),
     supabase
       .from('platform_member')
-      .select('*, platform:platform(name, slug), member:member(id, email, display_name)')
+      .select('*, platform:platform(name, slug), member:member!platform_member_user_id_fkey(id, email, display_name)')
       .order('created_at', { ascending: false }),
   ])
 
