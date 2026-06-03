@@ -50,7 +50,7 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
 
       <div className="w-full max-w-xs flex flex-col gap-4">
 
-        {/* Summary — AI, only for new topics */}
+        {/* 1. Summary */}
         {isNew ? (
           <Link href={`/playful/${issue.id}/summary`} className="block">
             <div className={btnClass}>
@@ -63,7 +63,7 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
           </div>
         )}
 
-        {/* Discussion */}
+        {/* 2. Discussion */}
         <Link href={`/playful/${issue.id}/discussion`} className="block">
           <div className={btnClass}>
             Discussion<br />
@@ -71,14 +71,28 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
           </div>
         </Link>
 
-        {/* Statements — available for all */}
+        {/* 3. Proposals */}
+        <Link href={`/playful/${issue.id}/proposals`} className="block">
+          <div className={btnClass}>
+            Proposals
+          </div>
+        </Link>
+
+        {/* 4. Plan */}
+        <Link href={`/playful/${issue.id}/plan`} className="block">
+          <div className={btnClass}>
+            Plans
+          </div>
+        </Link>
+
+        {/* 5. Statements */}
         <Link href={`/playful/${issue.id}/statement`} className="block">
           <div className={btnClass}>
             See the different statements<br />and pros and cons
           </div>
         </Link>
 
-        {/* Learn — AI, only for new topics */}
+        {/* 6. Learn */}
         {isNew ? (
           <Link href={`/playful/${issue.id}/learn`} className="block">
             <div className={btnClass}>
@@ -91,19 +105,6 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
           </div>
         )}
 
-        {/* Proposals — available for all */}
-        <Link href={`/playful/${issue.id}/proposals`} className="block">
-          <div className={btnClass}>
-            Proposals
-          </div>
-        </Link>
-
-        {/* Plan — available for all */}
-        <Link href={`/playful/${issue.id}/plan`} className="block">
-          <div className={btnClass}>
-            Plans
-          </div>
-        </Link>
       </div>
 
       {!isNew && (
