@@ -263,7 +263,7 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
                   onClick={() => { setEditing(false); setEditText(section.content); setComment('') }}
                   className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
                 >
-                  <X className="w-3.5 h-3.5" /> Abbrechen
+                  <X className="w-3.5 h-3.5" /> Cancel
                 </button>
                 {effectiveIsLead ? (
                   <button
@@ -271,7 +271,7 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
                     disabled={saving || editText === section.content}
                     className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 transition-colors"
                   >
-                    <Check className="w-3.5 h-3.5" /> {saving ? 'Speichern…' : 'Speichern'}
+                    <Check className="w-3.5 h-3.5" /> {saving ? 'Saving…' : 'Save'}
                   </button>
                 ) : (
                   <button
@@ -279,7 +279,7 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
                     disabled={saving || editText === section.content}
                     className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50 transition-colors"
                   >
-                    <Send className="w-3.5 h-3.5" /> {saving ? '…' : 'Änderung vorschlagen'}
+                    <Send className="w-3.5 h-3.5" /> {saving ? '…' : 'Suggest Edit'}
                   </button>
                 )}
               </div>
@@ -293,20 +293,20 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
                   className="mt-3 flex items-center gap-1.5 text-xs text-purple-600 hover:text-purple-700 font-medium"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
-                  {effectiveIsLead ? 'Bearbeiten' : 'Änderung vorschlagen'}
+                  {effectiveIsLead ? 'Edit' : 'Suggest Edit'}
                 </button>
               )}
               {sectionOwnershipEnabled && userId && section.id && (isMember || isLead) && (
                 <div className="mt-3">
                   {isOwner ? (
                     <div className="flex items-center gap-2 text-xs text-purple-700">
-                      <span className="font-medium">Du bist verantwortlich ✓</span>
+                      <span className="font-medium">You are responsible ✓</span>
                       <button
                         onClick={handleClaimOwnership}
                         disabled={claiming}
                         className="text-gray-400 hover:text-gray-600 underline disabled:opacity-50"
                       >
-                        Zurückziehen
+                        Withdraw
                       </button>
                     </div>
                   ) : (
@@ -315,7 +315,7 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
                       disabled={claiming}
                       className="flex items-center gap-1.5 text-xs border border-purple-200 text-purple-600 px-3 py-1.5 rounded-lg hover:bg-purple-50 transition-colors disabled:opacity-50"
                     >
-                      🙋 {claiming ? '…' : "Ich kümmere mich darum"}
+                      🙋 {claiming ? '…' : "I'll take care of this"}
                     </button>
                   )}
                 </div>
@@ -327,7 +327,7 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
           {(photos.length > 0 || ((effectiveIsLead || isMember) && userId && section.id)) && (
             <div className="pt-3 border-t border-gray-100 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fotos</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Photos</p>
                 {(effectiveIsLead || isMember) && userId && section.id && (
                   <>
                     <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
@@ -337,7 +337,7 @@ export function SectionEditor({ section, isLead, isMember, userId, owners: initi
                       className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
                     >
                       <ImagePlus className="w-3.5 h-3.5" />
-                      {uploading ? 'Hochladen…' : 'Foto hinzufügen'}
+                      {uploading ? 'Uploading…' : 'Add Photo'}
                     </button>
                   </>
                 )}

@@ -1,16 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getCurrentPlatformId } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PlayTopicsPage() {
   const supabase = createClient()
-  const { data: issues } = await supabase
+  const platformId = await getCurrentPlatformId()
+  if (!platformId) redirect('/platform-select?next=/play/topics')
+  let issueQuery = supabase
     .from('issue')
     .select('id, title, status')
     .neq('status', 'draft')
     .order('created_at', { ascending: false })
+  if (platformId) issueQuery = issueQuery.eq('platform_id', platformId)
+  const { data: issues } = await issueQuery
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">

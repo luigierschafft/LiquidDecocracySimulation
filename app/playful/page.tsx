@@ -54,6 +54,15 @@ export default function PlayPage() {
         </Link>
       </div>
 
+      {/* ── Choose Platform ── */}
+      <div className="w-full max-w-xs mt-6">
+        <Link href="/platform-select" className="block">
+          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
+            Choose Platform
+          </div>
+        </Link>
+      </div>
+
     </div>
   )
 }

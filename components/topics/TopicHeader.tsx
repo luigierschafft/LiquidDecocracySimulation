@@ -71,7 +71,12 @@ export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props)
     <div className="bg-white border-b border-gray-200">
       <div className="max-w-4xl mx-auto px-4 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <h1 className="text-xl font-bold text-gray-900 leading-snug">{issue.title}</h1>
+          <div>
+            <h1 className="text-xl font-bold text-gray-900 leading-snug">{issue.title}</h1>
+            {(issue as any).description && (
+              <p className="text-xs text-gray-400 mt-0.5 max-w-xl leading-relaxed">{(issue as any).description}</p>
+            )}
+          </div>
           <select
             value={activeSection}
             onChange={handleChange}
@@ -109,7 +114,6 @@ export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props)
             </div>
           )
         })()}
-        <p className="mt-3 text-sm text-gray-500 leading-relaxed max-w-2xl">{current.description}</p>
       </div>
     </div>
   )

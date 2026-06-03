@@ -97,7 +97,7 @@ export function ExecutionComments({ planId, userId, comments: initial }: Props) 
               </button>
             </>
           ) : (
-            <p className="text-sm text-gray-400 italic">Bitte einloggen um einen Kommentar zu schreiben.</p>
+            <p className="text-sm text-gray-400 italic">Please log in to write a comment.</p>
           )}
         </div>
       </div>

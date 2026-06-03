@@ -10,7 +10,7 @@ export default async function PlaySummaryPage({ params }: { params: { topicId: s
 
   const { data: issue } = await supabase
     .from('issue')
-    .select('id, title, status')
+    .select('id, title, status, description')
     .eq('id', params.topicId)
     .single()
 
@@ -33,10 +33,29 @@ export default async function PlaySummaryPage({ params }: { params: { topicId: s
         .in('type', ['pro', 'contra'])
     : { data: [] }
 
-  // Build context string for AI
-  const lines: string[] = [`Topic: ${issue.title}\n`]
+  // Fetch proposals
+  const { data: proposals } = await supabase
+    .from('ev_topic_proposals')
+    .select('text')
+    .eq('issue_id', params.topicId)
+    .order('created_at', { ascending: true })
 
-  for (const stmt of statements ?? []) {
+  // Build context string for AI — only real data
+  const lines: string[] = [`Topic: ${issue.title}`]
+
+  if ((issue as any).description) {
+    lines.push(`Description: ${(issue as any).description}`)
+  }
+  lines.push('')
+
+  const stmtList = statements ?? []
+  const proposalList = proposals ?? []
+
+  if (stmtList.length === 0 && proposalList.length === 0) {
+    lines.push('No discussion data available yet. The community has not added any statements or proposals.')
+  }
+
+  for (const stmt of stmtList) {
     const ratings = (stmt.ratings ?? []).map((r: any) => r.rating)
     const avg = ratings.length > 0
       ? (ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length).toFixed(1)
@@ -59,6 +78,11 @@ export default async function PlaySummaryPage({ params }: { params: { topicId: s
       contras.forEach((n: any) => lines.push(`    - ${n.text}`))
     }
     lines.push('')
+  }
+
+  if (proposalList.length > 0) {
+    lines.push('Proposals from the community:')
+    proposalList.forEach((p: any, i: number) => lines.push(`  ${i + 1}. ${p.text}`))
   }
 
   const context = lines.join('\n')

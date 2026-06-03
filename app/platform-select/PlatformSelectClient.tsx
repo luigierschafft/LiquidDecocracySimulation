@@ -11,7 +11,6 @@ interface Props {
 
 export function PlatformSelectClient({ platforms, memberships, next }: Props) {
   const [loading, setLoading] = useState<string | null>(null)
-  const [joined, setJoined] = useState<string[]>([])
 
   const membershipMap = Object.fromEntries(memberships.map((m) => [m.platform_id, m]))
 
@@ -25,15 +24,14 @@ export function PlatformSelectClient({ platforms, memberships, next }: Props) {
     window.location.href = next
   }
 
-  async function handleJoin(platformId: string) {
+  async function handleJoin(platformId: string, slug: string) {
     setLoading(platformId)
     await fetch('/api/platform/join', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ platformId }),
     })
-    setJoined((prev) => [...prev, platformId])
-    setLoading(null)
+    await handleEnter(slug)
   }
 
   return (
@@ -41,7 +39,6 @@ export function PlatformSelectClient({ platforms, memberships, next }: Props) {
       {platforms.map((platform) => {
         const membership = membershipMap[platform.id]
         const isApproved = membership?.status === 'approved'
-        const isPending = membership?.status === 'pending' || joined.includes(platform.id)
         const isLoading = loading === platform.slug || loading === platform.id
 
         return (
@@ -81,21 +78,17 @@ export function PlatformSelectClient({ platforms, memberships, next }: Props) {
                 >
                   {isLoading ? 'Loading…' : 'Enter'}
                 </button>
-              ) : isPending ? (
-                <span className="text-sm text-foreground/50 px-3 py-2 rounded-lg bg-sand">
-                  Pending approval
-                </span>
               ) : platform.is_invite_only ? (
                 <span className="text-sm text-foreground/40 px-3 py-2">
                   Ask an admin
                 </span>
               ) : (
                 <button
-                  onClick={() => handleJoin(platform.id)}
+                  onClick={() => handleJoin(platform.id, platform.slug)}
                   disabled={isLoading}
                   className="btn-secondary min-w-[120px]"
                 >
-                  {isLoading ? 'Requesting…' : 'Request Access'}
+                  {isLoading ? 'Loading…' : 'Join'}
                 </button>
               )}
             </div>

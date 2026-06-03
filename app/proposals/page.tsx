@@ -4,6 +4,7 @@ import Link from 'next/link'
 import type { Issue, IssueStatus } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { getEffectiveModules } from '@/lib/modules'
+import { getCurrentPlatformId } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,10 @@ interface Props {
 export default async function ProposalsPage({ searchParams }: Props) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const modules = await getEffectiveModules(user?.id)
+  const [modules, platformId] = await Promise.all([
+    getEffectiveModules(user?.id),
+    getCurrentPlatformId(),
+  ])
   const rawStatus = searchParams.status
   const validStatuses: string[] = ['admission', 'discussion', 'verification', 'voting', 'closed']
   const filterByStatus = rawStatus && validStatuses.includes(rawStatus)
@@ -41,6 +45,10 @@ export default async function ProposalsPage({ searchParams }: Props) {
     `)
     .neq('status', 'draft')
     .order('created_at', { ascending: false })
+
+  if (platformId) {
+    query = query.eq('platform_id', platformId)
+  }
 
   if (filterByStatus) {
     query = query.eq('status', rawStatus)

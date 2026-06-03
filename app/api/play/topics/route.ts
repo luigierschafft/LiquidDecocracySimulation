@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { getCurrentPlatformId } from '@/lib/platform'
 
 export async function POST(request: Request) {
   const supabase = createClient()
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Title and description are required' }, { status: 400 })
   }
 
+  const platformId = await getCurrentPlatformId()
+
   const { data: topic, error } = await supabase
     .from('issue')
     .insert({
@@ -27,6 +30,7 @@ export async function POST(request: Request) {
       content: body.content.trim(),
       author_id: user.id,
       status: 'admission',
+      ...(platformId ? { platform_id: platformId } : {}),
     })
     .select('id, title, content, status, created_at')
     .single()

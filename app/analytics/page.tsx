@@ -1,43 +1,59 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentPlatform } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AnalyticsPage() {
   const supabase = createClient()
+  const platform = await getCurrentPlatform()
+  const platformId = platform?.id ?? null
 
-  // 1. Total counts (parallel)
-  const [statementsResult, argumentsResult, proposalsResult, sectionsResult, topicsResult] = await Promise.all([
-    supabase.from('ev_statements').select('id', { count: 'exact', head: true }),
-    supabase.from('ev_proposal_arguments').select('id', { count: 'exact', head: true }),
-    supabase.from('ev_topic_proposals').select('id', { count: 'exact', head: true }),
-    supabase.from('ev_execution_sections').select('id', { count: 'exact', head: true }),
-    supabase.from('issue').select('id', { count: 'exact', head: true }).neq('status', 'draft'),
+  // 1. Get all issue IDs for this platform (needed to filter ev_* tables)
+  let issueQuery = supabase
+    .from('issue')
+    .select('id, status, created_at')
+    .neq('status', 'draft')
+  if (platformId) issueQuery = issueQuery.eq('platform_id', platformId)
+  const { data: platformIssues } = await issueQuery
+
+  const platformIssueIds = (platformIssues ?? []).map((i: any) => i.id)
+  const totalTopics = platformIssueIds.length
+
+  // 2. New topics this week
+  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const newTopicsCount = (platformIssues ?? []).filter((i: any) => i.created_at >= oneWeekAgo).length
+
+  // 3. Counts for ev_* tables — filtered by platform issue IDs
+  const hasIssues = platformIssueIds.length > 0
+
+  const [statementsResult, argumentsResult, proposalsResult, sectionsResult] = await Promise.all([
+    hasIssues
+      ? supabase.from('ev_statements').select('id', { count: 'exact', head: true }).in('issue_id', platformIssueIds)
+      : Promise.resolve({ count: 0 }),
+    hasIssues
+      ? supabase.from('ev_proposal_arguments').select('id', { count: 'exact', head: true }).in('issue_id', platformIssueIds)
+      : Promise.resolve({ count: 0 }),
+    hasIssues
+      ? supabase.from('ev_topic_proposals').select('id', { count: 'exact', head: true }).in('issue_id', platformIssueIds)
+      : Promise.resolve({ count: 0 }),
+    hasIssues
+      ? supabase.from('ev_execution_sections').select('id', { count: 'exact', head: true }).in('issue_id', platformIssueIds)
+      : Promise.resolve({ count: 0 }),
   ])
 
   const totalStatements = statementsResult.count ?? 0
   const totalArguments = argumentsResult.count ?? 0
   const totalProposals = proposalsResult.count ?? 0
   const totalSections = sectionsResult.count ?? 0
-  const totalTopics = topicsResult.count ?? 0
 
-  // 2. New topics this week
-  const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-  const { count: newTopicsCount } = await supabase
-    .from('issue')
-    .select('id', { count: 'exact', head: true })
-    .neq('status', 'draft')
-    .gte('created_at', oneWeekAgo)
-
-  // 3. Most discussed topics (top 5 by statement count)
-  const { data: allStatements } = await supabase
-    .from('ev_statements')
-    .select('issue_id')
+  // 4. Most discussed topics (top 5 by statement count)
+  const { data: allStatements } = hasIssues
+    ? await supabase.from('ev_statements').select('issue_id').in('issue_id', platformIssueIds)
+    : { data: [] }
 
   const countMap: Record<string, number> = {}
   for (const s of allStatements ?? []) {
-    if (s.issue_id) {
-      countMap[s.issue_id] = (countMap[s.issue_id] ?? 0) + 1
-    }
+    if (s.issue_id) countMap[s.issue_id] = (countMap[s.issue_id] ?? 0) + 1
   }
 
   const topIssueIds = Object.entries(countMap)
@@ -70,7 +86,9 @@ export default async function AnalyticsPage() {
       {/* Header */}
       <div className="mb-10">
         <h1 className="text-3xl font-normal">Community Activity</h1>
-        <p className="text-foreground/60 mt-1">How the Auroville community is engaging</p>
+        <p className="text-foreground/60 mt-1">
+          {platform ? `${platform.name} — live statistics` : 'How the community is engaging'}
+        </p>
       </div>
 
       {/* Stat cards row */}
@@ -90,7 +108,7 @@ export default async function AnalyticsPage() {
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
           <h2 className="text-sm font-medium text-foreground/50 uppercase tracking-wide mb-4">New This Week</h2>
           <div className="flex flex-col gap-1">
-            <span className="text-5xl font-bold text-green-600">{newTopicsCount ?? 0}</span>
+            <span className="text-5xl font-bold text-green-600">{newTopicsCount}</span>
             <span className="text-foreground/60 text-sm mt-1">new topics</span>
           </div>
         </div>

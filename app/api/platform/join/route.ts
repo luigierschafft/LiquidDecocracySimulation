@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     platform_id: platformId,
     user_id: user.id,
     role: 'member',
-    status: 'pending',
+    status: 'approved',
   })
 
   if (error && error.code !== '23505') {

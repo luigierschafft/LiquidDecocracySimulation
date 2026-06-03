@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getCurrentPlatformId } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,11 +29,15 @@ function TopicButton({ issue }: { issue: { id: string; title: string; created_at
 
 export default async function PlayTopicsPage() {
   const supabase = createClient()
-  const { data: issues } = await supabase
+  const platformId = await getCurrentPlatformId()
+  if (!platformId) redirect('/platform-select?next=/playful/topics')
+  let issueQuery = supabase
     .from('issue')
     .select('id, title, status, created_at')
     .neq('status', 'draft')
     .order('created_at', { ascending: false })
+  if (platformId) issueQuery = issueQuery.eq('platform_id', platformId)
+  const { data: issues } = await issueQuery
 
   const list = issues ?? []
 

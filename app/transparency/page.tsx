@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { getEffectiveModules } from '@/lib/modules'
+import { getCurrentPlatformId } from '@/lib/platform'
 import { BarChart3 } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
@@ -8,17 +9,17 @@ export const dynamic = 'force-dynamic'
 export default async function TransparencyPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const modules = await getEffectiveModules(user?.id)
+  const [modules, platformId] = await Promise.all([
+    getEffectiveModules(user?.id),
+    getCurrentPlatformId(),
+  ])
 
   if (!modules.transparency_dashboard) notFound()
 
-  const [
-    issuesResult,
-    votesResult,
-    opinionsResult,
-    membersResult,
-  ] = await Promise.all([
-    supabase.from('issue').select('status'),
+  const issueBase = supabase.from('issue').select('status')
+  const issuesResult = await (platformId ? issueBase.eq('platform_id', platformId) : issueBase)
+
+  const [votesResult, opinionsResult, membersResult] = await Promise.all([
     supabase.from('vote').select('*', { count: 'exact', head: true }),
     supabase.from('opinion').select('*', { count: 'exact', head: true }),
     supabase.from('member').select('*', { count: 'exact', head: true }).eq('is_approved', true),

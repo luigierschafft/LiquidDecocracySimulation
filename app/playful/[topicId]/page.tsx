@@ -11,7 +11,7 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
   const supabase = createClient()
   const { data: issue } = await supabase
     .from('issue')
-    .select('id, title, status, created_at')
+    .select('id, title, status, created_at, description')
     .eq('id', params.topicId)
     .single()
 
@@ -38,8 +38,11 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
         />
       </div>
 
-      <div className="w-full max-w-xs relative mb-4">
+      <div className="w-full max-w-xs relative mb-4 text-center">
         <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>
+        {(issue as any).description && (
+          <p className="text-xs text-gray-400 mt-1 leading-relaxed">{(issue as any).description}</p>
+        )}
         {!isNew && (
           <span className="text-xs text-gray-400 font-medium">Demo topic</span>
         )}
@@ -59,6 +62,14 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
             Get a summary about<br />the current discussion
           </div>
         )}
+
+        {/* Discussion */}
+        <Link href={`/playful/${issue.id}/discussion`} className="block">
+          <div className={btnClass}>
+            Discussion<br />
+            <span className="text-sm font-medium">Add &amp; rate statements</span>
+          </div>
+        </Link>
 
         {/* Statements — available for all */}
         <Link href={`/playful/${issue.id}/statement`} className="block">

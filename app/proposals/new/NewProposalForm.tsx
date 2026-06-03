@@ -16,7 +16,7 @@ export function NewProposalForm({ platformId }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [areas, setAreas] = useState<Area[]>([])
-  const [form, setForm] = useState({ title: '', areaId: '', duration: '3_months' })
+  const [form, setForm] = useState({ title: '', description: '', areaId: '', duration: '3_months' })
 
   useEffect(() => {
     supabase.from('area').select('*').order('name').then(({ data }) => setAreas(data ?? []))
@@ -41,6 +41,7 @@ export function NewProposalForm({ platformId }: Props) {
       .from('issue')
       .insert({
         title: form.title,
+        description: form.description || null,
         author_id: user.id,
         area_id: form.areaId,
         status: asDraft ? 'draft' : 'admission',
@@ -78,6 +79,17 @@ export function NewProposalForm({ platformId }: Props) {
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
             placeholder="What should the community decide?"
             className="input"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1.5">Short Description <span className="text-foreground/40 font-normal">(What is this topic about?)</span></label>
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder="Briefly explain the background and why this matters to the community…"
+            rows={3}
+            className="input resize-none"
           />
         </div>
 
