@@ -13,20 +13,36 @@ export async function POST(req: NextRequest) {
       {
         role: 'system',
         content: `You are summarizing a community discussion for the Auroville community app.
-STRICT RULE: Only use information explicitly provided in the data below — never invent, guess or add facts.
-If there is no discussion data, say so clearly and warmly.
-Write in a warm, concise, community-oriented tone readable on a phone screen.`,
+STRICT RULE: Only use information explicitly provided — never invent or add facts.
+Write in a warm, community-oriented tone. Format your response with clear sections using the exact headers below.`,
       },
       {
         role: 'user',
-        content: `Here is the full discussion data:\n\n${context}\n\nIf no statements or proposals exist, write 1-2 warm sentences saying the discussion hasn't started yet and inviting the reader to be the first to contribute.
+        content: `Here is the full discussion data:\n\n${context}\n\n
+If no statements or proposals exist, write only this section:
+**What this topic is about**
+(1-2 sentences from the description, or say the topic is new and invite the reader to contribute)
 
-Otherwise write a clear summary (4-6 sentences) covering only what is in the data:
-1. What the topic is about (use the description if available)
-2. Which statements were rated most positively (only if ratings exist)
-3. The key pro and contra arguments raised (only if they exist)
-4. Any proposals from the community (only if they exist)
-At the very end, add one friendly sentence asking if the reader would like to explore any aspect in more depth.`,
+Otherwise write all relevant sections using this exact format — only include a section if data exists for it:
+
+**What this topic is about**
+1-2 sentences explaining the topic.
+
+**Community statements & ratings**
+1. "Statement text" — rated X/10 by Y people
+2. ...
+
+**Key arguments raised**
+For:
+- ...
+Against:
+- ...
+
+**Proposals from the community**
+1. ...
+2. ...
+
+At the very end, one short friendly sentence inviting the reader to ask follow-up questions.`,
       },
     ],
   })

@@ -91,11 +91,15 @@ export default async function PlaySummaryPage({ params }: { params: { topicId: s
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
 
       {/* Header */}
-      <div className="w-full max-w-xs relative mb-6">
-        <h1 className="text-xl font-black text-gray-900 pr-16 leading-tight">
-          {issue.title}<br />
-          <span className="text-lg font-extrabold text-gray-500">Summary</span>
-        </h1>
+      <div className="w-full max-w-xs mb-5 text-center">
+        <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>
+        <span className="text-sm font-bold text-gray-400">Summary</span>
+        {(issue as any).description && (
+          <div className="mt-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-left">
+            <p className="text-xs font-semibold text-amber-700 mb-1">About this topic</p>
+            <p className="text-xs text-gray-600 leading-relaxed">{(issue as any).description}</p>
+          </div>
+        )}
       </div>
 
       <SummaryChat context={context} topicId={issue.id} />

@@ -80,7 +80,25 @@ export function SummaryChat({ context }: Props) {
           <p className="text-xs text-red-400 text-center">Could not generate summary right now.</p>
         )}
         {summary && (
-          <p className="text-sm text-gray-700 leading-relaxed">{summary}</p>
+          <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+            {summary.split('\n').map((line, i) => {
+              const trimmed = line.trim()
+              if (!trimmed) return null
+              if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+                return <p key={i} className="font-bold text-gray-900 text-base mt-2">{trimmed.replace(/\*\*/g, '')}</p>
+              }
+              if (/^\d+\./.test(trimmed)) {
+                return <p key={i} className="ml-3">• {trimmed.replace(/^\d+\.\s*/, '')}</p>
+              }
+              if (trimmed.startsWith('- ') || trimmed.startsWith('+ ')) {
+                return <p key={i} className="ml-3 text-gray-600">· {trimmed.slice(2)}</p>
+              }
+              if (trimmed === 'For:' || trimmed === 'Against:') {
+                return <p key={i} className="font-semibold text-gray-800">{trimmed}</p>
+              }
+              return <p key={i}>{trimmed}</p>
+            })}
+          </div>
         )}
       </div>
 
