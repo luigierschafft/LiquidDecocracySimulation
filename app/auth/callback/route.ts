@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { safeRedirectPath } from '@/lib/utils'
 import { AUTH_NEXT_COOKIE } from '@/lib/auth/constants'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 /** Comma-separated emails that are auto-approved as admin on every platform. */
 function isSuperadmin(email: string | undefined): boolean {
@@ -18,7 +19,7 @@ export async function GET(request: Request) {
   const providerError = url.searchParams.get('error_description') ?? url.searchParams.get('error')
   // `next` comes from the query (magic link) or a cookie (Google login)
   const nextCookie = cookies().get(AUTH_NEXT_COOKIE)?.value
-  const next = safeRedirectPath(url.searchParams.get('next') ?? (nextCookie ? decodeURIComponent(nextCookie) : null))
+  const next = safeRedirectPath(url.searchParams.get('next') ?? nextCookie ?? null) // cookies() already returns the decoded value
   if (nextCookie) cookies().delete(AUTH_NEXT_COOKIE)
 
   if (code) {
@@ -32,12 +33,17 @@ export async function GET(request: Request) {
       if (user) {
         // Ensure superadmin is approved admin on all platforms
         if (isSuperadmin(user.email)) {
-          const { data: platforms } = await supabase.from('platform').select('id')
-          for (const platform of platforms ?? []) {
-            await supabase.from('platform_member').upsert(
-              { platform_id: platform.id, user_id: user.id, role: 'admin', status: 'approved' },
-              { onConflict: 'platform_id,user_id' }
-            )
+          // RLS does not let a not-yet-admin grant themselves admin, so use the service role
+          if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+            console.error('[auth/callback] SUPABASE_SERVICE_ROLE_KEY missing — cannot grant superadmin rights')
+          } else {
+            const admin = createAdminClient()
+            const { data: platforms } = await admin.from('platform').select('id')
+            const rows = (platforms ?? []).map((p) => ({ platform_id: p.id, user_id: user.id, role: 'admin', status: 'approved' }))
+            const { error: upsertError } = rows.length
+              ? await admin.from('platform_member').upsert(rows, { onConflict: 'platform_id,user_id' })
+              : { error: null }
+            if (upsertError) console.error('[auth/callback] superadmin upsert failed:', upsertError.message)
           }
         }
 

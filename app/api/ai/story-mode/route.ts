@@ -1,7 +1,7 @@
 import { generateText } from '@/lib/ai/client'
 import { parseJsonObject } from '@/lib/ai/json'
 import { AUROVILLE_CONTEXT } from '@/lib/ai/context'
-import { apiRoute, badRequest, HttpError, readJson } from '@/lib/api/handler'
+import { apiRoute, badRequest, HttpError, readJson, requireUser } from '@/lib/api/handler'
 
 export const maxDuration = 120
 
@@ -20,6 +20,7 @@ You will receive a governance proposal. Return a JSON object with exactly these 
 "comicPrompt": Image prompt (max 60 words) for a comic illustration. Include: specific visual elements from the proposal, Auroville tropical backdrop with palm trees and earth buildings, cheerful community members. End with: "flat design illustration, bold outlines, vibrant colors, cartoon style, 2D art".`
 
 export const POST = apiRoute(async (req) => {
+  await requireUser()
   const { proposalText, topicTitle } = await readJson<{ proposalText?: string; topicTitle?: string }>(req)
   if (!proposalText) throw badRequest('No proposal text')
 

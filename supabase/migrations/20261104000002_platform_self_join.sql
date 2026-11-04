@@ -15,4 +15,6 @@ CREATE POLICY "platform_member_insert" ON public.platform_member
     )
     -- global admins can add anyone
     OR EXISTS (SELECT 1 FROM public.member WHERE id = auth.uid() AND is_admin = true)
+    -- platform admins can add members to their own platform
+    OR public.is_platform_admin(platform_id)
   );

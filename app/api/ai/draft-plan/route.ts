@@ -1,6 +1,6 @@
 import { generateText } from '@/lib/ai/client'
 import { parseJsonObject } from '@/lib/ai/json'
-import { apiRoute, badRequest, forbidden, readJson, requireUser } from '@/lib/api/handler'
+import { apiRoute, badRequest, forbidden, readJson, requireUser, HttpError } from '@/lib/api/handler'
 import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 
 export const POST = apiRoute(async (req) => {
@@ -87,11 +87,14 @@ ${sectionKeys}
 
 Respond ONLY with a JSON object where keys are the section keys and values are the markdown content strings. No other text, no markdown code fences.`,
   })
-  const sections = parseJsonObject<Record<string, string>>(raw) ?? {}
+  const sections = parseJsonObject<Record<string, string>>(raw)
+  // Never overwrite existing plan content with blanks when the model reply is unusable
+  if (!sections) throw new HttpError(502, 'The AI reply could not be read. Nothing was changed — please try again.')
 
   // Upsert sections into DB
   for (const tmpl of SECTION_TEMPLATE) {
-    const content = sections[tmpl.key] ?? ''
+    const content = sections[tmpl.key]
+    if (typeof content !== 'string' || !content.trim()) continue // keep what is already there
     await supabase.from('ev_execution_sections').upsert(
       {
         plan_id: planId,
@@ -106,5 +109,6 @@ Respond ONLY with a JSON object where keys are the section keys and values are t
     )
   }
 
-  return { success: true, sectionCount: SECTION_TEMPLATE.length }
+  const written = SECTION_TEMPLATE.filter((t) => typeof sections[t.key] === 'string' && sections[t.key].trim()).length
+  return { success: true, sectionCount: written }
 })

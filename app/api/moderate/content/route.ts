@@ -1,12 +1,13 @@
 import { generateText } from '@/lib/ai/client'
 import { parseJsonObject } from '@/lib/ai/json'
-import { apiRoute, readJson } from '@/lib/api/handler'
+import { apiRoute, readJson, requireUser } from '@/lib/api/handler'
 
 // Module 103: Hate Speech Filter — screens statement text before insert
 const SYSTEM_PROMPT =
   'You are a content moderation assistant. Analyze the given text and return JSON with this exact shape: {"flagged": true or false, "reason": "brief reason if flagged, else null"}. Flag the text if it contains hate speech, personal insults directed at a specific person or group, slurs, or explicit threats. Do NOT flag normal disagreement, criticism of ideas, strong opinions, or passionate language. Return ONLY valid JSON — no explanation, no markdown.'
 
 export const POST = apiRoute(async (req) => {
+  await requireUser()
   const { text } = await readJson<{ text?: unknown }>(req)
   if (typeof text !== 'string' || !text.trim()) return { flagged: false }
 

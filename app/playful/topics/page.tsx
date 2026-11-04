@@ -1,15 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 import { redirect } from 'next/navigation'
 import { getCurrentPlatformId } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
 
-const CUTOFF = '2026-04-30'
 
 function isNew(createdAt: string) {
-  return createdAt >= CUTOFF
+  return createdAt >= NEW_TOPIC_CUTOFF
 }
 
 function TopicButton({ issue }: { issue: { id: string; title: string; created_at: string } }) {

@@ -25,7 +25,9 @@ function describeAuthError(code: string | null): string | null {
   if (code === 'auth_failed') {
     return 'Sign-in could not be completed. Please try again — and open the link in the same browser you started in.'
   }
-  return `Sign-in failed: ${code}`
+  if (/access[_ ]denied/i.test(code)) return 'Sign-in was cancelled. Please try again.'
+  // Never echo arbitrary query text back to the user (content spoofing)
+  return 'Sign-in failed. Please try again, or use the email link below.'
 }
 
 export default function LoginPage() {
