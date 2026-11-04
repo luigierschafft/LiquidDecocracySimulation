@@ -1,9 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { PROTECTED_ROUTES, ADMIN_ROUTES } from '@/lib/config/routes'
-import { PLATFORM_COOKIE } from '@/lib/platform/constants'
-
-const PLATFORM_EXEMPT = ['/auth', '/platform-select', '/api', '/_next']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -32,7 +29,6 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname
   const isProtected = PROTECTED_ROUTES.some((r) => path.startsWith(r))
   const isAdmin = ADMIN_ROUTES.some((r) => path.startsWith(r))
-  const isPlatformExempt = PLATFORM_EXEMPT.some((r) => path.startsWith(r)) || path === '/'
 
   // 1. Auth guard: redirect to login if not authenticated
   if ((isProtected || isAdmin) && !user) {
@@ -52,16 +48,6 @@ export async function middleware(request: NextRequest) {
 
     if (!member?.is_admin) {
       return NextResponse.redirect(new URL('/', request.url))
-    }
-  }
-
-  // 3. Platform guard: authenticated users without a platform cookie go to platform-select
-  if (user && !isPlatformExempt) {
-    const platformCookie = request.cookies.get(PLATFORM_COOKIE)?.value
-    if (!platformCookie) {
-      return NextResponse.redirect(
-        new URL(`/platform-select?next=${encodeURIComponent(path)}`, request.url)
-      )
     }
   }
 

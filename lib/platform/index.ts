@@ -1,19 +1,17 @@
-import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import type { Platform } from '@/lib/types'
-import { DEFAULT_PLATFORM_SLUG, PLATFORM_COOKIE } from './constants'
+import { DEFAULT_PLATFORM_SLUG } from './constants'
 
-export { PLATFORM_COOKIE } from './constants'
+export { DEFAULT_PLATFORM_SLUG } from './constants'
 
-/** Slug of the active platform: the user's choice, else the public default. */
+/** Slug of the active platform (single-platform mode: always the default). */
 export function getPlatformSlug(): string {
-  return cookies().get(PLATFORM_COOKIE)?.value ?? DEFAULT_PLATFORM_SLUG
+  return DEFAULT_PLATFORM_SLUG
 }
 
 export async function getCurrentPlatform(): Promise<Platform | null> {
-  const slug = getPlatformSlug()
   const supabase = createClient()
-  const { data } = await supabase.from('platform').select('*').eq('slug', slug).single()
+  const { data } = await supabase.from('platform').select('*').eq('slug', getPlatformSlug()).single()
   return data ?? null
 }
 

@@ -3,6 +3,20 @@ import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { safeRedirectPath } from '@/lib/utils'
 import { AUTH_NEXT_COOKIE } from '@/lib/auth/constants'
+import { getCurrentPlatformId } from '@/lib/platform'
+
+const UNIQUE_VIOLATION = '23505' // already a member
+
+async function ensurePlatformMembership(supabase: ReturnType<typeof createClient>, userId: string) {
+  const platformId = await getCurrentPlatformId()
+  if (!platformId) return
+  const { error } = await supabase
+    .from('platform_member')
+    .insert({ platform_id: platformId, user_id: userId, role: 'member', status: 'approved' })
+  if (error && error.code !== UNIQUE_VIOLATION) {
+    console.error('[auth/callback] could not add platform membership:', error.message)
+  }
+}
 
 /** Comma-separated emails that are auto-approved as admin on every platform. */
 function isSuperadmin(email: string | undefined): boolean {
@@ -41,29 +55,8 @@ export async function GET(request: Request) {
           }
         }
 
-        // Check how many approved platforms the user belongs to
-        const { data: memberships } = await supabase
-          .from('platform_member')
-          .select('platform_id, platform:platform(slug)')
-          .eq('user_id', user.id)
-          .eq('status', 'approved')
-
-        const approved = memberships ?? []
-
-        if (approved.length === 1) {
-          const slug = (approved[0] as any).platform?.slug as string | undefined
-          if (slug) {
-            // Auto-select the single platform and redirect
-            return NextResponse.redirect(
-              new URL(`/api/platform/switch?slug=${encodeURIComponent(slug)}&next=${encodeURIComponent(next)}`, request.url)
-            )
-          }
-        }
-
-        // 0 or multiple platforms — let user choose
-        return NextResponse.redirect(
-          new URL(`/platform-select?next=${encodeURIComponent(next)}`, request.url)
-        )
+        // Single-platform mode: every member joins the default platform automatically
+        await ensurePlatformMembership(supabase, user.id)
       }
 
       return NextResponse.redirect(new URL(next, request.url))

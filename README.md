@@ -43,7 +43,6 @@ app/                  Routes (pages + API)
     vote/             All voting endpoints (use lib/voting/castVote)
     admin/ cron/      Scheduled + admin-only jobs (Vercel Cron, see vercel.json)
     play/             AI chat / data endpoints for the playful UI
-    platform/         Multi-tenant platform switching / joining
   topics/             Classic topic pages (discussion → proposals → plan)
   playful/            Playful topic pages
   admin/              Admin console
@@ -54,7 +53,7 @@ lib/                  Shared logic ("tools") — no React here
   ai/                 generateText() (single AI entry point), JSON parsing, shared prompt context
   voting/             castVote() with delegation, approval + Schulze counting
   delegation/         Transitive proxy-vote resolution
-  platform/           Current-platform lookup (cookie based)
+  platform/           Active platform (single-platform mode: Auroville)
   modules/            Feature-module flags (admin + per-user)
   process/            Phase engine for the issue lifecycle
   supabase/           Supabase clients: server (RLS), browser, admin (service role)

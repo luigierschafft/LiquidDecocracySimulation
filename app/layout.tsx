@@ -7,7 +7,6 @@ import { getEffectiveModules } from '@/lib/modules'
 import { MeditationProvider } from '@/components/meditation/MeditationProvider'
 import { ModulesProvider } from '@/components/ModulesContext'
 import { AurovilleTextBanner } from '@/components/layout/AurovilleTextBanner'
-import { getCurrentPlatform } from '@/lib/platform'
 
 // Classic UI body font: humanist sans, chosen for readability of long discussions
 const sourceSans = Source_Sans_3({
@@ -36,10 +35,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Load admin-level module defaults for nav visibility (no userId = global defaults)
-  const [modules, currentPlatform] = await Promise.all([
-    getEffectiveModules(null),
-    getCurrentPlatform(),
-  ])
+  const modules = await getEffectiveModules(null)
 
   return (
     <html lang="en">
@@ -47,7 +43,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Navbar
           showDelegation={modules.delegation}
           showNotifications={modules.notifications}
-          currentPlatformName={currentPlatform?.name ?? null}
         />
         <ModulesProvider
           value={{
