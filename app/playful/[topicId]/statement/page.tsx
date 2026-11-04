@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { PlayHeader } from '@/components/play/PlayHeader'
 import { StatementSwiper } from '@/components/play/StatementSwiper'
 
 export const dynamic = 'force-dynamic'
@@ -35,10 +35,9 @@ export default async function PlayStatementPage({ params }: { params: { topicId:
     : { data: [] }
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
-
-      <div className="w-full max-w-xs relative mb-6">
-        <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>
+    <div className="mx-auto w-full max-w-sm pb-16 flex flex-col items-center">
+      <div className="w-full">
+        <PlayHeader backHref={`/playful/${issue.id}`} section="Pros and cons" title={issue.title} />
       </div>
 
       <StatementSwiper
@@ -47,10 +46,6 @@ export default async function PlayStatementPage({ params }: { params: { topicId:
         topicTitle={issue.title}
         nodes={nodes ?? []}
       />
-
-      <Link href={`/playful/${issue.id}`} className="mt-6 text-xs text-gray-400 underline">
-        ← Back
-      </Link>
     </div>
   )
 }

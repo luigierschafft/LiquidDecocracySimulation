@@ -69,23 +69,23 @@ export function SummaryChat({ context }: Props) {
   }
 
   return (
-    <div className="w-full max-w-xs space-y-4">
+    <div className="w-full space-y-4">
 
       {/* Summary box */}
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-4">
+      <div className="play-card">
         {summaryLoading && (
-          <p className="text-xs text-gray-400 animate-pulse text-center">Reading the discussion…</p>
+          <p className="text-[15px] font-semibold text-gray-400 animate-pulse text-center">Reading the discussion…</p>
         )}
         {summaryError && (
-          <p className="text-xs text-red-400 text-center">Could not generate summary right now.</p>
+          <p className="text-[15px] font-semibold text-contra text-center">Could not generate summary right now.</p>
         )}
         {summary && (
-          <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+          <div className="text-[15px] font-semibold text-gray-700 leading-relaxed space-y-3">
             {summary.split('\n').map((line, i) => {
               const trimmed = line.trim()
               if (!trimmed) return null
               if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-                return <p key={i} className="font-bold text-gray-900 text-base mt-2">{trimmed.replace(/\*\*/g, '')}</p>
+                return <p key={i} className="font-fun font-semibold text-gray-900 text-lg mt-2">{trimmed.replace(/\*\*/g, '')}</p>
               }
               if (/^\d+\./.test(trimmed)) {
                 return <p key={i} className="ml-3">• {trimmed.replace(/^\d+\.\s*/, '')}</p>
@@ -107,10 +107,10 @@ export function SummaryChat({ context }: Props) {
         <div className="space-y-3">
           {history.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
+              <div className={`max-w-[85%] rounded-3xl px-4 py-2.5 text-[15px] font-semibold leading-relaxed ${
                 msg.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-amber-50 border border-amber-200 text-gray-700'
+                  ? 'bg-sky text-white rounded-br-lg'
+                  : 'bg-white text-gray-700 shadow-cushion-white rounded-bl-lg'
               }`}>
                 {msg.text}
               </div>
@@ -118,7 +118,7 @@ export function SummaryChat({ context }: Props) {
           ))}
           {chatLoading && (
             <div className="flex justify-start">
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl px-3 py-2 text-xs text-gray-400 animate-pulse">
+              <div className="bg-white rounded-3xl px-4 py-2.5 text-[15px] font-semibold text-gray-400 animate-pulse">
                 Thinking…
               </div>
             </div>
@@ -131,7 +131,7 @@ export function SummaryChat({ context }: Props) {
       {summary && history.length === 0 && (
         <button
           onClick={() => sendMessage('Yes, tell me more!')}
-          className="w-full bg-amber-100 hover:bg-amber-200 border border-amber-300 text-amber-800 text-sm font-medium py-2 px-4 rounded-2xl transition-colors text-center"
+          className="play-btn-white !min-h-[52px] !py-3 !text-base"
         >
           Yes, tell me more! →
         </button>
@@ -140,7 +140,7 @@ export function SummaryChat({ context }: Props) {
       {/* Mongoose + hint */}
       {history.length === 0 && !summaryLoading && (
         <div className="flex flex-col items-center gap-2">
-          <p className="text-xs text-gray-500 text-center max-w-[200px] leading-relaxed">
+          <p className="text-[15px] font-semibold text-gray-600 text-center max-w-[260px] leading-relaxed">
             Ask me anything about this discussion — I&apos;ll only answer based on what the community has shared.
           </p>
           <Mascot pose="wave" size="md" />
@@ -156,12 +156,12 @@ export function SummaryChat({ context }: Props) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleSend() }}
             placeholder="Ask about this topic…"
-            className="flex-1 border border-gray-300 rounded-2xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="flex-1 min-w-0 h-12 bg-white rounded-full px-5 text-base font-semibold shadow-cushion-white placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-sun-300/50"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || chatLoading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:opacity-40 text-white text-sm px-4 py-2 rounded-2xl font-medium transition-colors"
+            className="h-12 px-5 rounded-full font-fun font-semibold text-base text-sun-900 bg-gradient-to-b from-sun-300 to-sun-500 shadow-cushion active:translate-y-[2px] active:shadow-none disabled:opacity-40 transition-transform"
           >
             →
           </button>

@@ -80,6 +80,9 @@ h1, h2, h3 {
   .play-btn-white {
     @apply play-btn bg-white text-gray-800 shadow-cushion-white active:shadow-none;
   }
+  .play-card {
+    @apply bg-white rounded-3xl shadow-cushion-white p-5;
+  }
   .play-btn-muted {
     @apply play-btn bg-white/60 text-gray-400 cursor-not-allowed;
   }

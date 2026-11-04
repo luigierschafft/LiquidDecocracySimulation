@@ -66,8 +66,8 @@ export default function LoginPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center px-4">
-        <div className="card max-w-sm w-full text-center space-y-4">
+      <div className="min-h-[80vh] flex items-start sm:items-center justify-center px-4 pt-24 pb-10 bg-dawn">
+        <div className="card max-w-sm w-full text-center space-y-4 !p-7">
           <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
             <svg className="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -87,33 +87,33 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="card max-w-sm w-full space-y-6">
+    <div className="min-h-[80vh] flex items-start sm:items-center justify-center px-4 pt-24 pb-10 bg-dawn">
+      <div className="card max-w-sm w-full space-y-6 !p-7">
         <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold">Sign in</h1>
-          <p className="text-sm text-foreground/60">Join the Auroville community platform</p>
+          <h1 className="text-[1.75rem] font-extrabold text-gray-900">Sign in</h1>
+          <p className="text-[15px] text-gray-500">Join the Auroville community platform</p>
         </div>
 
         {/* Google Login */}
         <button
           onClick={handleGoogle}
           disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 border border-sand rounded-lg px-4 py-2.5 text-sm font-medium hover:bg-sand/30 transition-colors disabled:opacity-50"
+          className="w-full flex items-center justify-center gap-3 h-12 bg-white border border-gray-300 rounded-xl px-4 text-[15px] font-semibold text-gray-800 hover:bg-gray-50 transition-colors disabled:opacity-50"
         >
           <GoogleIcon />
           {googleLoading ? 'Redirecting…' : 'Continue with Google'}
         </button>
 
         <div className="flex items-center gap-3">
-          <hr className="flex-1 border-sand" />
-          <span className="text-xs text-foreground/30">or</span>
-          <hr className="flex-1 border-sand" />
+          <hr className="flex-1 border-line" />
+          <span className="text-sm text-gray-400">or</span>
+          <hr className="flex-1 border-line" />
         </div>
 
         {/* Magic Link */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-1.5">
+            <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1.5">
               Email (magic link)
             </label>
             <input
@@ -126,7 +126,7 @@ export default function LoginPage() {
               className="input"
             />
           </div>
-          {error && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{error}</p>}
+          {error && <p className="text-sm text-contra bg-contra-soft px-4 py-2.5 rounded-xl">{error}</p>}
           <Button type="submit" loading={loading} className="w-full">
             Send magic link
           </Button>

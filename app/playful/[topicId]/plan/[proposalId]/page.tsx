@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { PlayHeader } from '@/components/play/PlayHeader'
 import { ProjectHeader } from '@/components/execution/ProjectHeader'
 import { TaskBoard } from '@/components/execution/TaskBoard'
 import { TeamList } from '@/components/execution/TeamList'
@@ -37,33 +37,27 @@ export default async function PlayProposalPlanPage({ params }: { params: { topic
   if (!issue) notFound()
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 px-4 pt-6 pb-16">
+    <div className="pb-16">
       <div className="max-w-2xl mx-auto space-y-6">
 
         {/* Header */}
-        <div>
-          <Link href={`/playful/${params.topicId}/plan`} className="text-xs text-gray-400 underline">
-            ← Back to Plans
-          </Link>
-          <h1 className="text-xl font-black text-gray-900 leading-tight mt-2">{issue.title}</h1>
-          <p className="text-sm text-amber-600 font-semibold mt-0.5">Project Plan</p>
-        </div>
+        <PlayHeader backHref={`/playful/${params.topicId}/plan`} backLabel="Plans" section="Project plan" title={issue.title} />
 
         {/* Proposal text */}
         {proposal && (
-          <div className="bg-white rounded-[1.5rem] border border-amber-200 shadow-sm overflow-hidden">
-            <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-5 py-2">
-              <span className="text-white font-black text-sm">Proposal</span>
+          <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+            <div className="px-5 pt-4">
+              <span className="font-fun font-semibold text-[17px] text-gray-800">Proposal</span>
             </div>
             <div className="px-5 py-4">
-              <p className="text-sm text-gray-800 leading-relaxed">{proposal.text}</p>
+              <p className="text-base font-semibold text-gray-800 leading-relaxed">{proposal.text}</p>
             </div>
           </div>
         )}
 
         {!plan ? (
           /* No plan yet */
-          <div className="bg-white rounded-[1.5rem] border border-amber-200 shadow-sm px-6 py-12 text-center space-y-4">
+          <div className="bg-white rounded-3xl shadow-cushion-white px-6 py-12 text-center space-y-4">
             <div className="text-5xl">🗺️</div>
             <p className="text-gray-700 font-semibold">No project plan yet</p>
             <p className="text-sm text-gray-400">
@@ -151,9 +145,9 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
     <div className="space-y-5">
 
       {/* Project header */}
-      <div className="bg-white rounded-[1.5rem] border border-amber-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-violet-400 to-violet-500 px-5 py-2">
-          <span className="text-white font-black text-sm">Overview</span>
+      <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+        <div className="px-5 pt-4">
+              <span className="font-fun font-semibold text-[17px] text-gray-800">Overview</span>
         </div>
         <div className="p-5">
           <ProjectHeader plan={plan} />
@@ -162,17 +156,17 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
 
       {/* Team + Milestones */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-white rounded-[1.5rem] border border-blue-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-400 to-blue-500 px-5 py-2">
-            <span className="text-white font-black text-sm">Team</span>
+        <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+          <div className="px-5 pt-4">
+              <span className="font-fun font-semibold text-[17px] text-gray-800">Team</span>
           </div>
           <div className="p-4">
             <TeamList team={team} planId={plan.id} userId={user?.id ?? null} />
           </div>
         </div>
-        <div className="bg-white rounded-[1.5rem] border border-teal-200 shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-teal-400 to-teal-500 px-5 py-2">
-            <span className="text-white font-black text-sm">Milestones</span>
+        <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+          <div className="px-5 pt-4">
+              <span className="font-fun font-semibold text-[17px] text-gray-800">Milestones</span>
           </div>
           <div className="p-4">
             <MilestoneTimeline milestones={plan.milestones ?? []} planId={plan.id} userId={user?.id ?? null} />
@@ -181,9 +175,9 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
       </div>
 
       {/* Sections */}
-      <div className="bg-white rounded-[1.5rem] border border-green-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-green-400 to-green-500 px-5 py-2 flex items-center justify-between">
-          <span className="text-white font-black text-sm">Plan Sections</span>
+      <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+        <div className="px-5 pt-4 flex items-center justify-between gap-2">
+          <span className="font-fun font-semibold text-[17px] text-gray-800">Plan sections</span>
           {isLead && allSectionsEmpty && (
             <GenerateDraftButton planId={plan.id} issueId={params.topicId} />
           )}
@@ -204,9 +198,9 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
       </div>
 
       {/* Task board */}
-      <div className="bg-white rounded-[1.5rem] border border-orange-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-orange-400 to-orange-500 px-5 py-2">
-          <span className="text-white font-black text-sm">Tasks</span>
+      <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+        <div className="px-5 pt-4">
+              <span className="font-fun font-semibold text-[17px] text-gray-800">Tasks</span>
         </div>
         <div className="p-4">
           <TaskBoard tasks={plan.tasks ?? []} planId={plan.id} userId={user?.id ?? null} />
@@ -214,9 +208,9 @@ async function PlayfulPlanContent({ plan, params, user }: { plan: any; params: {
       </div>
 
       {/* Comments */}
-      <div className="bg-white rounded-[1.5rem] border border-amber-200 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-amber-400 to-orange-400 px-5 py-2">
-          <span className="text-white font-black text-sm">Discussion</span>
+      <div className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
+        <div className="px-5 pt-4">
+              <span className="font-fun font-semibold text-[17px] text-gray-800">Discussion</span>
         </div>
         <div className="p-4">
           <ExecutionComments planId={plan.id} userId={user?.id ?? null} comments={sortedComments} />

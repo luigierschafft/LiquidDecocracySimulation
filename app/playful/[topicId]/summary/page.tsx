@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { PlayHeader } from '@/components/play/PlayHeader'
 import { SummaryChat } from '@/components/play/SummaryChat'
 
 export const dynamic = 'force-dynamic'
@@ -88,25 +88,17 @@ export default async function PlaySummaryPage({ params }: { params: { topicId: s
   const context = lines.join('\n')
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
-
-      {/* Header */}
-      <div className="w-full max-w-xs mb-5 text-center">
-        <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>
-        <span className="text-sm font-bold text-gray-400">Summary</span>
-        {(issue as any).description && (
-          <div className="mt-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 text-left">
-            <p className="text-xs font-semibold text-amber-700 mb-1">About this topic</p>
-            <p className="text-xs text-gray-600 leading-relaxed">{(issue as any).description}</p>
-          </div>
-        )}
+    <div className="mx-auto w-full max-w-sm pb-16 flex flex-col items-center">
+      <div className="w-full">
+        <PlayHeader
+          backHref={`/playful/${issue.id}`}
+          section="Summary"
+          title={issue.title}
+          description={(issue as any).description}
+        />
       </div>
 
       <SummaryChat context={context} topicId={issue.id} />
-
-      <Link href={`/playful/${issue.id}`} className="mt-8 text-xs text-gray-400 underline">
-        ← Back
-      </Link>
     </div>
   )
 }

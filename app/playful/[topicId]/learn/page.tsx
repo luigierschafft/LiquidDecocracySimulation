@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { PlayHeader } from '@/components/play/PlayHeader'
 import { LearnChat } from '@/components/play/LearnChat'
 
 export const dynamic = 'force-dynamic'
@@ -48,21 +48,12 @@ export default async function PlayLearnPage({ params }: { params: { topicId: str
   const context = lines.join('\n')
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
-
-      {/* Header */}
-      <div className="w-full max-w-xs relative mb-6">
-        <h1 className="text-xl font-black text-gray-900 pr-16 leading-tight">
-          {issue.title}<br />
-          <span className="text-lg font-extrabold text-gray-500">Learn</span>
-        </h1>
+    <div className="mx-auto w-full max-w-sm pb-16 flex flex-col items-center">
+      <div className="w-full">
+        <PlayHeader backHref={`/playful/${issue.id}`} section="Learn more" title={issue.title} />
       </div>
 
       <LearnChat context={context} />
-
-      <Link href={`/playful/${issue.id}`} className="mt-8 text-xs text-gray-400 underline">
-        ← Back
-      </Link>
     </div>
   )
 }

@@ -124,7 +124,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
   if (statements.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 mt-8">
-        <p className="text-sm text-gray-400 text-center">No statements yet for this topic.</p>
+        <p className="font-fun font-semibold text-lg text-gray-700 text-center">No statements yet for this topic.</p>
         <Mascot pose="thinking" size="md" />
       </div>
     )
@@ -133,20 +133,20 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
   if (index >= statements.length) {
     return (
       <div className="flex flex-col items-center gap-4 mt-8">
-        <p className="text-base font-bold text-gray-700 text-center">You&apos;ve seen all statements! 🎉</p>
+        <p className="font-fun font-semibold text-xl text-gray-800 text-center">You&apos;ve seen all statements!</p>
         <Mascot pose="wave" size="md" />
-        <button onClick={() => setIndex(0)} className="mt-4 text-xs text-gray-400 underline">Start over</button>
+        <button onClick={() => setIndex(0)} className="mt-2 play-btn-white !w-auto !min-h-[48px] !py-2.5 !text-base">Start over</button>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col items-center w-full max-w-xs">
+    <div className="flex flex-col items-center w-full">
 
       {/* Write New Statement — top */}
       {!showForm && !submitted && (
         <button onClick={() => setShowForm(true)} className="w-full mb-4">
-          <div className="bg-pink-200 hover:bg-pink-300 rounded-full px-6 py-2.5 text-sm font-bold text-gray-700 shadow active:scale-95 transition-transform text-center">
+          <div className="play-btn-white !min-h-[52px] !py-3 !text-base">
             Write a new statement
           </div>
         </button>
@@ -160,7 +160,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
             placeholder="Write your statement… (max 200 characters)"
             maxLength={200}
             rows={3}
-            className="w-full border border-gray-300 rounded-2xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-pink-300"
+            className="w-full bg-white rounded-3xl px-5 py-4 text-base font-semibold resize-none shadow-cushion-white focus:outline-none focus:ring-4 focus:ring-sun-300/50"
             autoFocus
           />
           <div className="flex gap-2">
@@ -182,11 +182,11 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
                 setSubmitting(false)
               }}
               disabled={!newText.trim() || submitting}
-              className="flex-1 bg-pink-400 hover:bg-pink-500 disabled:opacity-40 text-white text-sm font-bold py-2 rounded-full transition-colors"
+              className="flex-1 h-12 rounded-full font-fun font-semibold text-base text-sun-900 bg-gradient-to-b from-sun-300 to-sun-500 shadow-cushion active:translate-y-[2px] active:shadow-none disabled:opacity-40 transition-transform"
             >
               {submitting ? 'Sending…' : 'Submit'}
             </button>
-            <button onClick={() => setShowForm(false)} className="px-4 text-sm text-gray-400 hover:text-gray-600">
+            <button onClick={() => setShowForm(false)} className="px-4 h-12 text-base font-bold text-gray-500 hover:text-gray-700">
               Cancel
             </button>
           </div>
@@ -194,37 +194,37 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
       )}
 
       {submitted && (
-        <p className="mb-4 text-xs text-green-600 font-medium text-center">
+        <p className="mb-4 text-[15px] text-pro font-bold text-center">
           Statement submitted! It will appear in the discussion.
         </p>
       )}
 
       {/* Pass arrow */}
-      <button onClick={() => swipe('up')} className="flex flex-col items-center mb-3 active:scale-95 transition-transform">
-        <div className="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-b-[28px] border-b-amber-400" />
-        <span className="text-xs font-bold text-amber-600 mt-0.5">Pass</span>
+      <button onClick={() => swipe('up')} className="flex flex-col items-center justify-center mb-3 min-h-[48px] px-4 active:scale-95 transition-transform">
+        <div className="w-0 h-0 border-l-[18px] border-l-transparent border-r-[18px] border-r-transparent border-b-[28px] border-b-sun-400" />
+        <span className="font-fun font-semibold text-[15px] text-sun-700 mt-0.5">Pass</span>
       </button>
 
       {/* Statement card */}
       <div
         {...swipeHandlers}
         style={cardStyle}
-        className="w-full bg-yellow-50 border border-yellow-200 rounded-2xl px-5 py-6 cursor-grab active:cursor-grabbing select-none touch-none"
+        className="w-full bg-white rounded-3xl shadow-lift px-6 py-8 cursor-grab active:cursor-grabbing select-none touch-none"
       >
-        <p className="text-sm font-semibold text-gray-800 text-center leading-relaxed">
+        <p className="font-fun font-medium text-xl text-gray-800 text-center leading-snug">
           {current.text}
         </p>
       </div>
 
       {/* Agree / Disagree */}
-      <div className="flex justify-between w-full mt-4 px-4">
-        <button onClick={() => swipe('left')} className="flex items-center gap-1.5 active:scale-95 transition-transform">
-          <div className="w-0 h-0 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent border-r-[22px] border-r-amber-400" />
-          <span className="text-xs font-bold text-amber-600">Disagree</span>
+      <div className="flex justify-between w-full mt-4 px-1">
+        <button onClick={() => swipe('left')} className="flex items-center gap-2 min-h-[48px] px-3 active:scale-95 transition-transform">
+          <div className="w-0 h-0 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent border-r-[22px] border-r-contra" />
+          <span className="font-fun font-semibold text-[15px] text-contra">Disagree</span>
         </button>
-        <button onClick={() => swipe('right')} className="flex items-center gap-1.5 active:scale-95 transition-transform">
-          <span className="text-xs font-bold text-amber-600">Agree</span>
-          <div className="w-0 h-0 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent border-l-[22px] border-l-amber-400" />
+        <button onClick={() => swipe('right')} className="flex items-center gap-2 min-h-[48px] px-3 active:scale-95 transition-transform">
+          <span className="font-fun font-semibold text-[15px] text-pro">Agree</span>
+          <div className="w-0 h-0 border-t-[14px] border-t-transparent border-b-[14px] border-b-transparent border-l-[22px] border-l-pro" />
         </button>
       </div>
 
@@ -233,9 +233,9 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
 
         {/* Contra — Left — Red */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold text-red-500 text-center">Contra</span>
+          <span className="font-fun font-semibold text-[15px] text-contra text-center">Contra</span>
           {contras.map((n) => (
-            <div key={n.id} className="text-xs text-red-700 bg-red-50 border border-red-100 rounded-xl px-2 py-1.5 leading-snug">
+            <div key={n.id} className="text-sm font-semibold text-contra bg-contra-soft rounded-2xl px-3 py-2 leading-snug">
               — {n.text}
             </div>
           ))}
@@ -266,7 +266,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
           ) : (
             <button
               onClick={() => { setAddingType('contra'); setAddingText('') }}
-              className="self-center mt-0.5 w-6 h-6 rounded-full bg-red-100 hover:bg-red-200 text-red-500 font-bold text-base leading-none flex items-center justify-center transition-colors"
+              className="self-center mt-0.5 w-10 h-10 rounded-full bg-red-100 hover:bg-red-200 text-red-500 font-bold text-base leading-none flex items-center justify-center transition-colors"
             >
               +
             </button>
@@ -275,9 +275,9 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
 
         {/* Pro — Right — Green */}
         <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold text-green-600 text-center">Pro</span>
+          <span className="font-fun font-semibold text-[15px] text-pro text-center">Pro</span>
           {pros.map((n) => (
-            <div key={n.id} className="text-xs text-green-700 bg-green-50 border border-green-100 rounded-xl px-2 py-1.5 leading-snug">
+            <div key={n.id} className="text-sm font-semibold text-pro bg-pro-soft rounded-2xl px-3 py-2 leading-snug">
               + {n.text}
             </div>
           ))}
@@ -308,7 +308,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
           ) : (
             <button
               onClick={() => { setAddingType('pro'); setAddingText('') }}
-              className="self-center mt-0.5 w-6 h-6 rounded-full bg-green-100 hover:bg-green-200 text-green-600 font-bold text-base leading-none flex items-center justify-center transition-colors"
+              className="self-center mt-0.5 w-10 h-10 rounded-full bg-green-100 hover:bg-green-200 text-green-600 font-bold text-base leading-none flex items-center justify-center transition-colors"
             >
               +
             </button>

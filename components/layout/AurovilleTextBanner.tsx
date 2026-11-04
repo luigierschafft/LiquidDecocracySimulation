@@ -93,13 +93,13 @@ export function AurovilleTextBanner({ enabled }: Props) {
           aria-label="Auroville founding text"
           className={[
             'fixed bottom-0 left-0 right-0 z-40',
-            'bg-amber-50 border-t-2 border-amber-200',
-            'shadow-[0_-4px_24px_rgba(0,0,0,0.08)]',
+            'bg-white rounded-t-3xl border-t border-line',
+            'shadow-[0_-8px_32px_rgba(23,27,34,0.10)]',
             'transition-transform duration-500 ease-out',
             visible ? 'translate-y-0' : 'translate-y-full',
           ].join(' ')}
         >
-          <div className="max-h-[60vh] overflow-y-auto px-6 py-5 max-w-3xl mx-auto">
+          <div className="max-h-[45vh] overflow-y-auto px-6 py-5 max-w-3xl mx-auto">
             {/* Header row */}
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>

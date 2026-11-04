@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { PlayHeader } from '@/components/play/PlayHeader'
+import { Mascot } from '@/components/play/Mascot'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,33 +29,28 @@ export default async function PlayPlanPage({ params }: { params: { topicId: stri
   const list = proposals ?? []
 
   const stepColors = [
-    { border: 'border-violet-200', header: 'from-violet-400 to-violet-500', badge: 'bg-violet-100 text-violet-700' },
-    { border: 'border-blue-200', header: 'from-blue-400 to-blue-500', badge: 'bg-blue-100 text-blue-700' },
-    { border: 'border-cyan-200', header: 'from-cyan-400 to-cyan-500', badge: 'bg-cyan-100 text-cyan-700' },
-    { border: 'border-teal-200', header: 'from-teal-400 to-teal-500', badge: 'bg-teal-100 text-teal-700' },
-    { border: 'border-green-200', header: 'from-green-400 to-green-500', badge: 'bg-green-100 text-green-700' },
+    { dot: '#F5AE3A', badge: 'bg-gray-100 text-gray-700' },
+    { dot: '#4C95DB', badge: 'bg-gray-100 text-gray-700' },
+    { dot: '#6DBA4A', badge: 'bg-gray-100 text-gray-700' },
+    { dot: '#E866A6', badge: 'bg-gray-100 text-gray-700' },
+    { dot: '#33B4C6', badge: 'bg-gray-100 text-gray-700' },
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 px-4 pt-6 pb-16">
-      <div className="max-w-xl mx-auto space-y-6">
+    <div className="pb-16">
+      <div className="max-w-xl mx-auto space-y-5">
 
         {/* Header */}
-        <div>
-          <Link href={`/playful/${params.topicId}`} className="text-xs text-gray-400 underline">
-            ← Back
-          </Link>
-          <h1 className="text-xl font-black text-gray-900 leading-tight mt-2">{issue.title}</h1>
-          <p className="text-sm text-amber-600 font-semibold mt-0.5">Plans</p>
-        </div>
+        <PlayHeader backHref={`/playful/${params.topicId}`} section="Plans" title={issue.title} />
 
         {list.length === 0 ? (
-          <div className="bg-white/80 rounded-[1.5rem] border border-amber-200 shadow-sm px-6 py-12 text-center">
-            <div className="text-4xl mb-3">🗺️</div>
-            <p className="text-gray-500 text-sm">No proposals to plan yet.</p>
+          <div className="play-card px-6 py-10 flex flex-col items-center text-center">
+            <Mascot pose="thinking" size="md" />
+            <p className="mt-3 font-fun font-semibold text-lg text-gray-800">Nothing to plan yet</p>
+            <p className="text-[15px] font-semibold text-gray-500">Plans start from proposals.</p>
             <Link
               href={`/playful/${params.topicId}/proposals`}
-              className="mt-3 inline-block text-xs text-amber-600 underline underline-offset-2"
+              className="mt-4 play-btn-sun !w-auto !min-h-[48px] !py-2.5 !text-base"
             >
               Go to proposals first
             </Link>
@@ -75,19 +72,19 @@ export default async function PlayPlanPage({ params }: { params: { topicId: stri
               const author = p.author?.display_name || p.author?.email || 'Anonymous'
 
               return (
-                <div key={p.id} className={`bg-white rounded-[1.5rem] border ${color.border} shadow-md overflow-hidden`}>
+                <div key={p.id} className="bg-white rounded-3xl shadow-cushion-white overflow-hidden">
                   {/* Colored header */}
-                  <div className={`bg-gradient-to-r ${color.header} px-5 py-3 flex items-center justify-between`}>
+                  <div className="px-5 pt-4 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-white font-black text-sm">#{i + 1}</span>
-                      <span className="text-white/70 text-xs">Proposal</span>
+                      <span className="h-7 min-w-[28px] px-2 rounded-full text-white font-fun font-semibold text-sm inline-flex items-center justify-center" style={{ background: color.dot }}>{i + 1}</span>
+                      <span className="font-fun font-semibold text-[15px] text-gray-500">Proposal</span>
                     </div>
-                    <span className="text-white/70 text-xs">{author}</span>
+                    <span className="text-sm font-semibold text-gray-500 truncate">{author}</span>
                   </div>
 
                   <div className="p-5 space-y-4">
                     {/* Full proposal text */}
-                    <p className="text-sm text-gray-800 leading-relaxed">{p.text}</p>
+                    <p className="text-base font-semibold text-gray-800 leading-relaxed">{p.text}</p>
 
                     {/* Vote bar */}
                     {totalVotes > 0 && (
@@ -120,24 +117,23 @@ export default async function PlayPlanPage({ params }: { params: { topicId: stri
 
                     {/* Stats row */}
                     <div className="flex gap-2 flex-wrap">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${color.badge}`}>
-                        👍 {proCount} pro
+                      <span className={`text-sm font-bold px-3 py-1 rounded-full ${color.badge}`}>
+                        {proCount} pro
                       </span>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${color.badge}`}>
-                        👎 {contraCount} contra
+                      <span className={`text-sm font-bold px-3 py-1 rounded-full ${color.badge}`}>
+                        {contraCount} contra
                       </span>
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${color.badge}`}>
-                        ✏️ {improvements.length} improvements
+                      <span className={`text-sm font-bold px-3 py-1 rounded-full ${color.badge}`}>
+                        {improvements.length} improvements
                       </span>
                     </div>
 
                     {/* CTA */}
                     <Link
                       href={`/playful/${params.topicId}/plan/${p.id}`}
-                      className="flex items-center justify-between bg-gradient-to-r from-amber-400 to-orange-400 rounded-[1.2rem] px-5 py-3 active:scale-95 transition-transform shadow-sm"
+                      className="play-btn-sun !min-h-[52px] !py-3 !text-base"
                     >
-                      <span className="text-sm font-bold text-gray-900">See full project plan</span>
-                      <span className="text-gray-900 text-lg">→</span>
+                      See the full plan
                     </Link>
                   </div>
                 </div>
