@@ -6,7 +6,7 @@
 // Module 49: Opinion Clustering
 // Module 50: Consensus Suggestions
 import { useState } from 'react'
-import { Sparkles, ChevronDown } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 
 type Mode = 'extract' | 'proCon' | 'gaps' | 'cluster' | 'consensus'
 

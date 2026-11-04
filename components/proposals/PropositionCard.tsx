@@ -28,7 +28,6 @@ interface Props {
 export function PropositionCard({
   initiative,
   isAccepted,
-  isAdmin,
   userId,
   editingEnabled = true,
   draftEnabled = false,

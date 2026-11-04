@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Button } from '@/components/ui/Button'
+import { safeRedirectPath } from '@/lib/utils'
 
 function GoogleIcon() {
   return (
@@ -18,7 +19,7 @@ function GoogleIcon() {
 
 export default function LoginPage() {
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') ?? '/topics'
+  const next = safeRedirectPath(searchParams.get('next'))
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)

@@ -36,7 +36,6 @@ export function PhaseProgress({ currentStatus, hasElaboration }: Props) {
         const phaseIdx = PHASE_ORDER.indexOf(phase.key)
         const isPast    = phaseIdx < effectiveIdx
         const isCurrent = phaseIdx === effectiveIdx
-        const isFuture  = phaseIdx > effectiveIdx
 
         return (
           <div key={phase.key} className="flex items-center">

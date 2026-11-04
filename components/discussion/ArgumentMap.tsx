@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect, useCallback } from 'react'
+import { useState, useMemo } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion } from '@/lib/types'
 import { getMemberDisplayName } from '@/lib/utils'

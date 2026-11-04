@@ -1,17 +1,19 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { apiRoute, requireCronSecret } from '@/lib/api/handler'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { NextResponse } from 'next/server'
 import { countVotes } from '@/lib/voting/approval'
 import { computeSchulzeWinner } from '@/lib/voting/computeSchulze'
 import { getActiveConfig } from '@/lib/process/configs'
 import { getNextPhase, getPhaseDuration, getPhaseStart } from '@/lib/process/engine'
 import type { Phase } from '@/lib/process/types'
 
-export async function POST(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  const cronSecret = process.env.CRON_SECRET
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+/**
+ * Advances issues to their next phase when the phase deadline has passed,
+ * or closes voting early when quorum/consensus is reached.
+ * Triggered daily by Vercel Cron (GET, see vercel.json); POST kept for manual runs.
+ */
+const transition = apiRoute(async (request) => {
+  requireCronSecret(request)
 
   const supabase = createAdminClient()
   const config = getActiveConfig()
@@ -80,10 +82,13 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ transitioned, count: transitioned.length })
-}
+  return { transitioned, count: transitioned.length }
+})
 
-async function checkEarlyClose(supabase: any, issue: any, policy: any): Promise<boolean> {
+export const GET = transition
+export const POST = transition
+
+async function checkEarlyClose(supabase: SupabaseClient, issue: any, policy: any): Promise<boolean> {
   if (!policy.close_by_quorum && !policy.close_by_consensus) return false
 
   const { data: initiatives } = await supabase
@@ -115,7 +120,7 @@ async function checkEarlyClose(supabase: any, issue: any, policy: any): Promise<
   return false
 }
 
-async function determineWinner(supabase: any, issueId: string, policy: any): Promise<string | null> {
+async function determineWinner(supabase: SupabaseClient, issueId: string, policy: any): Promise<string | null> {
   if (policy.voting_method === 'schulze') {
     return computeSchulzeWinner(supabase, issueId)
   }

@@ -163,7 +163,7 @@ function pcaProject(matrix: (number | null)[][], m: number): [number, number][] 
   )
 
   const ev1      = powerIter(C, m)
-  const deflated = deflate(C, ev1, m)
+  const deflated = deflate(C, ev1)
   const ev2      = powerIter(deflated, m)
 
   return M.map((row) => [
@@ -186,7 +186,7 @@ function powerIter(C: number[][], n: number, iters = 80): number[] {
   return v
 }
 
-function deflate(C: number[][], v: number[], n: number): number[][] {
+function deflate(C: number[][], v: number[]): number[][] {
   const lambda = v.reduce(
     (s, vi, i) => s + vi * v.reduce((ss, vj, j) => ss + C[i][j] * vj, 0),
     0

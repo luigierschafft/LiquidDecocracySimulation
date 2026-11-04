@@ -11,13 +11,11 @@ import { Menu, X } from 'lucide-react'
 
 interface NavbarProps {
   showDelegation?: boolean
-  showGovernance?: boolean
   showNotifications?: boolean
-  showVotingCycles?: boolean
   currentPlatformName?: string | null
 }
 
-export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false, showVotingCycles = false, currentPlatformName }: NavbarProps) {
+export function Navbar({ showDelegation = true, showNotifications = false, currentPlatformName }: NavbarProps) {
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
@@ -42,7 +40,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
       }
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase])
 
   // Close menu on route change
   useEffect(() => {

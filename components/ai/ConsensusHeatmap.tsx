@@ -14,7 +14,7 @@ interface Props {
   currentUserId: string | null
 }
 
-export function ConsensusHeatmap({ initiatives, currentUserId }: Props) {
+export function ConsensusHeatmap({ initiatives }: Props) {
   if (initiatives.length === 0) return null
 
   function getCell(votes: { value: string; member_id: string }[] = []) {

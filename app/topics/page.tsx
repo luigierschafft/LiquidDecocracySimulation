@@ -1,20 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { ProposalCard } from '@/components/proposals/ProposalCard'
 import Link from 'next/link'
-import type { Issue, IssueStatus } from '@/lib/types'
+import type { Issue } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { getEffectiveModules } from '@/lib/modules'
 import { getCurrentPlatformId } from '@/lib/platform'
 
 export const dynamic = 'force-dynamic'
-
-const STATUS_FILTERS: { value: IssueStatus | 'all'; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'admission', label: 'Discussion' },
-  { value: 'discussion', label: 'Proposition' },
-  { value: 'voting', label: 'Voting' },
-  { value: 'closed', label: 'Closed' },
-]
 
 interface Props {
   searchParams: { status?: string }
@@ -53,8 +45,6 @@ export default async function TopicsPage({ searchParams }: Props) {
   if (filterByStatus) {
     query = query.eq('status', rawStatus)
   }
-
-  const status = rawStatus && validStatuses.includes(rawStatus) ? rawStatus : 'all'
 
   const { data: issues } = await query
 

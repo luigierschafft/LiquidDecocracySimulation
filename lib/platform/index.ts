@@ -1,9 +1,12 @@
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import type { Platform } from '@/lib/types'
+import { PLATFORM_COOKIE } from './constants'
+
+export { PLATFORM_COOKIE } from './constants'
 
 export function getPlatformSlug(): string | null {
-  return cookies().get('x-platform')?.value ?? null
+  return cookies().get(PLATFORM_COOKIE)?.value ?? null
 }
 
 export async function getCurrentPlatform(): Promise<Platform | null> {

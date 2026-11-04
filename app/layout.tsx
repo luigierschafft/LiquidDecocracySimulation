@@ -38,9 +38,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <Navbar
           showDelegation={modules.delegation}
-          showGovernance={modules.governance_rules}
           showNotifications={modules.notifications}
-          showVotingCycles={modules.voting_cycles}
           currentPlatformName={currentPlatform?.name ?? null}
         />
         <ModulesProvider

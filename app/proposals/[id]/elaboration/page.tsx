@@ -1,10 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import type { Elaboration, ElaborationSection, ElaborationComment, ElaborationEditor, Member } from '@/lib/types'
+import type { ElaborationSection, ElaborationComment, ElaborationEditor, Member } from '@/lib/types'
 import { SectionEditor } from '@/components/elaboration/SectionEditor'
 import { ManageEditors } from '@/components/elaboration/ManageEditors'
-import { getMemberDisplayName } from '@/lib/utils'
 import { ArrowLeft, Plus, FileEdit } from 'lucide-react'
 import Link from 'next/link'
 

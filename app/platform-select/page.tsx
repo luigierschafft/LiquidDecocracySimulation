@@ -1,3 +1,4 @@
+import { safeRedirectPath } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { PlatformSelectClient } from './PlatformSelectClient'
@@ -15,7 +16,7 @@ export default async function PlatformSelectPage({ searchParams }: Props) {
 
   if (!user) redirect('/auth/login')
 
-  const next = searchParams.next ?? '/topics'
+  const next = safeRedirectPath(searchParams.next)
 
   const [{ data: allPlatforms }, { data: myMemberships }] = await Promise.all([
     supabase.from('platform').select('*').order('created_at'),

@@ -9,7 +9,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     const SEPARATION = 150;
     const AMOUNTX = 40;
@@ -24,7 +25,7 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
 
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     const positions: number[] = [];
     const colors: number[] = [];
@@ -82,8 +83,8 @@ export function DottedSurface({ className, ...props }: DottedSurfaceProps) {
         }
       });
       renderer.dispose();
-      if (containerRef.current && renderer.domElement.parentNode === containerRef.current) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (container && renderer.domElement.parentNode === container) {
+        container.removeChild(renderer.domElement);
       }
     };
   }, []);
