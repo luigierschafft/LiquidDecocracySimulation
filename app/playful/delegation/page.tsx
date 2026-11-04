@@ -1,3 +1,4 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -20,7 +21,7 @@ export default async function PlayDelegationPage() {
       .from('member')
       .select('id, display_name, email')
       .neq('id', user.id)
-      .eq('is_approved', true)
+      .in('is_approved', ACTIVE_MEMBER_APPROVAL)
       .order('display_name'),
     supabase.from('area').select('id, name').order('name'),
     supabase.from('issue').select('id, title').neq('status', 'draft').order('title'),

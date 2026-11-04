@@ -98,7 +98,7 @@ function KialoCard({ node, userId, onNavigate }: CardProps) {
         isPro ? 'border-l-4 border-l-green-400 border-gray-100' : 'border-l-4 border-l-red-400 border-gray-100'
       }`}
     >
-      <p className="text-sm text-gray-800 leading-snug">{node.text}</p>
+      <p className="text-base text-gray-800 leading-snug">{node.text}</p>
 
       <MiniScale nodeId={node.id} userId={userId} />
 
@@ -132,6 +132,7 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded, onNa
   const [adding, setAdding] = useState(false)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const isPro = type === 'pro'
   const borderColor = isPro ? 'border-green-200' : 'border-red-200'
@@ -145,8 +146,9 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded, onNa
   async function handleAdd() {
     if (!text.trim() || !userId) return
     setLoading(true)
+    setError(null)
     const supabase = createClient()
-    await supabase.from('ev_discussion_nodes').insert({
+    const { error: insertError } = await supabase.from('ev_discussion_nodes').insert({
       statement_id: statementId,
       parent_id: parentId,
       type,
@@ -154,9 +156,15 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded, onNa
       author_id: userId,
       source_links: [],
     })
+    setLoading(false)
+    if (insertError) {
+      // Keep the text so the user doesn't lose it
+      setError('Could not save your argument. Please try again.')
+      console.error('[KialoTreeView] insert failed', insertError)
+      return
+    }
     setText('')
     setAdding(false)
-    setLoading(false)
     onAdded()
   }
 
@@ -194,18 +202,19 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded, onNa
                 placeholder={`${isPro ? 'Pro' : 'Contra'} argument…`}
                 rows={2}
                 autoFocus
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-base resize-none focus:outline-none focus:ring-2 focus:ring-purple-400"
               />
+              {error && <p className="text-sm text-red-600">{error}</p>}
               <div className="flex gap-2">
                 <button
                   onClick={handleAdd}
                   disabled={loading || !text.trim()}
                   className={`text-xs px-3 py-1 rounded-lg font-medium text-white disabled:opacity-50 transition-colors ${submitBtnStyle}`}
                 >
-                  Add
+                  {loading ? 'Saving…' : 'Add'}
                 </button>
                 <button
-                  onClick={() => { setAdding(false); setText('') }}
+                  onClick={() => { setAdding(false); setText(''); setError(null) }}
                   className="text-xs px-3 py-1 rounded-lg text-gray-500 hover:text-gray-700"
                 >
                   Cancel
@@ -274,6 +283,19 @@ function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
   return roots
 }
 
+/** Resolve a path of node IDs against the (freshly built) tree. Stops at the first missing ID. */
+function resolvePath(tree: DiscussionNode[], ids: string[]): DiscussionNode[] {
+  const path: DiscussionNode[] = []
+  let level = tree
+  for (const id of ids) {
+    const node = level.find((n) => n.id === id)
+    if (!node) break
+    path.push(node)
+    level = node.children ?? []
+  }
+  return path
+}
+
 function findPath(nodes: DiscussionNode[], targetId: string, path: DiscussionNode[] = []): DiscussionNode[] | null {
   for (const n of nodes) {
     if (n.id === targetId) return [...path, n]
@@ -286,7 +308,8 @@ function findPath(nodes: DiscussionNode[], targetId: string, path: DiscussionNod
 export function KialoTreeView({ statementId, statementText, userId, autoFocusNodeId }: Props) {
   const [nodes, setNodes] = useState<DiscussionNode[] | null>(null)
   const [loaded, setLoaded] = useState(false)
-  const [focusStack, setFocusStack] = useState<DiscussionNode[]>([])
+  // IDs (not node objects) so the current level survives a reload of the tree
+  const [focusIds, setFocusIds] = useState<string[]>([])
 
   const load = useCallback(async () => {
     const supabase = createClient()
@@ -308,25 +331,22 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
   useEffect(() => {
     if (!autoFocusNodeId || !loaded) return
     const path = findPath(tree, autoFocusNodeId)
-    if (path) setFocusStack(path)
+    if (path) setFocusIds(path.map((n) => n.id))
   }, [autoFocusNodeId, loaded]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!loaded) return <div className="text-xs text-gray-400 py-2">Loading…</div>
+  const focusStack = resolvePath(tree, focusIds)
   const focusedNode = focusStack[focusStack.length - 1] ?? null
   const currentNodes = focusedNode ? (focusedNode.children ?? []) : tree
   const currentParentId = focusedNode ? focusedNode.id : null
 
   function navigateTo(node: DiscussionNode) {
-    // Rebuild node from latest tree so children are up to date
-    setFocusStack((prev) => [...prev, node])
+    setFocusIds(focusStack.map((n) => n.id).concat(node.id))
   }
 
   function handleAdded() {
-    setLoaded(false)
-    load().then(() => {
-      // After reload, rebuild focusStack nodes from fresh tree
-      setFocusStack([])
-    })
+    // Reload in place: stay on the current level so the new argument is visible
+    load()
   }
 
   return (
@@ -340,7 +360,7 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
             ? statementText
             : focusStack[focusStack.length - 2].text
         const canGoBack = focusStack.length > 0
-        const goBack = () => setFocusStack((prev) => prev.slice(0, -1))
+        const goBack = () => setFocusIds(focusStack.slice(0, -1).map((n) => n.id))
 
         return (
           <div
@@ -350,9 +370,9 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
             }`}
           >
             {canGoBack && (
-              <span className="text-xs text-gray-400 font-medium">← back  </span>
+              <span className="text-sm text-purple-600 font-semibold">← Back  </span>
             )}
-            <span className="text-xs text-gray-500 leading-snug line-clamp-2">
+            <span className="text-sm text-gray-600 leading-snug line-clamp-2">
               {parentText}
             </span>
           </div>
@@ -371,7 +391,7 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
           }`}>
             {focusedNode.type === 'pro' ? '✓ Pro' : '✗ Contra'}
           </span>
-          <p className="text-base font-semibold text-gray-900 mt-1 leading-snug">
+          <p className="text-lg font-semibold text-gray-900 mt-1 leading-snug">
             {focusedNode.text}
           </p>
           <MiniScale nodeId={focusedNode.id} userId={userId} />

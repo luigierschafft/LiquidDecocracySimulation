@@ -84,8 +84,8 @@ export function StatementCard({ statement, userId }: Props) {
         className="cursor-pointer group"
         onClick={() => { setOpen((v) => !v); if (!open) setViewMode('split') }}
       >
-        <p className="text-sm font-medium text-gray-900 leading-relaxed group-hover:text-purple-700 transition-colors">{statement.text}</p>
-        <p className="text-xs text-gray-300 group-hover:text-purple-300 transition-colors mt-1">
+        <p className="text-base sm:text-lg font-medium text-gray-900 leading-relaxed group-hover:text-purple-700 transition-colors">{statement.text}</p>
+        <p className="text-sm text-gray-400 group-hover:text-purple-500 transition-colors mt-1">
           {open ? 'Click to close discussion' : 'Click to open discussion'}
         </p>
       </div>

@@ -1,3 +1,4 @@
+import { REQUIRE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
@@ -230,11 +231,11 @@ export default async function ProfilePage() {
               </p>
             )}
             <div className="flex gap-2 mt-1 flex-wrap">
-              {member?.is_approved ? (
+              {REQUIRE_MEMBER_APPROVAL && (member?.is_approved ? (
                 <Badge variant="green">Approved</Badge>
               ) : (
                 <Badge variant="sand">Pending approval</Badge>
-              )}
+              ))}
               {member?.is_admin && <Badge>Admin</Badge>}
               {rolesEnabled && member?.is_moderator && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">

@@ -1,3 +1,4 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { getEffectiveModules } from '@/lib/modules'
@@ -22,7 +23,7 @@ export default async function TransparencyPage() {
   const [votesResult, opinionsResult, membersResult] = await Promise.all([
     supabase.from('vote').select('*', { count: 'exact', head: true }),
     supabase.from('opinion').select('*', { count: 'exact', head: true }),
-    supabase.from('member').select('*', { count: 'exact', head: true }).eq('is_approved', true),
+    supabase.from('member').select('*', { count: 'exact', head: true }).in('is_approved', ACTIVE_MEMBER_APPROVAL),
   ])
 
   const issues = issuesResult.data ?? []

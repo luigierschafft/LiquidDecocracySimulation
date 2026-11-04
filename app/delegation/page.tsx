@@ -1,3 +1,4 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { DelegationManager } from '@/components/delegation/DelegationManager'
@@ -17,7 +18,7 @@ export default async function DelegationPage() {
 
   const [{ data: delegations }, { data: members }, { data: areas }, { data: issues }] = await Promise.all([
     supabase.from('delegation').select('*, to_member:member!delegation_to_member_id_fkey(*), area(*), issue(id, title)').eq('from_member_id', user.id),
-    supabase.from('member').select('id, display_name, email, avatar_url').neq('id', user.id).eq('is_approved', true),
+    supabase.from('member').select('id, display_name, email, avatar_url').neq('id', user.id).in('is_approved', ACTIVE_MEMBER_APPROVAL),
     supabase.from('area').select('*').order('name'),
     supabase.from('issue').select('id, title').order('created_at', { ascending: false }),
   ])
