@@ -1,5 +1,6 @@
 'use client'
 
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import type { Opinion, OpinionIntent } from '@/lib/types'
@@ -70,7 +71,7 @@ export function TopicDiscussion({
       .from('member')
       .select('id, display_name')
       .in('display_name', names)
-      .eq('is_approved', true)
+      .in('is_approved', ACTIVE_MEMBER_APPROVAL)
     for (const m of mentioned ?? []) {
       if (m.id === userId) continue
       await supabase.from('notification').insert({

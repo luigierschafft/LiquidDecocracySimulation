@@ -2,12 +2,27 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { loginHref, useAuthUser } from '@/lib/hooks/useAuthUser'
 
 export function PlayfulMenu() {
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
+  const { user, loading, signOut } = useAuthUser()
+  const showSignIn = !loading && !user
 
   return (
     <div className="fixed top-3 right-4 z-50 flex flex-col items-end">
+      <div className="flex items-center gap-2">
+        {/* Always-visible sign-in button for visitors */}
+        {showSignIn && (
+          <Link
+            href={loginHref(pathname)}
+            className="h-12 px-5 flex items-center rounded-full bg-gradient-to-r from-amber-400 to-orange-400 text-sm font-bold text-gray-900 shadow-md active:scale-95 transition-transform"
+          >
+            Sign in
+          </Link>
+        )}
 
       {/* Hamburger button */}
       <button
@@ -29,6 +44,7 @@ export function PlayfulMenu() {
           </>
         )}
       </button>
+      </div>
 
       {/* Dropdown */}
       {open && (
@@ -54,6 +70,32 @@ export function PlayfulMenu() {
           >
             Delegation
           </Link>
+          <div className="w-full h-px bg-gray-200 my-1" />
+          {user ? (
+            <>
+              <Link
+                href="/profile"
+                onClick={() => setOpen(false)}
+                className="text-sm font-semibold text-gray-700 hover:text-amber-600 transition-colors"
+              >
+                Profile
+              </Link>
+              <button
+                onClick={signOut}
+                className="text-sm font-semibold text-gray-700 hover:text-amber-600 transition-colors"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <Link
+              href={loginHref(pathname)}
+              onClick={() => setOpen(false)}
+              className="text-sm font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+            >
+              Sign in
+            </Link>
+          )}
           <div className="w-full h-px bg-gray-200 my-1" />
           <Link
             href="/topics"

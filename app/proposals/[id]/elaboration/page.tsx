@@ -1,3 +1,4 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
@@ -77,7 +78,7 @@ export default async function ElaborationPage({ params }: Props) {
     const { data } = await supabase
       .from('member')
       .select('id, display_name, email')
-      .eq('is_approved', true)
+      .in('is_approved', ACTIVE_MEMBER_APPROVAL)
       .order('display_name')
     allMembers = data ?? []
   }

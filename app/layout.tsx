@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
+import { Source_Sans_3 } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { getEffectiveModules } from '@/lib/modules'
@@ -8,6 +9,13 @@ import { ModulesProvider } from '@/components/ModulesContext'
 import { AurovilleTextBanner } from '@/components/layout/AurovilleTextBanner'
 import { getCurrentPlatform } from '@/lib/platform'
 
+// Classic UI body font: humanist sans, chosen for readability of long discussions
+const sourceSans = Source_Sans_3({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-body',
+  display: 'swap',
+})
+// Geist is kept for playful mode, which has its own look
 const geistSans = localFont({
   src: './fonts/GeistVF.woff',
   variable: '--font-geist-sans',
@@ -35,7 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
+      <body className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <Navbar
           showDelegation={modules.delegation}
           showNotifications={modules.notifications}

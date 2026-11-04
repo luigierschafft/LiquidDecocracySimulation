@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
-import { Plus, Link as LinkIcon } from 'lucide-react'
+import { Link as LinkIcon } from 'lucide-react'
 import { useMeditation } from '@/components/meditation/MeditationProvider'
 import { TurtleAnimation } from '@/components/ui/TurtleAnimation'
 
@@ -221,7 +221,7 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false, h
       )}
 
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-        <h2 className="text-sm font-semibold text-gray-700 mb-3">Add Statement</h2>
+        <h2 className="text-base font-semibold text-gray-800 mb-3">Add a statement</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <div className="relative">
@@ -230,7 +230,7 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false, h
                 onChange={(e) => setText(e.target.value.slice(0, 200))}
                 placeholder="Your statement (max. 200 characters)..."
                 rows={2}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-base resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 pr-12"
               />
               <span
                 className={`absolute bottom-2 right-3 text-xs font-mono ${
@@ -260,8 +260,7 @@ export function AddStatementForm({ topicId, duplicateDetectionEnabled = false, h
               disabled={loading || checkingDuplicate || !text.trim()}
               className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
             >
-              <Plus className="w-4 h-4" />
-              {loading ? 'Saving…' : 'Add Statement'}
+              {loading ? 'Submitting…' : 'Submit statement'}
             </button>
             <button
               type="button"

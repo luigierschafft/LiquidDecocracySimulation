@@ -1,3 +1,4 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { apiRoute, requireCronSecret } from '@/lib/api/handler'
 import { createAdminClient } from '@/lib/supabase/admin'
 
@@ -21,7 +22,7 @@ export const GET = apiRoute(async (request) => {
 
   if (!urgentIssues?.length) return { sent: 0 }
 
-  const { data: members } = await supabase.from('member').select('id').eq('is_approved', true)
+  const { data: members } = await supabase.from('member').select('id').in('is_approved', ACTIVE_MEMBER_APPROVAL)
 
   let sent = 0
   for (const issue of urgentIssues) {

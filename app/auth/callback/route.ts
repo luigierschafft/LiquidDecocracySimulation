@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { safeRedirectPath } from '@/lib/utils'
+import { AUTH_NEXT_COOKIE } from '@/lib/auth/constants'
 
 /** Comma-separated emails that are auto-approved as admin on every platform. */
 function isSuperadmin(email: string | undefined): boolean {
@@ -12,11 +14,17 @@ function isSuperadmin(email: string | undefined): boolean {
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
-  const next = safeRedirectPath(url.searchParams.get('next'))
+  // Set by Supabase/Google when the provider rejected the login
+  const providerError = url.searchParams.get('error_description') ?? url.searchParams.get('error')
+  // `next` comes from the query (magic link) or a cookie (Google login)
+  const nextCookie = cookies().get(AUTH_NEXT_COOKIE)?.value
+  const next = safeRedirectPath(url.searchParams.get('next') ?? (nextCookie ? decodeURIComponent(nextCookie) : null))
+  if (nextCookie) cookies().delete(AUTH_NEXT_COOKIE)
 
   if (code) {
     const supabase = createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (error) console.error('[auth/callback] code exchange failed:', error.message)
 
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
@@ -62,5 +70,8 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(new URL('/auth/login?error=auth_failed', request.url))
+  const loginUrl = new URL('/auth/login', request.url)
+  loginUrl.searchParams.set('error', providerError ?? 'auth_failed')
+  loginUrl.searchParams.set('next', next)
+  return NextResponse.redirect(loginUrl)
 }
