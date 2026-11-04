@@ -1,0 +1,18 @@
+<!-- @dsCard group="Discussion" height=170 subtitle="Importance 0 to 10" -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-text);} .wrap{padding:24px;} :focus-visible{outline:2px solid var(--sky-700);outline-offset:2px;}
+.scale{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.petal{width:18px;height:28px;border-radius:var(--radius-full);border:1.5px solid var(--line-control);background:var(--surface);padding:0;cursor:pointer}
+.petal.on{border-color:var(--gold-600)}
+.petal.l{background:var(--gold-300)} .petal.m{background:var(--gold-500)}
+.val{font:600 16px/20px var(--font-text);color:var(--gold-700);margin-left:8px}
+.lab{font:400 14px/20px var(--font-text);color:var(--ink-muted);margin:0 0 8px}
+.mt{margin-top:20px}
+</style>
+<div class="wrap" id="r"></div>
+<script>
+function scale(v,label){const w=document.createElement('div');w.innerHTML='<p class="lab">'+label+'</p>';const s=document.createElement('div');s.className='scale';s.setAttribute('role','radiogroup');s.setAttribute('aria-label','Importance');
+for(let i=0;i<=10;i++){const b=document.createElement('button');b.className='petal'+(v!==null&&i<=v&&i>0?(' on '+(i<=4?'l':'m')):'');b.setAttribute('role','radio');b.setAttribute('aria-checked',String(i===v));b.setAttribute('aria-label','Importance '+i+' of 10');s.appendChild(b);}
+if(v!==null){const n=document.createElement('span');n.className='val';n.textContent=v+' / 10';s.appendChild(n);}w.appendChild(s);return w;}
+const r=document.getElementById('r');r.appendChild(scale(null,'Not rated yet'));const b=scale(7,'Your rating');b.className='mt';r.appendChild(b);
+</script>

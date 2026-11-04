@@ -1,0 +1,20 @@
+<!-- @dsCard group="Discussion" height=300 subtitle="Statement rows in a topic" -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-text);} .wrap{padding:24px;} :focus-visible{outline:2px solid var(--sky-700);outline-offset:2px;}
+.list{max-width:var(--measure-text)}
+.item{padding:20px 0;border-bottom:1px solid var(--line)}
+.text{font:500 19px/28px var(--font-text);margin:0;color:var(--ink)}
+.meta{display:flex;align-items:center;gap:14px;margin-top:10px;font:400 14px/20px var(--font-text);color:var(--ink-muted)}
+.mini{display:flex;gap:3px}
+.mini i{width:8px;height:14px;border-radius:var(--radius-full);border:1px solid var(--line-control);display:block}
+.mini i.l{background:var(--gold-300);border-color:var(--gold-600)} .mini i.m{background:var(--gold-500);border-color:var(--gold-600)}
+.avg{font-weight:600;color:var(--gold-700)}
+.open{color:var(--sky-700);text-decoration:underline;text-underline-offset:3px;background:none;border:0;font:inherit;padding:0;cursor:pointer}
+</style>
+<div class="wrap"><div class="list" id="l"></div></div>
+<script>
+const rows=[['Cows are one of the main reasons for fences in Auroville',8,'4 arguments'],['Cows make it difficult to have beautiful gardens because they eat everything.',null,'No arguments yet'],['Cows should be allowed only in certain areas of Auroville.',4,'2 arguments']];
+const l=document.getElementById('l');
+for(const [t,a,n] of rows){const d=document.createElement('div');d.className='item';let pet='';for(let i=1;i<=10;i++)pet+='<i class="'+(a!==null&&i<=Math.round(a)?(i<=4?'l':'m'):'')+'"></i>';
+d.innerHTML='<p class="text">'+t+'</p><div class="meta"><span class="mini" aria-hidden="true">'+pet+'</span>'+(a!==null?'<span class="avg">'+a.toFixed(1)+'</span>':'<span>Not rated</span>')+'<button class="open">'+n+'</button></div>';l.appendChild(d);}
+</script>

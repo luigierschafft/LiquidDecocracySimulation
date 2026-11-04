@@ -1,0 +1,22 @@
+<!-- @dsCard group="Discussion" height=330 subtitle="Pro and contra columns" -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>body{margin:0;background:var(--surface);color:var(--ink);font-family:var(--font-text);} .wrap{padding:24px;} :focus-visible{outline:2px solid var(--sky-700);outline-offset:2px;}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:var(--measure-text)}
+.col{border:1px solid var(--line);border-radius:var(--radius-md);overflow:hidden}
+.head{padding:10px 14px;font:600 15px/20px var(--font-text)}
+.pro .head{background:var(--green-100);color:var(--green-700)}
+.con .head{background:var(--earth-100);color:var(--earth-700)}
+.arg{padding:12px 14px;border-top:1px solid var(--line);font:400 16px/24px var(--font-text)}
+.sub{display:block;margin-top:4px;font-size:14px;color:var(--sky-700);text-decoration:underline;text-underline-offset:3px}
+.add{display:block;width:100%;text-align:left;padding:12px 14px;border:0;border-top:1px solid var(--line);background:var(--surface);font:600 15px/20px var(--font-text);color:var(--ink-muted);cursor:pointer}
+.add:hover{background:var(--surface-sunk)}
+</style>
+<div class="wrap"><div class="cols">
+<div class="col pro"><div class="head">✓ Pro</div>
+<div class="arg">Fences protect young trees in the green belt.<span class="sub">2 replies</span></div>
+<div class="arg">Gardens could grow vegetables again.</div>
+<button class="add">Add a pro argument</button></div>
+<div class="col con"><div class="head">✗ Contra</div>
+<div class="arg">Cows have walked these lands for generations.<span class="sub">1 reply</span></div>
+<button class="add">Add a contra argument</button></div>
+</div></div>

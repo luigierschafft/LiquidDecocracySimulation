@@ -1,0 +1,27 @@
+<!-- @dsCard height=300 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+body{margin:0;background:var(--surface);}
+.cover{position:relative;width:960px;height:300px;background:var(--surface);overflow:hidden}
+.band{position:absolute;left:0;top:0;display:block}
+.gold{fill:var(--gold-500)} .verm{fill:var(--vermilion-600)} .sky{fill:var(--sky-700)} .ink{fill:var(--ink)} .tint{fill:var(--gold-100)}
+.petal{fill:var(--surface)}
+.text{position:absolute;left:48px;bottom:44px;width:880px}
+.name{font:400 54px/0.95 var(--font-display);color:var(--ink);margin:0}
+.tag{font:400 14px/20px var(--font-text);color:var(--ink-muted);margin:14px 0 0;max-width:440px}
+</style>
+<div class="cover">
+<svg class="band" viewBox="0 0 960 112" width="960" height="112" aria-hidden="true">
+  <!-- blocks: gold-500 560x112 slab, vermilion-600 96x112, sky-700 192x112, ink 48x112, gold-100 64x112 (spacing multiples of space-16/space-12) -->
+  <!-- arrangement: one strip of unequal bands across the top, gold dominant like the Matrimandir, the emblem red as a narrow accent -->
+  <!-- pattern: literal motif - the twelve outer petals of the Mother's symbol, cut as pills (radius-full) out of the gold slab; chosen because the rating scale and the README build on the petal -->
+  <!-- steps and radii: petal 16x64 at a 40px pitch (space-8 + space-2), inset space-6; rx = half the short side (radius-full) -->
+  <rect class="gold" x="0" y="0" width="560" height="112"/>
+  <rect class="verm" x="560" y="0" width="96" height="112"/>
+  <rect class="sky" x="656" y="0" width="192" height="112"/>
+  <rect class="ink" x="848" y="0" width="48" height="112"/>
+  <rect class="tint" x="896" y="0" width="64" height="112"/>
+  <rect class="petal" x="56" y="24" width="16" height="64" rx="8"/><rect class="petal" x="96" y="24" width="16" height="64" rx="8"/><rect class="petal" x="136" y="24" width="16" height="64" rx="8"/><rect class="petal" x="176" y="24" width="16" height="64" rx="8"/><rect class="petal" x="216" y="24" width="16" height="64" rx="8"/><rect class="petal" x="256" y="24" width="16" height="64" rx="8"/><rect class="petal" x="296" y="24" width="16" height="64" rx="8"/><rect class="petal" x="336" y="24" width="16" height="64" rx="8"/><rect class="petal" x="376" y="24" width="16" height="64" rx="8"/><rect class="petal" x="416" y="24" width="16" height="64" rx="8"/><rect class="petal" x="456" y="24" width="16" height="64" rx="8"/><rect class="petal" x="496" y="24" width="16" height="64" rx="8"/>
+</svg>
+<div class="text"><p class="name">Liquid Democracy Auroville</p><p class="tag">Weiß, ruhig, golden: ein Raum, in dem Auroville gemeinsam entscheidet.</p></div>
+</div>
