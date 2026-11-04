@@ -3,10 +3,9 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Mascot } from '@/components/play/Mascot'
 import { PlayBack } from '@/components/play/PlayBack'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
-
-const CUTOFF = '2026-04-30'
 
 export default async function PlayTopicPage({ params }: { params: { topicId: string } }) {
   const supabase = createClient()
@@ -18,7 +17,7 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
 
   if (!issue) notFound()
 
-  const isNew = issue.created_at >= CUTOFF
+  const isNew = issue.created_at >= NEW_TOPIC_CUTOFF
   const base = `/playful/${issue.id}`
 
   const actions: { href: string; title: string; sub?: string; ai?: boolean }[] = [

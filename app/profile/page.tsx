@@ -8,10 +8,9 @@ import { Badge } from '@/components/ui/Badge'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { MapPin, Shield, Star } from 'lucide-react'
 import Link from 'next/link'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
-
-const CUTOFF = '2026-04-30'
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -30,7 +29,7 @@ export default async function ProfilePage() {
   const { data: newIssues } = await supabase
     .from('issue')
     .select('id')
-    .gte('created_at', CUTOFF)
+    .gte('created_at', NEW_TOPIC_CUTOFF)
     .neq('status', 'draft')
   const newIssueIds = (newIssues ?? []).map((i) => i.id)
 

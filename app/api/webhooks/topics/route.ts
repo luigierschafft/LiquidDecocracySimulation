@@ -1,6 +1,7 @@
 import { apiRoute, badRequest, HttpError, readJson, requireCronSecret } from '@/lib/api/handler'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
+import { getCurrentPlatformId } from '@/lib/platform'
 
 // Module 96: External Integration — create topics via webhook
 // Auth: `Authorization: Bearer $CRON_SECRET`
@@ -22,7 +23,7 @@ export const POST = apiRoute(async (req) => {
       title: body.title.trim(),
       description: body.content.trim(),
       area_id: body.area_id ?? null,
-      platform_id: body.platform_id ?? null,
+      platform_id: body.platform_id ?? (await getCurrentPlatformId()),
       author_id: admin.id,
       status: 'admission',
     })

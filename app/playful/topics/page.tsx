@@ -2,10 +2,9 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getCurrentPlatformId } from '@/lib/platform'
 import { Mascot } from '@/components/play/Mascot'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
-
-const CUTOFF = '2026-04-30'
 
 // Each topic gets a calm virtue colour as its marker, cycling through the palette
 const DOTS = ['#F5AE3A', '#4C95DB', '#6DBA4A', '#E866A6', '#33B4C6', '#8E74D0', '#F08D5B', '#5AAFEF']
@@ -40,8 +39,8 @@ export default async function PlayTopicsPage() {
   const { data: issues } = await issueQuery
 
   const list = issues ?? []
-  const current = list.filter((i) => i.created_at >= CUTOFF)
-  const earlier = list.filter((i) => i.created_at < CUTOFF)
+  const current = list.filter((i) => i.created_at >= NEW_TOPIC_CUTOFF)
+  const earlier = list.filter((i) => i.created_at < NEW_TOPIC_CUTOFF)
 
   return (
     <div className="mx-auto w-full max-w-sm pb-16">

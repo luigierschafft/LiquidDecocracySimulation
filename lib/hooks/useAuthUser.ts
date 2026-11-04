@@ -8,8 +8,10 @@ import { createClient } from '@/lib/supabase/browser'
  * Current Supabase user on the client, kept in sync with sign-in/sign-out.
  * `loading` is true until the first check finished (avoids flashing "Sign in"
  * for users who are actually signed in).
+ * Pass `{ withAdmin: true }` to also look up the member's admin flag
+ * (one extra query — only the menu needs it).
  */
-export function useAuthUser() {
+export function useAuthUser({ withAdmin = false }: { withAdmin?: boolean } = {}) {
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -18,7 +20,7 @@ export function useAuthUser() {
     const supabase = createClient()
 
     function loadAdminFlag(u: User | null) {
-      if (!u) return setIsAdmin(false)
+      if (!withAdmin || !u) return setIsAdmin(false)
       supabase.from('member').select('is_admin').eq('id', u.id).single()
         .then(({ data }) => setIsAdmin(data?.is_admin ?? false))
     }
@@ -35,7 +37,7 @@ export function useAuthUser() {
       setLoading(false)
     })
     return () => subscription.unsubscribe()
-  }, [])
+  }, [withAdmin])
 
   async function signOut() {
     await createClient().auth.signOut()

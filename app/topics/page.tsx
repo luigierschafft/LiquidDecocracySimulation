@@ -5,6 +5,7 @@ import type { Issue } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { getEffectiveModules } from '@/lib/modules'
 import { getCurrentPlatformId } from '@/lib/platform'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
 
@@ -63,11 +64,9 @@ export default async function TopicsPage({ searchParams }: Props) {
       if (r.tag) tagMap[r.issue_id].push(r.tag)
     }
   }
-
-  const CUTOFF = '2026-04-30'
   const all = issues ?? []
-  const current = all.filter((i: any) => i.created_at >= CUTOFF)
-  const earlier = all.filter((i: any) => i.created_at < CUTOFF)
+  const current = all.filter((i: any) => i.created_at >= NEW_TOPIC_CUTOFF)
+  const earlier = all.filter((i: any) => i.created_at < NEW_TOPIC_CUTOFF)
   const renderList = (list: any[], muted = false) => (
     <div className="grid gap-3 lg:grid-cols-2">
       {list.map((issue) => (

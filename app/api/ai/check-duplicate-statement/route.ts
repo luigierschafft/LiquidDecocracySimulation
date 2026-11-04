@@ -1,6 +1,6 @@
 import { generateText } from '@/lib/ai/client'
 import { parseJsonObject } from '@/lib/ai/json'
-import { apiRoute, readJson } from '@/lib/api/handler'
+import { apiRoute, readJson, requireUser } from '@/lib/api/handler'
 
 // Module 103: AI Duplicate Detection — checks if a new statement is logically equivalent to an existing one
 const CONFIDENCE_THRESHOLD = 0.85
@@ -11,6 +11,7 @@ interface Body {
 }
 
 export const POST = apiRoute(async (req) => {
+  await requireUser()
   const { newText, existingStatements } = await readJson<Body>(req)
   const noDuplicate = { isDuplicate: false, matchedId: null as string | null, confidence: 0 }
 

@@ -16,7 +16,7 @@ interface NavbarProps {
 /** Classic-mode navigation (hidden in playful mode, which has its own menu). */
 export function Navbar({ showDelegation = true, showNotifications = false }: NavbarProps) {
   const pathname = usePathname()
-  const { user, isAdmin, loading, signOut } = useAuthUser()
+  const { user, isAdmin, loading, signOut } = useAuthUser({ withAdmin: true })
   const [menuOpen, setMenuOpen] = useState(false)
 
   // Close menu on route change

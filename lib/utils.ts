@@ -49,6 +49,10 @@ export function getMemberDisplayName(
  * paths are allowed (blocks open redirects like `//evil.com` or `https://…`).
  */
 export function safeRedirectPath(next: string | null | undefined, fallback = '/topics'): string {
-  if (!next || !next.startsWith('/') || next.startsWith('//') || next.startsWith('/\\')) return fallback
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return fallback
+  // Backslashes and control characters (tab, newline…) are normalised away by
+  // URL parsers and can turn "/\t/evil.com" into "//evil.com"
+  // eslint-disable-next-line no-control-regex
+  if (/[\\\u0000-\u001f\u007f]/.test(next)) return fallback
   return next
 }
