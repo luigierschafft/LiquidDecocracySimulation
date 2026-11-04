@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liquid Democracy Auroville – Design „Morgenlicht“</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#171B22; --ink2:#4E5664; --ink3:#6B7482; --line:#E4E7EC; --bg:#F5F6F8;
+    --accent:#C2570C; --sun3:#FFCB6B; --sun5:#FF9F43; --sun9:#3B2300;
+    --dawn:linear-gradient(180deg,#E8F1FB 0%,#F3EFFA 48%,#FFF0E0 100%);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px}
+  header.hero{background:var(--dawn);padding:56px 0 40px;border-bottom:1px solid var(--line)}
+  .hero-grid{display:flex;align-items:flex-end;gap:24px}
+  .hero h1{font-family:'Fredoka',sans-serif;font-weight:600;font-size:clamp(2.2rem,6vw,3.4rem);line-height:1.05;margin:0;letter-spacing:-.01em}
+  .hero p{font-size:18px;color:var(--ink2);max-width:560px;margin:14px 0 0}
+  .hero img{width:130px;height:auto;flex-shrink:0;filter:drop-shadow(0 6px 8px rgba(60,40,10,.15))}
+  section{padding:48px 0;border-bottom:1px solid var(--line)}
+  h2{font-size:1.6rem;font-weight:800;margin:0 0 6px;letter-spacing:-.015em}
+  h3{font-size:1.1rem;font-weight:700;margin:24px 0 8px}
+  .lead{color:var(--ink2);font-size:17px;margin:0 0 24px;max-width:680px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px 22px;box-shadow:0 1px 2px rgba(23,27,34,.04),0 2px 8px rgba(23,27,34,.05)}
+  .card b{display:block;font-size:16px;margin-bottom:4px}
+  .card span{color:var(--ink2);font-size:15px}
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .sw{border-radius:18px;overflow:hidden;background:#fff;border:1px solid var(--line)}
+  .sw i{display:block;height:72px}
+  .sw div{padding:10px 14px;font-size:13px;color:var(--ink2)}
+  .sw div b{display:block;color:var(--ink);font-size:14px}
+  .virtues{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .virtues span{font-family:'Fredoka';font-weight:600;color:#fff;padding:8px 14px;border-radius:999px;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .type{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .type .card{padding:24px}
+  .t-fun{font-family:'Fredoka';font-weight:600;font-size:30px;line-height:1.15}
+  .t-nun{font-family:'Nunito';font-weight:700;font-size:17px;color:var(--ink2)}
+  .t-jak{font-weight:800;font-size:30px;line-height:1.15;letter-spacing:-.015em}
+  .t-jak2{font-size:17px;color:var(--ink2)}
+  .demo{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .stage{border-radius:24px;padding:24px;display:flex;flex-direction:column;gap:12px}
+  .stage.play{background:var(--dawn);font-family:'Nunito'}
+  .stage.classic{background:var(--bg);border:1px solid var(--line)}
+  .pbtn{display:block;text-align:center;border:0;border-radius:28px;padding:15px 22px;min-height:64px;font-family:'Fredoka';font-weight:600;font-size:18px;cursor:pointer;transition:transform .15s,box-shadow .15s}
+  .pbtn small{display:block;font-family:'Nunito';font-weight:700;font-size:14px;opacity:.72}
+  .pbtn.sun{background:linear-gradient(180deg,var(--sun3),var(--sun5));color:var(--sun9);box-shadow:0 4px 0 rgba(138,74,6,.28)}
+  .pbtn.white{background:#fff;color:#373E4A;box-shadow:0 4px 0 rgba(23,27,34,.08)}
+  .pbtn:active{transform:translateY(3px);box-shadow:none}
+  .cbtn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 20px;border-radius:14px;border:0;font:600 15px 'Plus Jakarta Sans';background:var(--accent);color:#fff;cursor:pointer}
+  .tabs{display:flex;background:#F0F2F5;padding:4px;border-radius:20px;gap:4px}
+  .tabs a{flex:1;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;gap:6px;border-radius:14px;font-weight:600;font-size:15px;color:var(--ink2);text-decoration:none}
+  .tabs a.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(23,27,34,.06),0 2px 8px rgba(23,27,34,.05)}
+  .tabs em{font-style:normal;font-size:12px;font-weight:700;background:#E4E7EC;border-radius:99px;padding:1px 7px}
+  .tabs a.on em{background:#FFF3E4;color:var(--accent)}
+  .row{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px 20px;box-shadow:0 1px 2px rgba(23,27,34,.04),0 2px 8px rgba(23,27,34,.05)}
+  .row b{display:block;font-size:17px}
+  .row span{color:var(--ink3);font-size:15px}
+  .mascots{display:flex;align-items:flex-end;gap:28px;flex-wrap:wrap}
+  .mascots figure{margin:0;text-align:center;font-size:14px;color:var(--ink2)}
+  .mascots img{display:block;margin:0 auto 8px;filter:drop-shadow(0 4px 6px rgba(60,40,10,.15))}
+  .ba{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+  .pair{background:#fff;border:1px solid var(--line);border-radius:24px;padding:16px}
+  .pair h3{margin:0 0 12px}
+  .pair .imgs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .pair figure{margin:0}
+  .pair figcaption{font-size:13px;font-weight:700;color:var(--ink3);margin-bottom:6px}
+  .pair img{width:100%;border-radius:14px;border:1px solid var(--line);display:block}
+  .wide img{width:100%;border-radius:18px;border:1px solid var(--line)}
+  ul.rules{padding-left:20px;margin:0}
+  ul.rules li{margin:6px 0;color:var(--ink2)}
+  ul.rules li b{color:var(--ink)}
+  table{width:100%;border-collapse:collapse;font-size:15px;background:#fff;border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:13px;color:var(--ink3);font-weight:700;background:#F7F8FA}
+  tr:last-child td{border-bottom:0}
+  footer{padding:40px 0 64px;color:var(--ink3);font-size:15px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Morgenlicht</h1>
+      <p>Das neue Design für Liquid Democracy Auroville: friedlich wie ein Morgen über Auroville, verspielt im Playful-Modus, modern und klar im Classic-Modus. Das Maskottchen und die farbigen Tugend-Seiten bleiben, nur stimmiger.</p>
+    </div>
+    <img src="../../public/mongoose.png" alt="Das Mungo-Maskottchen winkt">
+  </div>
+</header>
+
+<main>
+<section>
+  <div class="wrap">
+    <h2>Was bleibt, was sich ändert</h2>
+    <p class="lead">Ausgangspunkt ist das bestehende Design, nicht ein neues. Behalten wird, was schon funktioniert. Geändert wird, was unruhig oder uneinheitlich war.</p>
+    <div class="cards">
+      <div class="card"><b>Maskottchen bleibt, aber mit festen Größen</b><span>Drei Größen statt beliebiger Pixel. Der Mungo steht immer neben dem Inhalt und verdeckt nie mehr Buttons (vorher bis zu 260&nbsp;px über der Topic-Seite).</span></div>
+      <div class="card"><b>Tugend-Seiten bleiben, aber harmonisch</b><span>Alle 12 Farben haben jetzt dieselbe Helligkeit. Die Streifen sind schmaler (28&nbsp;px statt 11&nbsp;% der Breite), dadurch hat der Inhalt mehr Platz.</span></div>
+      <div class="card"><b>Neuer Hintergrund: Morgenhimmel</b><span>Ein sanfter Verlauf von Himmelblau über Flieder zu Sonnenaufgang-Pfirsich statt Beige. Weiße Diskussionskarten heben sich darauf ruhig ab.</span></div>
+      <div class="card"><b>Runde Ecken überall</b><span>20–28&nbsp;px Radius bei Karten und Buttons, Reiter als weiche Segmente. Keine harten Kästen mehr.</span></div>
+      <div class="card"><b>Ein Button-Stil statt fünf</b><span>Playful hat „Kissen“-Buttons, die sich beim Drücken spürbar senken. Gold-Orange ist die Hauptaktion, Weiß alles andere.</span></div>
+      <div class="card"><b>Classic modern und ruhig</b><span>Neue Schrift Plus Jakarta Sans, Reiter statt Auswahlfeld, Topic-Liste mit Vorschautext und „Earlier topics“ getrennt.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Vorher und nachher</h2>
+    <p class="lead">Echte Screenshots der App auf einem Handy (390&nbsp;px breit), vorher und mit dem neuen Design.</p>
+    <div class="ba">
+      <div class="pair"><h3>Playful Start</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_play.webp" alt="Playful Startseite vorher"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_play.webp" alt="Playful Startseite nachher"></figure></div></div>
+      <div class="pair"><h3>Playful Topic</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_ptopic.webp" alt="Topic-Seite vorher, Mungo verdeckt Buttons"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_ptopic.webp" alt="Topic-Seite nachher"></figure></div></div>
+      <div class="pair"><h3>Playful Topics</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_ptopics.webp" alt="Topic-Liste vorher"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_ptopics.webp" alt="Topic-Liste nachher"></figure></div></div>
+      <div class="pair"><h3>Playful Diskussion</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_pdisc.webp" alt="Diskussion vorher"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_pdisc.webp" alt="Diskussion nachher"></figure></div></div>
+      <div class="pair"><h3>Classic Topics</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_ctopics.webp" alt="Classic Topic-Liste vorher"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_ctopics.webp" alt="Classic Topic-Liste nachher"></figure></div></div>
+      <div class="pair"><h3>Classic Topic</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_ctopic.webp" alt="Classic Topic vorher"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_ctopic.webp" alt="Classic Topic nachher"></figure></div></div>
+      <div class="pair"><h3>Startseite</h3><div class="imgs">
+        <figure><figcaption>Vorher</figcaption><img src="img/cur_home.webp" alt="Startseite vorher"></figure>
+        <figure><figcaption>Nachher</figcaption><img src="img/new_home.webp" alt="Startseite nachher"></figure></div></div>
+    </div>
+    <h3>Classic am Computer</h3>
+    <div class="wide"><img src="img/new_desk.webp" alt="Classic Topic-Liste am Desktop"></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Prinzipien</h2>
+    <p class="lead">Fünf Regeln, an denen jede neue Seite gemessen wird.</p>
+    <ul class="rules">
+      <li><b>Friedlich zuerst.</b> Sanfte Farben, viel Luft, keine grellen Verläufe. Nichts blinkt, nichts drängt.</li>
+      <li><b>Spaß durch Gefühl, nicht durch Lärm.</b> Playful macht Spaß über runde Formen, die verspielte Schrift, den Mungo und Buttons, die sich drücken lassen, nicht über mehr Farben.</li>
+      <li><b>Eine Hauptaktion pro Seite.</b> Nur sie ist gold-orange, alles andere ist weiß.</li>
+      <li><b>Der Mungo begleitet, er verdeckt nie.</b> Er steht im Fluss der Seite, nie schwebend über Inhalten.</li>
+      <li><b>Daumenfreundlich.</b> Alles Antippbare ist mindestens 44&nbsp;px hoch, mit mindestens 8&nbsp;px Abstand. Text hat mindestens 4,5:1 Kontrast.</li>
+    </ul>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Farben</h2>
+    <p class="lead">Morgenhimmel, Sonnenaufgang und die zwölf Tugenden. Alle Textfarben erreichen mindestens 4,5:1 Kontrast.</p>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--dawn)"></i><div><b>Morgenhimmel</b>Playful-Hintergrund</div></div>
+      <div class="sw"><i style="background:linear-gradient(180deg,#FFCB6B,#FF9F43)"></i><div><b>Sonne</b>#FFCB6B → #FF9F43, Hauptaktion Playful</div></div>
+      <div class="sw"><i style="background:#C2570C"></i><div><b>Akzent</b>#C2570C, Hauptaktion Classic</div></div>
+      <div class="sw"><i style="background:#F5F6F8"></i><div><b>Grund</b>#F5F6F8, Classic-Hintergrund</div></div>
+      <div class="sw"><i style="background:#171B22"></i><div><b>Tinte</b>#171B22, Text</div></div>
+      <div class="sw"><i style="background:#6B7482"></i><div><b>Tinte leise</b>#6B7482, Nebentext</div></div>
+      <div class="sw"><i style="background:#1C7C54"></i><div><b>Pro</b>#1C7C54</div></div>
+      <div class="sw"><i style="background:#C0384B"></i><div><b>Contra</b>#C0384B</div></div>
+      <div class="sw"><i style="background:#2F66C9"></i><div><b>Himmel</b>#2F66C9, Links, Delegation</div></div>
+      <div class="sw"><i style="background:#8D6CD5"></i><div><b>Flieder</b>#8D6CD5, ersetzt das grelle Lila</div></div>
+    </div>
+    <h3>Die zwölf Tugenden (Seitenstreifen und Topic-Punkte)</h3>
+    <div class="virtues">
+      <span style="background:#8E74D0">Sincerity</span><span style="background:#6DBA4A">Humility</span><span style="background:#F5AE3A">Gratitude</span><span style="background:#4C95DB">Perseverance</span><span style="background:#F08D5B">Aspiration</span><span style="background:#B27BD6">Receptivity</span><span style="background:#33B4C6">Progress</span><span style="background:#E8615A">Courage</span><span style="background:#E866A6">Goodness</span><span style="background:#C07AD0">Generosity</span><span style="background:#6F80D6">Equality</span><span style="background:#5AAFEF">Peace</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Schrift</h2>
+    <p class="lead">Jeder Modus hat seine eigene Stimme.</p>
+    <div class="type">
+      <div class="card"><div class="t-fun">Fredoka + Nunito</div><p class="t-nun">Playful. Fredoka für Titel und Buttons ist rund und fröhlich, Nunito für Text weich und gut lesbar. Titel 26–28&nbsp;px, Buttons 18&nbsp;px, Text 15–17&nbsp;px.</p></div>
+      <div class="card"><div class="t-jak">Plus Jakarta Sans</div><p class="t-jak2">Classic. Modern, klar und freundlich. Titel 32–36&nbsp;px extra-fett, Topic-Titel 17&nbsp;px fett, Text 15–17&nbsp;px. Ersetzt Source Sans 3.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Bausteine</h2>
+    <p class="lead">Zum Ausprobieren: Die Buttons lassen sich drücken.</p>
+    <div class="demo">
+      <div class="stage play">
+        <button class="pbtn sun">Discussion<small>Add and rate statements</small></button>
+        <button class="pbtn white">Pros and cons<small>See all statements, one by one</small></button>
+        <button class="pbtn white">Proposals</button>
+      </div>
+      <div class="stage classic">
+        <nav class="tabs"><a class="on" href="#bausteine">Discussion</a><a href="#bausteine">Proposals <em>3</em></a><a href="#bausteine">Plan <em>0</em></a></nav>
+        <div class="row"><b>Mandatory Rainwater Harvesting Policy</b><span>Should all new buildings be required to include rainwater harvesting?</span></div>
+        <div><button class="cbtn">Submit statement</button></div>
+      </div>
+    </div>
+
+    <h3>Das Maskottchen in drei Größen</h3>
+    <div class="mascots">
+      <figure><img src="../../public/mongoose.png" alt="" style="height:70px">Klein, 56&nbsp;px<br>neben Überschriften</figure>
+      <figure><img src="../../public/mongoose.png" alt="" style="height:110px">Mittel, 88&nbsp;px<br>Seitenkopf, fertig-Zustände</figure>
+      <figure><img src="../../public/mongoose.png" alt="" style="height:165px">Groß, 132&nbsp;px<br>nur Playful-Start</figure>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>Maße</h2>
+    <table>
+      <tr><th>Element</th><th>Playful</th><th>Classic</th></tr>
+      <tr><td>Hauptbutton</td><td>min. 64&nbsp;px hoch, Radius 28&nbsp;px, Fredoka 18&nbsp;px</td><td>min. 44&nbsp;px hoch, Radius 14&nbsp;px, 15&nbsp;px halbfett</td></tr>
+      <tr><td>Listeneintrag</td><td>min. 60&nbsp;px, weißes Kissen mit Tugend-Punkt</td><td>min. 72&nbsp;px, weiße Karte, Radius 20&nbsp;px, Vorschau 2 Zeilen</td></tr>
+      <tr><td>Abstand zwischen Buttons</td><td>12–16&nbsp;px</td><td>12&nbsp;px</td></tr>
+      <tr><td>Seitenbreite</td><td>max. 384&nbsp;px Inhalt zwischen 28&nbsp;px Tugend-Streifen</td><td>max. 896&nbsp;px, auf großen Bildschirmen zwei Spalten</td></tr>
+      <tr><td>Zurück</td><td>„‹ Topics“ oben links, 44&nbsp;px hoch</td><td>Pfeil links neben dem Titel</td></tr>
+    </table>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">Umgesetzt im Code auf dem Branch <b>november26</b>. Die Tokens stehen in <code>tailwind.config.ts</code> und <code>app/globals.css</code>, das Maskottchen in <code>components/play/Mascot.tsx</code>.</div>
+</footer>
+</body>
+</html>

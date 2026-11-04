@@ -64,33 +64,48 @@ export default async function TopicsPage({ searchParams }: Props) {
     }
   }
 
+  const CUTOFF = '2026-04-30'
+  const all = issues ?? []
+  const current = all.filter((i: any) => i.created_at >= CUTOFF)
+  const earlier = all.filter((i: any) => i.created_at < CUTOFF)
+  const renderList = (list: any[], muted = false) => (
+    <div className="grid gap-3 lg:grid-cols-2">
+      {list.map((issue) => (
+        <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[issue.id]} muted={muted} />
+      ))}
+    </div>
+  )
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-20 pb-16">
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold">Topics</h1>
-          <p className="text-lg text-foreground/70 mt-1">Select a topic you want to discuss, learn, vote or work on</p>
+          <h1 className="text-[2rem] sm:text-4xl font-extrabold text-gray-900">Topics</h1>
+          <p className="text-[17px] text-gray-600 mt-1.5">Choose a topic to discuss, learn about, vote on or work on.</p>
         </div>
         {modules.proposal_creation && (
-          <Link href="/proposals/new" className="btn-primary flex items-center gap-2">
-            <Plus className="w-4 h-4" />
-            New Topic
+          <Link href="/proposals/new" className="btn-primary inline-flex items-center gap-2">
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            New topic
           </Link>
         )}
       </div>
 
-      {/* Grid */}
-      {issues && issues.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {issues.map((issue) => (
-            <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[(issue as any).id]} />
-          ))}
-        </div>
+      {all.length > 0 ? (
+        <>
+          {renderList(current)}
+          {earlier.length > 0 && (
+            <section className="mt-12">
+              <h2 className="text-lg font-bold text-gray-500 mb-3">Earlier topics</h2>
+              {renderList(earlier, true)}
+            </section>
+          )}
+        </>
       ) : (
-        <div className="text-center py-20 text-foreground/40">
-          <p className="text-lg">No topics yet.</p>
-          <Link href="/proposals/new" className="text-accent hover:underline text-sm mt-2 inline-block">
-            Be the first to create one
+        <div className="text-center py-20 bg-white rounded-2xl border border-line">
+          <p className="text-lg font-semibold text-gray-700">No topics yet.</p>
+          <Link href="/proposals/new" className="btn-primary inline-flex mt-4">
+            Start the first topic
           </Link>
         </div>
       )}

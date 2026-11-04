@@ -26,9 +26,9 @@ export function Navbar({ showDelegation = true, showNotifications = false }: Nav
 
   const navLinks = [
     { href: '/topics', label: 'Topics', show: true },
-    { href: '/analytics', label: '📊 Analytics', show: true },
+    { href: '/analytics', label: 'Analytics', show: true },
     { href: '/delegation', label: 'Delegation', show: showDelegation },
-    { href: '/playful', label: '🐾 Play', show: true },
+    { href: '/playful', label: 'Playful mode', show: true },
   ].filter((l) => l.show)
 
   if (pathname.startsWith('/playful')) return null
@@ -41,7 +41,7 @@ export function Navbar({ showDelegation = true, showNotifications = false }: Nav
       {!loading && !user && !onLoginPage && (
         <Link
           href={loginHref(pathname)}
-          className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-accent text-white text-sm font-semibold shadow-md hover:bg-accent/90 transition-colors"
+          className="flex items-center gap-1.5 h-11 px-4 rounded-xl bg-accent text-white text-[15px] font-semibold shadow-soft hover:bg-accent-hover transition-colors"
         >
           <LogIn className="w-4 h-4" />
           Sign in
@@ -51,7 +51,7 @@ export function Navbar({ showDelegation = true, showNotifications = false }: Nav
       <div className="relative">
         <button
           onClick={() => setMenuOpen((v) => !v)}
-          className="p-2.5 rounded-xl bg-white/90 backdrop-blur-sm border border-sand shadow-md hover:bg-white transition-colors"
+          className="w-11 h-11 inline-flex items-center justify-center rounded-xl bg-white border border-line shadow-soft hover:bg-gray-50 transition-colors"
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
         >
@@ -59,22 +59,22 @@ export function Navbar({ showDelegation = true, showNotifications = false }: Nav
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-12 w-52 bg-white/95 backdrop-blur-sm border border-sand rounded-xl shadow-lg py-2 space-y-0.5 px-1">
+          <div className="absolute right-0 top-[52px] w-56 bg-white border border-line rounded-2xl shadow-lift p-1.5 space-y-0.5">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  'block px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-colors',
                   pathname.startsWith(link.href)
-                    ? 'bg-sand text-foreground'
-                    : 'text-foreground/60 hover:text-foreground hover:bg-sand/50'
+                    ? 'bg-gray-100 text-gray-900'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 )}
               >
                 {link.label}
               </Link>
             ))}
-            <div className="border-t border-sand my-1" />
+            <div className="border-t border-line my-1 mx-2" />
             {user ? (
               <>
                 {showNotifications && <NotificationBell userId={user.id} />}
@@ -82,7 +82,7 @@ export function Navbar({ showDelegation = true, showNotifications = false }: Nav
                   <Link
                     href="/admin"
                     className={cn(
-                      'block px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                      'block px-3.5 py-2.5 rounded-xl text-[15px] font-semibold transition-colors',
                       pathname.startsWith('/admin')
                         ? 'bg-accent/10 text-accent'
                         : 'text-accent/70 hover:text-accent hover:bg-accent/10'
@@ -91,15 +91,15 @@ export function Navbar({ showDelegation = true, showNotifications = false }: Nav
                     Admin
                   </Link>
                 )}
-                <Link href="/profile" className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/60 hover:text-foreground hover:bg-sand/50">
+                <Link href="/profile" className="block px-3.5 py-2.5 rounded-xl text-[15px] font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50">
                   Profile
                 </Link>
-                <button onClick={signOut} className="block w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-foreground/60 hover:text-foreground hover:bg-sand/50">
+                <button onClick={signOut} className="block w-full text-left px-3.5 py-2.5 rounded-xl text-[15px] font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50">
                   Sign out
                 </button>
               </>
             ) : (
-              <Link href={loginHref(pathname)} className="block px-3 py-2 rounded-lg text-sm font-medium text-accent hover:bg-accent/10">
+              <Link href={loginHref(pathname)} className="block px-3.5 py-2.5 rounded-xl text-[15px] font-semibold text-accent hover:bg-accent-soft">
                 Sign in
               </Link>
             )}

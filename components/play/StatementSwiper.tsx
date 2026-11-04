@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/browser'
+import { Mascot } from '@/components/play/Mascot'
 
 interface Statement {
   id: string
@@ -125,7 +125,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 mt-8">
         <p className="text-sm text-gray-400 text-center">No statements yet for this topic.</p>
-        <Image src="/mongoose-thinking.png" alt="Mongoose" width={140} height={160} placeholder="empty" style={{ background: 'transparent' }} />
+        <Mascot pose="thinking" size="md" />
       </div>
     )
   }
@@ -134,7 +134,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 mt-8">
         <p className="text-base font-bold text-gray-700 text-center">You&apos;ve seen all statements! 🎉</p>
-        <Image src="/mongoose.png" alt="Mongoose" width={130} height={152} placeholder="empty" style={{ background: 'transparent' }} className="drop-shadow-lg" />
+        <Mascot pose="wave" size="md" />
         <button onClick={() => setIndex(0)} className="mt-4 text-xs text-gray-400 underline">Start over</button>
       </div>
     )
@@ -318,15 +318,7 @@ export function StatementSwiper({ statements, topicId, nodes }: Props) {
 
       {/* Mongoose */}
       <div className="mt-6 pointer-events-none">
-        <Image
-          src="/mongoose-thinking.png"
-          alt="Mongoose thinking"
-          width={110}
-          height={128}
-          placeholder="empty"
-          style={{ background: 'transparent' }}
-          className="drop-shadow-lg"
-        />
+        <Mascot pose="thinking" size="md" />
       </div>
     </div>
   )

@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Image from 'next/image'
 import { ModeAgreeDisagree } from './ModeAgreeDisagree'
 import { ModeRanking } from './ModeRanking'
 import { ModeProContra } from './ModeProContra'
+import { Mascot } from '@/components/play/Mascot'
 
 interface Topic {
   id: string
@@ -172,8 +172,7 @@ export function HelpSession({ topics, userId }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 mt-10">
         <p className="text-xs text-gray-400 animate-pulse">Finding where you can help…</p>
-        <Image src="/mongoose-thinking.png" alt="Mongoose" width={110} height={128}
-          placeholder="empty" style={{ background: 'transparent' }} className="drop-shadow-lg" />
+        <Mascot pose="thinking" size="md" />
       </div>
     )
   }
@@ -190,14 +189,13 @@ export function HelpSession({ topics, userId }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 mt-10 text-center max-w-xs">
         <p className="text-xl font-black text-gray-800">Thank you!</p>
-        <Image src="/mongoose.png" alt="Mongoose" width={120} height={140}
-          placeholder="empty" style={{ background: 'transparent' }} className="drop-shadow-lg" />
+        <Mascot pose="wave" size="md" />
         <p className="text-sm text-gray-500 leading-relaxed">
           You&apos;ve helped a lot for now.<br />Come back later to help more.
         </p>
         <button
           onClick={() => startNewSession()}
-          className="mt-2 bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-3 text-sm font-bold text-gray-900 shadow-md active:scale-95 transition-transform"
+          className="play-btn-sun mt-2"
         >
           Help with another topic
         </button>

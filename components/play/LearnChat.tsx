@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
+import { Mascot } from '@/components/play/Mascot'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -54,15 +54,7 @@ export function LearnChat({ context }: Props) {
           <p className="text-xs text-gray-500 text-center max-w-[220px] leading-relaxed">
             Ask me anything — about this topic, the community discussion, or anything related you want to learn about.
           </p>
-          <Image
-            src="/mongoose.png"
-            alt="Mongoose"
-            width={110}
-            height={128}
-            placeholder="empty"
-            style={{ background: 'transparent' }}
-            className="drop-shadow-lg"
-          />
+          <Mascot pose="wave" size="md" />
         </div>
       ) : (
         <div className="space-y-3">

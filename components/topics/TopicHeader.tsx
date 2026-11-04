@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { useAuthUser } from '@/lib/hooks/useAuthUser'
 import type { Issue } from '@/lib/types'
@@ -53,11 +53,10 @@ function getTimelineInfo(issue: Issue) {
 }
 
 export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props) {
-  const router = useRouter()
   const pathname = usePathname()
   const { user, loading } = useAuthUser()
   // Space for the fixed buttons top-right: "Sign in" + menu for visitors, menu only otherwise
-  const clearFixedButtons = !loading && !user ? 'pr-36' : 'pr-14'
+  const clearFixedButtons = !loading && !user ? 'sm:pr-44' : 'sm:pr-16'
 
   const activeSection: Section =
     pathname.includes('/proposals')
@@ -66,19 +65,15 @@ export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props)
       ? 'plan'
       : 'discussion'
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const section = e.target.value as Section
-    router.push(`/topics/${topicId}/${section}`)
-  }
-
   const description = (issue as Issue & { description?: string | null }).description
   const { isForever, percentUsed, daysRemaining } = getTimelineInfo(issue)
   const sectionInfo = SECTIONS.find((s) => s.value === activeSection)
+  const counts: Record<Section, number | null> = { discussion: null, proposals: proposalCount, plan: planCount }
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-white border-b border-line">
       {/* Right padding keeps the title clear of the fixed Sign-in / menu buttons */}
-      <div className="max-w-4xl mx-auto px-4 pt-5 pb-4 space-y-3">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-[72px] sm:pt-6 pb-5 space-y-3.5">
         {/* 1. Title — always first */}
         <div className={`flex items-start gap-2 ${clearFixedButtons} xl:pr-0`}>
           <Link
@@ -89,34 +84,42 @@ export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props)
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 leading-tight">{issue.title}</h1>
+          <h1 className="text-[1.6rem] sm:text-3xl font-extrabold text-gray-900 leading-tight">{issue.title}</h1>
         </div>
 
         {description && (
           <p className="text-base text-gray-600 max-w-2xl leading-relaxed">{description}</p>
         )}
 
-        {/* 2. Section switcher */}
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          <select
-            value={activeSection}
-            onChange={handleChange}
-            aria-label="Topic section"
-            className="border border-purple-300 rounded-lg px-3 py-2 text-base font-medium text-purple-700 bg-purple-50 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
-          >
-            {SECTIONS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
-              </option>
-            ))}
-          </select>
-          <p className="text-sm text-gray-500">
-            <span className="text-purple-600 font-semibold">{proposalCount}</span> Proposals
-            {' · '}
-            <span className="text-purple-600 font-semibold">{planCount}</span> Plan Items
-          </p>
-        </div>
-        {sectionInfo && <p className="text-sm text-gray-500 max-w-2xl leading-relaxed">{sectionInfo.description}</p>}
+        {/* 2. Section tabs (segmented control) */}
+        <nav aria-label="Topic sections" className="pt-1">
+          <div className="inline-flex w-full sm:w-auto rounded-2xl bg-gray-100 p-1 gap-1">
+            {SECTIONS.map((s) => {
+              const active = s.value === activeSection
+              const count = counts[s.value]
+              return (
+                <Link
+                  key={s.value}
+                  href={`/topics/${topicId}/${s.value}`}
+                  aria-current={active ? 'page' : undefined}
+                  className={`flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 rounded-xl text-[15px] font-semibold transition-colors ${
+                    active ? 'bg-white text-gray-900 shadow-soft' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  {s.label}
+                  {count !== null && (
+                    <span className={`min-w-[22px] h-[22px] px-1.5 rounded-full text-xs font-bold inline-flex items-center justify-center ${
+                      active ? 'bg-accent-soft text-accent' : 'bg-gray-200 text-gray-600'
+                    }`}>
+                      {count}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        </nav>
+        {sectionInfo && <p className="text-[15px] text-gray-500 max-w-2xl leading-relaxed">{sectionInfo.description}</p>}
 
         {/* 3. Timeline */}
         {isForever ? (
@@ -125,7 +128,7 @@ export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props)
           <div className="flex items-center gap-3">
             <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-purple-400 to-purple-600"
+                className="h-full rounded-full bg-gradient-to-r from-sun-400 to-accent"
                 style={{ width: `${percentUsed}%` }}
               />
             </div>

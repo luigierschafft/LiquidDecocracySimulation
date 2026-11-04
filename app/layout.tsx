@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
-import { Source_Sans_3 } from 'next/font/google'
+import { Plus_Jakarta_Sans, Nunito, Fredoka } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/layout/Navbar'
 import { getEffectiveModules } from '@/lib/modules'
@@ -8,17 +8,22 @@ import { MeditationProvider } from '@/components/meditation/MeditationProvider'
 import { ModulesProvider } from '@/components/ModulesContext'
 import { AurovilleTextBanner } from '@/components/layout/AurovilleTextBanner'
 
-// Classic UI body font: humanist sans, chosen for readability of long discussions
-const sourceSans = Source_Sans_3({
+// Classic: modern, friendly geometric sans
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin', 'latin-ext'],
   variable: '--font-body',
   display: 'swap',
 })
-// Geist is kept for playful mode, which has its own look
-const geistSans = localFont({
-  src: './fonts/GeistVF.woff',
-  variable: '--font-geist-sans',
-  weight: '100 900',
+// Playful: rounded and warm — Nunito for text, Fredoka for titles and buttons
+const nunito = Nunito({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-playful',
+  display: 'swap',
+})
+const fredoka = Fredoka({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-fun',
+  display: 'swap',
 })
 const geistMono = localFont({
   src: './fonts/GeistMonoVF.woff',
@@ -39,7 +44,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en">
-      <body className={`${sourceSans.variable} ${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
+      <body className={`${jakarta.variable} ${nunito.variable} ${fredoka.variable} ${geistMono.variable} antialiased bg-background text-foreground`}>
         <Navbar
           showDelegation={modules.delegation}
           showNotifications={modules.notifications}

@@ -3,12 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #faf9f7;
-  --foreground: #1a0f00;
-  --accent: #c2650a;
-  --accent-light: #f4a256;
-  --auro-green: #5a7a4a;
-  --sand: #e8ddd0;
+  --background: #F5F6F8;
+  --foreground: #171B22;
+  --accent: #C2570C;
+  --accent-light: #FFB547;
+  --auro-green: #1C7C54;
+  --sand: #E4E7EC;
+  /* Playful: dawn sky over Auroville — sky blue fading to sunrise peach */
+  --dawn: linear-gradient(180deg, #E8F1FB 0%, #F3EFFA 48%, #FFF0E0 100%);
 }
 
 body {
@@ -18,30 +20,67 @@ body {
   overflow-x: hidden;
 }
 
+h1, h2, h3 {
+  letter-spacing: -0.015em;
+}
+
+:focus-visible {
+  outline: 2px solid #C2570C;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  .bg-dawn {
+    background: var(--dawn);
+    background-attachment: fixed;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl border border-sand shadow-sm p-6;
+    @apply bg-white rounded-2xl border border-line shadow-soft p-6;
   }
 
   .btn-primary {
-    @apply bg-accent hover:bg-accent/90 text-white font-medium px-4 py-2 rounded-lg transition-colors;
+    @apply bg-accent hover:bg-accent-hover text-white font-semibold px-5 py-2.5 min-h-[44px] rounded-xl transition-colors;
   }
 
   .btn-secondary {
-    @apply bg-sand hover:bg-sand/70 text-foreground font-medium px-4 py-2 rounded-lg transition-colors;
+    @apply bg-gray-100 hover:bg-gray-200 text-foreground font-semibold px-5 py-2.5 min-h-[44px] rounded-xl transition-colors;
   }
 
   .btn-ghost {
-    @apply hover:bg-sand/50 text-foreground font-medium px-4 py-2 rounded-lg transition-colors;
+    @apply hover:bg-gray-100 text-foreground font-medium px-4 py-2 rounded-xl transition-colors;
   }
 
   .input {
-    @apply w-full border border-sand rounded-lg px-3 py-2 bg-white text-foreground placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent;
+    @apply w-full border border-gray-300 rounded-xl px-4 py-2.5 bg-white text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-accent/15 focus:border-accent;
+  }
+
+  /* ── Playful "cushion" buttons ─────────────────────────────── */
+  .play-btn {
+    @apply block w-full rounded-3xl px-6 py-4 min-h-[64px] text-center font-fun font-semibold text-[1.125rem] leading-snug
+      transition-[transform,box-shadow] duration-150 active:translate-y-[3px];
+  }
+  .play-btn-sun {
+    @apply play-btn text-sun-900 shadow-cushion active:shadow-none;
+    background: linear-gradient(180deg, #FFCB6B 0%, #FF9F43 100%);
+  }
+  .play-btn-white {
+    @apply play-btn bg-white text-gray-800 shadow-cushion-white active:shadow-none;
+  }
+  .play-btn-muted {
+    @apply play-btn bg-white/60 text-gray-400 cursor-not-allowed;
   }
 }

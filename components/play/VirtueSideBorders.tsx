@@ -2,19 +2,20 @@
 
 import { useState, useEffect } from 'react'
 
+// Twelve virtues, tuned to one shared brightness so no strip shouts louder than another
 const VIRTUES = [
-  { name: 'Sincerity',    color: '#7B5CB8', shadow: '#4D3580' },
-  { name: 'Humility',     color: '#5FAD2C', shadow: '#3A7015' },
-  { name: 'Gratitude',    color: '#F5A93D', shadow: '#C47520' },
-  { name: 'Perseverance', color: '#4A8FD4', shadow: '#2462A8' },
-  { name: 'Aspiration',   color: '#E8965A', shadow: '#B86030' },
-  { name: 'Receptivity',  color: '#9B59B6', shadow: '#6C3483' },
-  { name: 'Progress',     color: '#26C6DA', shadow: '#0097A7' },
-  { name: 'Courage',      color: '#E74C3C', shadow: '#A93226' },
-  { name: 'Goodness',     color: '#E91E8C', shadow: '#9C1264' },
-  { name: 'Generosity',   color: '#AB47BC', shadow: '#7B1FA2' },
-  { name: 'Equality',     color: '#5C6BC0', shadow: '#3949AB' },
-  { name: 'Peace',        color: '#42A5F5', shadow: '#1565C0' },
+  { name: 'Sincerity',    color: '#8E74D0', shadow: '#6C55B0' },
+  { name: 'Humility',     color: '#6DBA4A', shadow: '#4E9431' },
+  { name: 'Gratitude',    color: '#F5AE3A', shadow: '#D68B17' },
+  { name: 'Perseverance', color: '#4C95DB', shadow: '#2F74BC' },
+  { name: 'Aspiration',   color: '#F08D5B', shadow: '#D06A38' },
+  { name: 'Receptivity',  color: '#B27BD6', shadow: '#8F58B5' },
+  { name: 'Progress',     color: '#33B4C6', shadow: '#1C92A3' },
+  { name: 'Courage',      color: '#E8615A', shadow: '#C2423C' },
+  { name: 'Goodness',     color: '#E866A6', shadow: '#C54585' },
+  { name: 'Generosity',   color: '#C07AD0', shadow: '#9C57AE' },
+  { name: 'Equality',     color: '#6F80D6', shadow: '#5061B6' },
+  { name: 'Peace',        color: '#5AAFEF', shadow: '#3A8DCE' },
 ]
 
 function randomFour(): [number, number, number, number] {
@@ -52,16 +53,16 @@ function Sidebar({ top, bottom, side }: { top: Virtue; bottom: Virtue; side: 'le
   const textStyle: React.CSSProperties = {
     transform: `rotate(${rotate})`,
     whiteSpace: 'nowrap',
-    fontSize: 'clamp(13px, 4.2vw, 18px)',
-    fontWeight: 700,
+    fontSize: 'clamp(12px, 3.4vw, 15px)',
+    fontWeight: 600,
     color: '#fff',
-    letterSpacing: '0.02em',
-    textShadow: '0 1px 6px rgba(0,0,0,0.35)',
-    fontFamily: "'Nunito', 'Arial Rounded MT Bold', 'Varela Round', system-ui, sans-serif",
+    letterSpacing: '0.04em',
+    textShadow: '0 1px 4px rgba(0,0,0,0.28)',
+    fontFamily: 'var(--font-fun), system-ui, sans-serif',
   }
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
+    <div className="relative w-full h-full overflow-hidden" aria-hidden="true">
       <svg
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
@@ -93,14 +94,6 @@ export function VirtueSideBorders() {
   useEffect(() => {
     setQuad(randomFour())
 
-    // Load Nunito from Google Fonts
-    if (!document.getElementById('nunito-font')) {
-      const link = document.createElement('link')
-      link.id = 'nunito-font'
-      link.rel = 'stylesheet'
-      link.href = 'https://fonts.googleapis.com/css2?family=Nunito:wght@700;800&display=swap'
-      document.head.appendChild(link)
-    }
   }, [])
 
   if (!quad) return null
@@ -109,10 +102,10 @@ export function VirtueSideBorders() {
 
   return (
     <>
-      <div className="fixed top-0 left-0 h-screen w-[11vw] sm:w-12 z-40 pointer-events-none">
+      <div className="fixed top-0 left-0 h-screen w-7 sm:w-10 z-40 pointer-events-none">
         <Sidebar top={VIRTUES[li0]} bottom={VIRTUES[li1]} side="left" />
       </div>
-      <div className="fixed top-0 right-0 h-screen w-[11vw] sm:w-12 z-40 pointer-events-none">
+      <div className="fixed top-0 right-0 h-screen w-7 sm:w-10 z-40 pointer-events-none">
         <Sidebar top={VIRTUES[ri0]} bottom={VIRTUES[ri1]} side="right" />
       </div>
     </>

@@ -1,9 +1,9 @@
 import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
-import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PlayDelegationManager } from '@/components/play/PlayDelegationManager'
+import { Mascot } from '@/components/play/Mascot'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,14 +37,7 @@ export default async function PlayDelegationPage() {
           Here you can choose who you want to delegate your vote to.
         </p>
         <div className="absolute -right-4 top-0 pointer-events-none">
-          <Image
-            src="/mongoose-handstand.png"
-            alt="Mongoose handstand"
-            width={90}
-            height={110}
-            placeholder="empty"
-            style={{ background: 'transparent' }}
-          />
+          <Mascot pose="handstand" size="sm" />
         </div>
       </div>
 

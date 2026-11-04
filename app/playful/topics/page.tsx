@@ -1,27 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
-import Image from 'next/image'
 import Link from 'next/link'
 import { getCurrentPlatformId } from '@/lib/platform'
+import { Mascot } from '@/components/play/Mascot'
 
 export const dynamic = 'force-dynamic'
 
 const CUTOFF = '2026-04-30'
 
-function isNew(createdAt: string) {
-  return createdAt >= CUTOFF
-}
+// Each topic gets a calm virtue colour as its marker, cycling through the palette
+const DOTS = ['#F5AE3A', '#4C95DB', '#6DBA4A', '#E866A6', '#33B4C6', '#8E74D0', '#F08D5B', '#5AAFEF']
 
-function TopicButton({ issue }: { issue: { id: string; title: string; created_at: string } }) {
-  const fresh = isNew(issue.created_at)
+type Issue = { id: string; title: string; created_at: string }
+
+function TopicButton({ issue, color, muted }: { issue: Issue; color: string; muted?: boolean }) {
   return (
-    <Link href={`/playful/${issue.id}`} className="block">
-      <div className={`rounded-[1.5rem] px-5 py-4 text-center font-bold shadow-md active:scale-95 transition-transform text-sm ${
-        fresh
-          ? 'bg-gradient-to-r from-violet-400 via-blue-400 to-teal-400 text-white'
-          : 'bg-gradient-to-r from-gray-300 via-gray-400 to-gray-400 text-white/80'
-      }`}>
-        {issue.title}
-      </div>
+    <Link
+      href={`/playful/${issue.id}`}
+      className={`play-btn-white flex items-center gap-4 text-left !min-h-[60px] !py-3.5 !text-base ${muted ? 'opacity-70' : ''}`}
+    >
+      <span
+        aria-hidden="true"
+        className="h-9 w-9 shrink-0 rounded-full"
+        style={{ background: muted ? '#CDD2DA' : color }}
+      />
+      <span className="flex-1">{issue.title}</span>
     </Link>
   )
 }
@@ -38,58 +40,43 @@ export default async function PlayTopicsPage() {
   const { data: issues } = await issueQuery
 
   const list = issues ?? []
+  const current = list.filter((i) => i.created_at >= CUTOFF)
+  const earlier = list.filter((i) => i.created_at < CUTOFF)
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
-
-      {/* Header */}
-      <div className="w-full max-w-xs relative mb-6">
-        <h1 className="text-2xl font-black text-gray-900 text-center">Topics</h1>
-
-        {/* Handstand mongoose – top left */}
-        <div className="absolute -left-4 top-6 pointer-events-none">
-          <Image
-            src="/mongoose-handstand.png"
-            alt="Mongoose"
-            width={90}
-            height={110}
-            placeholder="empty"
-            style={{ background: 'transparent' }}
-          />
+    <div className="mx-auto w-full max-w-sm pb-16">
+      <div className="flex items-center gap-3 mb-6">
+        <Mascot pose="handstand" size="sm" />
+        <div>
+          <h1 className="font-fun font-semibold text-[1.75rem] leading-tight text-gray-900">Topics</h1>
+          <p className="text-[15px] font-semibold text-gray-600 leading-snug">Pick one to sense, discuss and learn.</p>
         </div>
       </div>
 
-      {/* Description */}
-      <p className="text-sm text-gray-600 text-center max-w-[200px] mb-6 leading-relaxed">
-        Here are all the different topics you can discuss. Sense and feel into them and learn from them. Just select one
-      </p>
-
-      {/* Topic list */}
-      <div className="w-full max-w-xs flex flex-col gap-3">
-        {list.slice(0, 4).map((issue) => (
-          <TopicButton key={issue.id} issue={issue} />
+      <div className="flex flex-col gap-3">
+        {current.map((issue, i) => (
+          <TopicButton key={issue.id} issue={issue} color={DOTS[i % DOTS.length]} />
         ))}
 
-        {/* Create new topic — always at position 5 */}
-        <Link href="/proposals/new" className="block">
-          <div className="bg-gradient-to-r from-pink-400 via-rose-400 to-orange-400 rounded-[1.5rem] px-5 py-4 text-center font-bold text-white shadow-md active:scale-95 transition-transform text-sm">
-            + Create a new topic
-          </div>
+        <Link href="/proposals/new" className="play-btn-sun !min-h-[60px] !text-base">
+          Start a new topic
         </Link>
-
-        {list.slice(4).map((issue) => (
-          <TopicButton key={issue.id} issue={issue} />
-        ))}
-
-        {list.length === 0 && (
-          <p className="text-center text-gray-400 text-sm mt-2">No topics yet.</p>
-        )}
       </div>
 
-      {/* Back */}
-      <Link href="/playful" className="mt-8 text-xs text-gray-400 underline">
-        ← Back
-      </Link>
+      {earlier.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-fun font-semibold text-lg text-gray-600 mb-3 px-1">Earlier topics</h2>
+          <div className="flex flex-col gap-3">
+            {earlier.map((issue, i) => (
+              <TopicButton key={issue.id} issue={issue} color={DOTS[i % DOTS.length]} muted />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {list.length === 0 && (
+        <p className="text-center text-gray-500 font-semibold mt-6">No topics yet. Start the first one.</p>
+      )}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
+import { PlayBack } from '@/components/play/PlayBack'
+import { Mascot } from '@/components/play/Mascot'
 import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
 import { getEffectiveModules } from '@/lib/modules'
@@ -54,19 +55,26 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
   const { isForever, percentUsed, daysRemaining } = getTimelineInfo(issue)
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+    <div className="mx-auto w-full max-w-sm pb-16">
+      <PlayBack href={`/playful/${params.topicId}`} label="Topic" />
 
       {/* Header */}
-      <div className="w-full max-w-sm mb-6">
-        <h1 className="text-xl font-black text-gray-900 leading-tight text-center">{issue.title}</h1>
+      <div className="mb-6">
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <p className="font-fun font-semibold text-sm text-sun-700">Discussion</p>
+            <h1 className="font-fun font-semibold text-[1.5rem] leading-[1.2] text-gray-900">{issue.title}</h1>
+          </div>
+          <Mascot pose="thinking" size="sm" />
+        </div>
         {issue.description && (
-          <p className="text-xs text-gray-400 mt-1 text-center leading-relaxed">{issue.description}</p>
+          <p className="text-[15px] font-semibold text-gray-600 mt-2 leading-relaxed">{issue.description}</p>
         )}
 
         {/* Timeline */}
-        <div className="mt-4 bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3">
+        <div className="mt-4 bg-white/80 rounded-3xl px-5 py-3.5">
           {isForever ? (
-            <p className="text-xs text-gray-400 text-center">Open forever</p>
+            <p className="text-sm font-bold text-gray-500 text-center">Open forever</p>
           ) : (
             <div className="space-y-1.5">
               <div className="flex items-center gap-3">
@@ -76,19 +84,19 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
                     style={{ width: `${percentUsed}%` }}
                   />
                 </div>
-                <span className="text-xs text-gray-500 whitespace-nowrap font-medium">{daysRemaining} days left</span>
+                <span className="text-sm text-gray-600 whitespace-nowrap font-bold">{daysRemaining} days left</span>
               </div>
             </div>
           )}
-          <p className="text-xs text-gray-400 mt-1.5 text-center">
-            <span className="text-orange-500 font-bold">{statementsWithAvg.length}</span> statements
+          <p className="text-sm font-bold text-gray-500 mt-1.5 text-center">
+            <span className="text-sun-700">{statementsWithAvg.length}</span> statements
           </p>
         </div>
       </div>
 
       {/* Add statement form */}
       {user && (
-        <div className="w-full max-w-sm mb-4">
+        <div className="mb-4">
           <AddStatementForm
             topicId={params.topicId}
             duplicateDetectionEnabled={modules.ai_duplicate_detection ?? false}
@@ -98,7 +106,7 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
       )}
 
       {/* Statement list */}
-      <div className="w-full max-w-sm">
+      <div>
         <StatementList
           statements={statementsWithAvg}
           userId={user?.id ?? null}
@@ -106,10 +114,6 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
         />
       </div>
 
-      {/* Back */}
-      <Link href={`/playful/${params.topicId}`} className="mt-8 text-xs text-gray-400 underline">
-        ← Back
-      </Link>
     </div>
   )
 }

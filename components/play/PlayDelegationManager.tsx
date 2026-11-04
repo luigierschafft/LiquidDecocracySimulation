@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/browser'
+import { Mascot } from '@/components/play/Mascot'
 
 interface Member {
   id: string
@@ -118,14 +118,7 @@ export function PlayDelegationManager({ userId, delegations: initial, members, a
 
       {delegations.length === 0 && !showForm && (
         <div className="flex flex-col items-center gap-3 mt-2">
-          <Image
-            src="/mongoose-handstand.png"
-            alt="Mongoose"
-            width={100}
-            height={120}
-            placeholder="empty"
-            style={{ background: 'transparent' }}
-          />
+          <Mascot pose="handstand" size="md" />
           <p className="text-xs text-gray-400 text-center">
             No delegations yet. You vote directly on all topics.
           </p>
@@ -196,7 +189,7 @@ export function PlayDelegationManager({ userId, delegations: initial, members, a
                 (scope === 'area' && !areaId) ||
                 (scope === 'topic' && !issueId)
               }
-              className="flex-1 bg-gradient-to-r from-amber-400 to-orange-400 disabled:opacity-40 rounded-[2rem] py-3 text-sm font-bold text-gray-900 shadow-md active:scale-95 transition-transform"
+              className="play-btn-sun flex-1 disabled:opacity-40"
             >
               {loading ? 'Saving…' : 'Save delegation'}
             </button>
@@ -211,7 +204,7 @@ export function PlayDelegationManager({ userId, delegations: initial, members, a
       ) : (
         <button
           onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-4 text-center text-base font-bold text-gray-900 shadow-md active:scale-95 transition-transform"
+          className="play-btn-sun"
         >
           + Add delegation
         </button>

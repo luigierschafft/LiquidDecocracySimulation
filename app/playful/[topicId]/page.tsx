@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import Link from 'next/link'
+import { Mascot } from '@/components/play/Mascot'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,106 +19,52 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
   if (!issue) notFound()
 
   const isNew = issue.created_at >= CUTOFF
+  const base = `/playful/${issue.id}`
 
-  const btnClass = 'bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-base font-bold text-gray-900 shadow-md active:scale-95 transition-transform'
-  const btnGrayClass = 'bg-gradient-to-r from-gray-300 to-gray-400 rounded-[2rem] px-6 py-5 text-center text-base font-bold text-white/70 shadow-sm cursor-not-allowed'
+  const actions: { href: string; title: string; sub?: string; ai?: boolean }[] = [
+    { href: `${base}/discussion`, title: 'Discussion', sub: 'Add and rate statements' },
+    { href: `${base}/statement`, title: 'Pros and cons', sub: 'See all statements, one by one' },
+    { href: `${base}/proposals`, title: 'Proposals' },
+    { href: `${base}/plan`, title: 'Plans' },
+    { href: `${base}/summary`, title: 'Summary', sub: 'Where the discussion stands', ai: true },
+    { href: `${base}/learn`, title: 'Learn more', sub: 'Ask a specialised AI', ai: true },
+  ]
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+    <div className="mx-auto w-full max-w-sm pb-16">
+      <PlayBack href="/playful/topics" label="Topics" />
 
-      {/* Mongoose — fixed bottom right */}
-      <div className="pointer-events-none fixed bottom-4 right-4 z-0">
-        <Image
-          src="/mongoose-ball.png"
-          alt="Mongoose"
-          width={260}
-          height={260}
-          placeholder="empty"
-          style={{ background: 'transparent' }}
-          className="drop-shadow-lg opacity-90"
-        />
-      </div>
-
-      <div className="w-full max-w-xs relative mb-4 text-center">
-        <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>
-        {(issue as any).description && (
-          <p className="text-xs text-gray-400 mt-1 leading-relaxed">{(issue as any).description}</p>
-        )}
-        {!isNew && (
-          <span className="text-xs text-gray-400 font-medium">Demo topic</span>
-        )}
-      </div>
-
-      <div className="w-full max-w-xs flex flex-col gap-4">
-
-        {/* 1. Summary */}
-        {isNew ? (
-          <Link href={`/playful/${issue.id}/summary`} className="block">
-            <div className={btnClass}>
-              Get a summary about<br />the current discussion
-            </div>
-          </Link>
-        ) : (
-          <div className={btnGrayClass}>
-            Get a summary about<br />the current discussion
-          </div>
-        )}
-
-        {/* 2. Discussion */}
-        <Link href={`/playful/${issue.id}/discussion`} className="block">
-          <div className={btnClass}>
-            Discussion<br />
-            <span className="text-sm font-medium">Add &amp; rate statements</span>
-          </div>
-        </Link>
-
-        {/* 3. Proposals */}
-        <Link href={`/playful/${issue.id}/proposals`} className="block">
-          <div className={btnClass}>
-            Proposals
-          </div>
-        </Link>
-
-        {/* 4. Plan */}
-        <Link href={`/playful/${issue.id}/plan`} className="block">
-          <div className={btnClass}>
-            Plans
-          </div>
-        </Link>
-
-        {/* 5. Statements */}
-        <Link href={`/playful/${issue.id}/statement`} className="block">
-          <div className={btnClass}>
-            See the different statements<br />and pros and cons
-          </div>
-        </Link>
-
-        {/* 6. Learn */}
-        {isNew ? (
-          <Link href={`/playful/${issue.id}/learn`} className="block">
-            <div className={btnClass}>
-              Learn more about the topic<br />with a specialized AI
-            </div>
-          </Link>
-        ) : (
-          <div className={btnGrayClass}>
-            Learn more about the topic<br />with a specialized AI
-          </div>
-        )}
-
-      </div>
-
-      {!isNew && (
-        <p className="mt-4 text-xs text-gray-400 text-center max-w-[200px]">
-          AI features are only available for new topics
-        </p>
-      )}
-
-      <Link href="/playful/topics" className="block w-full max-w-xs mt-2">
-        <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-base font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
-          ← Back to topics
+      <header className="flex items-start gap-3 mb-7">
+        <div className="flex-1 min-w-0">
+          <h1 className="font-fun font-semibold text-[1.6rem] leading-[1.2] text-gray-900">{issue.title}</h1>
+          {issue.description && (
+            <p className="mt-2 text-[15px] font-semibold text-gray-600 leading-relaxed">{issue.description}</p>
+          )}
         </div>
-      </Link>
+        <Mascot pose="ball" size="md" className="mt-1" />
+      </header>
+
+      <nav className="flex flex-col gap-3.5" aria-label="Topic actions">
+        {actions.map((a, i) => {
+          const disabled = a.ai && !isNew
+          const cls = disabled ? 'play-btn-muted' : i === 0 ? 'play-btn-sun' : 'play-btn-white'
+          const body = (
+            <>
+              {a.title}
+              {a.sub && (
+                <span className={`block font-playful font-bold text-[0.9rem] mt-0.5 ${i === 0 ? 'text-sun-900/70' : 'text-gray-500'}`}>
+                  {disabled ? 'Only for new topics' : a.sub}
+                </span>
+              )}
+            </>
+          )
+          return disabled ? (
+            <div key={a.href} className={cls} aria-disabled="true">{body}</div>
+          ) : (
+            <Link key={a.href} href={a.href} className={cls}>{body}</Link>
+          )
+        })}
+      </nav>
     </div>
   )
 }

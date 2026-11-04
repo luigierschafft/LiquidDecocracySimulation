@@ -1,60 +1,34 @@
-import Image from 'next/image'
 import Link from 'next/link'
+import { Mascot } from '@/components/play/Mascot'
+
+const ACTIONS = [
+  { href: '/playful/topics', title: 'Choose a topic', sub: 'Speak, listen and sense' },
+  { href: '/playful/help', title: 'Help where I can', sub: 'Rate a few statements' },
+  { href: '/playful/delegation', title: 'My delegation', sub: 'Who votes with my trust' },
+]
 
 export default function PlayPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
-
-      {/* ── Top area: title + Traditional button + Mongoose ── */}
-      <div className="w-full max-w-xs relative mb-10">
-
-        {/* Greeting text */}
-        <div className="pr-16 pt-1">
-          <p className="text-xl font-black text-gray-900 leading-snug">
-            Hello, Thank you<br />
-            for being here!<br />
-            What would you<br />
-            like to do today?
-          </p>
-        </div>
-
-        {/* Mongoose – floats to the right, overlapping text */}
-        <div className="absolute -right-2 top-8 pointer-events-none bg-transparent">
-          <Image
-            src="/mongoose.png"
-            alt="Mongoose mascot"
-            width={156}
-            height={182}
-            priority
-            placeholder="empty"
-            className="drop-shadow-lg bg-transparent"
-            style={{ background: 'transparent' }}
-          />
-        </div>
+    <div className="mx-auto w-full max-w-sm pb-16">
+      {/* Greeting with the mongoose waving beside it */}
+      <div className="flex items-end justify-between gap-2 mb-8">
+        <h1 className="font-fun font-semibold text-[1.75rem] leading-[1.15] text-gray-900 pb-3">
+          Hello, thank you for being here!
+          <span className="block mt-2 font-playful font-bold text-lg text-gray-600 leading-snug">
+            What would you like to do today?
+          </span>
+        </h1>
+        <Mascot pose="wave" size="lg" priority className="-mr-3" />
       </div>
 
-      {/* ── 3 main action buttons ── */}
-      <div className="w-full max-w-xs flex flex-col gap-4">
-        <Link href="/playful/topics" className="block">
-          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
-            Choose a topic to<br />speak and sense
-          </div>
-        </Link>
-
-        <Link href="/playful/help" className="block">
-          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
-            I just want to help<br />where I can
-          </div>
-        </Link>
-
-        <Link href="/playful/delegation" className="block">
-          <div className="bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-xl font-bold text-gray-900 shadow-md active:scale-95 transition-transform">
-            Organize my<br />delegation
-          </div>
-        </Link>
-      </div>
-
-
+      <nav className="flex flex-col gap-4" aria-label="Playful actions">
+        {ACTIONS.map((a) => (
+          <Link key={a.href} href={a.href} className="play-btn-sun">
+            {a.title}
+            <span className="block font-playful font-bold text-[0.9rem] text-sun-900/70 mt-0.5">{a.sub}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   )
 }

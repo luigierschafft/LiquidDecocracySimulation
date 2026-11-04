@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Image from 'next/image'
+import { Mascot } from '@/components/play/Mascot'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -143,15 +143,7 @@ export function SummaryChat({ context }: Props) {
           <p className="text-xs text-gray-500 text-center max-w-[200px] leading-relaxed">
             Ask me anything about this discussion — I&apos;ll only answer based on what the community has shared.
           </p>
-          <Image
-            src="/mongoose.png"
-            alt="Mongoose"
-            width={100}
-            height={120}
-            placeholder="empty"
-            style={{ background: 'transparent' }}
-            className="drop-shadow-lg"
-          />
+          <Mascot pose="wave" size="md" />
         </div>
       )}
 
