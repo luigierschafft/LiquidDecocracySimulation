@@ -60,8 +60,6 @@ export function TopicHeader({ issue, topicId, proposalCount, planCount }: Props)
       ? 'plan'
       : 'discussion'
 
-  const current = SECTIONS.find((s) => s.value === activeSection)!
-
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const section = e.target.value as Section
     router.push(`/topics/${topicId}/${section}`)

@@ -1,53 +1,34 @@
-import { createClient } from '@/lib/supabase/server'
+import { apiRoute, badRequest, HttpError, readJson, requireCronSecret } from '@/lib/api/handler'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { NextResponse } from 'next/server'
 
 // Module 96: External Integration — create topics via webhook
-export async function POST(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+// Auth: `Authorization: Bearer $CRON_SECRET`
+export const POST = apiRoute(async (req) => {
+  requireCronSecret(req)
+  const body = await readJson<{ title?: string; content?: string; area_id?: string; platform_id?: string }>(req)
+  if (!body.title?.trim() || !body.content?.trim()) throw badRequest('title and content are required')
 
-  let body: { title?: string; content?: string; area_id?: string }
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
-  }
-
-  if (!body.title?.trim() || !body.content?.trim()) {
-    return NextResponse.json({ error: 'title and content are required' }, { status: 400 })
-  }
-
-  const supabase = createClient()
+  // No user session here — use the service-role client
+  const supabase = createAdminClient()
 
   // Use first admin as author
-  const { data: admin } = await supabase
-    .from('member')
-    .select('id')
-    .eq('is_admin', true)
-    .limit(1)
-    .single()
-
-  if (!admin) {
-    return NextResponse.json({ error: 'No admin found' }, { status: 500 })
-  }
+  const { data: admin } = await supabase.from('member').select('id').eq('is_admin', true).limit(1).single()
+  if (!admin) throw new HttpError(500, 'No admin found')
 
   const { data: issue, error } = await supabase
     .from('issue')
     .insert({
       title: body.title.trim(),
-      content: body.content.trim(),
+      description: body.content.trim(),
       area_id: body.area_id ?? null,
+      platform_id: body.platform_id ?? null,
       author_id: admin.id,
       status: 'admission',
     })
     .select('id')
     .single()
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+  if (error) throw error
 
   return NextResponse.json({ id: issue.id }, { status: 201 })
-}
+})

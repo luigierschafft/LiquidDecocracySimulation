@@ -2,16 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
 
 export function PlayfulMenu() {
   const [open, setOpen] = useState(false)
-  const pathname = usePathname()
-
-  // Classic equivalent of current playful path
-  const classicHref = pathname.startsWith('/playful/')
-    ? pathname.replace('/playful/', '/topics/')
-    : '/topics'
 
   return (
     <div className="fixed top-3 right-4 z-50 flex flex-col items-end">

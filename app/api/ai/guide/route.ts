@@ -1,24 +1,15 @@
-import { NextResponse } from 'next/server'
-import { groq, AI_MODEL } from '@/lib/ai/client'
-import { createClient } from '@/lib/supabase/server'
+import { generateText } from '@/lib/ai/client'
+import { apiRoute, badRequest, readJson, requireUser } from '@/lib/api/handler'
 
 // Module 59: Guided Exploration — AI answers user questions about a topic
-export async function POST(request: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const POST = apiRoute(async (req) => {
+  await requireUser()
+  const { issueTitle, question } = await readJson<{ issueTitle?: string; question?: string }>(req)
+  if (!question?.trim()) throw badRequest('question required')
 
-  const { issueTitle, question } = await request.json()
-  if (!question?.trim()) return NextResponse.json({ error: 'question required' }, { status: 400 })
-
-  const completion = await groq.chat.completions.create({
-    model: AI_MODEL,
-    max_tokens: 300,
-    messages: [{
-      role: 'user',
-      content: `You are a helpful guide for a community governance platform. A member is reading a topic titled "${issueTitle ?? 'unknown'}" and has asked:\n\n"${question}"\n\nAnswer helpfully and concisely. If the question is about the governance process itself, explain it. Keep your answer under 150 words.`,
-    }],
+  const answer = await generateText({
+    maxTokens: 300,
+    prompt: `You are a helpful guide for a community governance platform. A member is reading a topic titled "${issueTitle ?? 'unknown'}" and has asked:\n\n"${question}"\n\nAnswer helpfully and concisely. If the question is about the governance process itself, explain it. Keep your answer under 150 words.`,
   })
-
-  return NextResponse.json({ answer: completion.choices[0]?.message?.content ?? '' })
-}
+  return { answer }
+})

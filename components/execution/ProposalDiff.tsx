@@ -13,7 +13,7 @@ interface Props {
   userId: string | null
 }
 
-export function ProposalDiff({ proposal, sectionContent, userId }: Props) {
+export function ProposalDiff({ proposal, userId }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 

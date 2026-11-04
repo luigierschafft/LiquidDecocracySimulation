@@ -36,7 +36,7 @@ export function NotificationBell({ userId }: Props) {
       .order('created_at', { ascending: false })
       .limit(20)
       .then(({ data }) => setNotifications((data ?? []) as Notification[]))
-  }, [userId])
+  }, [supabase, userId])
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {

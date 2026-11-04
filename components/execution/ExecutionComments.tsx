@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/browser'
-import { useRouter } from 'next/navigation'
 import { MessageCircle, Send } from 'lucide-react'
 
 interface Comment {
@@ -19,7 +18,6 @@ interface Props {
 }
 
 export function ExecutionComments({ planId, userId, comments: initial }: Props) {
-  const router = useRouter()
   const [comments, setComments] = useState<Comment[]>(initial)
   const [text, setText] = useState('')
   const [loading, setLoading] = useState(false)

@@ -1,38 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRoute, badRequest, readJson, requireUser } from '@/lib/api/handler'
 
-export async function POST(req: NextRequest) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const body = await req.json()
-  const { section_id } = body
-  if (!section_id) return NextResponse.json({ error: 'section_id required' }, { status: 400 })
-
-  const { error } = await supabase
-    .from('ev_section_owners')
-    .insert({ section_id, user_id: user.id })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
+async function sectionRequest(req: Request) {
+  const session = await requireUser()
+  const { section_id } = await readJson<{ section_id?: string }>(req)
+  if (!section_id) throw badRequest('section_id required')
+  return { ...session, section_id }
 }
 
-export async function DELETE(req: NextRequest) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+/** Claim ownership of a plan section. */
+export const POST = apiRoute(async (req) => {
+  const { supabase, user, section_id } = await sectionRequest(req)
+  const { error } = await supabase.from('ev_section_owners').insert({ section_id, user_id: user.id })
+  if (error) throw error
+  return { ok: true }
+})
 
-  const body = await req.json()
-  const { section_id } = body
-  if (!section_id) return NextResponse.json({ error: 'section_id required' }, { status: 400 })
-
+/** Release ownership of a plan section. */
+export const DELETE = apiRoute(async (req) => {
+  const { supabase, user, section_id } = await sectionRequest(req)
   const { error } = await supabase
     .from('ev_section_owners')
     .delete()
     .eq('section_id', section_id)
     .eq('user_id', user.id)
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
-}
+  if (error) throw error
+  return { ok: true }
+})

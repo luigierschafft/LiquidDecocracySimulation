@@ -20,7 +20,7 @@ export function NewProposalForm({ platformId }: Props) {
 
   useEffect(() => {
     supabase.from('area').select('*').order('name').then(({ data }) => setAreas(data ?? []))
-  }, [])
+  }, [supabase])
 
   async function handleSubmit(e: React.FormEvent, asDraft = false) {
     e.preventDefault()

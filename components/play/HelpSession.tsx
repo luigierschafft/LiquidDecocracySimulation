@@ -79,7 +79,8 @@ export function HelpSession({ topics, userId }: Props) {
   const [data, setData] = useState<ModeData>({})
   const itemCount = useRef(0)
 
-  useEffect(() => { init() }, [])
+  // Run once on mount; init() reads the initial topics only
+  useEffect(() => { init() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   function init() {
     if (topics.length === 0) { setStatus('empty'); return }

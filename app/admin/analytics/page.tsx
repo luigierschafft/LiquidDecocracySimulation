@@ -26,7 +26,6 @@ export default async function AdminAnalyticsPage() {
     totalVotesResult,
     totalOpinionsResult,
     totalArgumentsResult,
-    topMembersResult,
     topTopicsResult,
     topReputationResult,
   ] = await Promise.all([
@@ -34,10 +33,6 @@ export default async function AdminAnalyticsPage() {
     supabase.from('vote').select('*', { count: 'exact', head: true }),
     supabase.from('opinion').select('*', { count: 'exact', head: true }),
     supabase.from('argument').select('*', { count: 'exact', head: true }),
-    supabase
-      .from('vote')
-      .select('member_id, member:member!vote_member_id_fkey(display_name, email)')
-      .limit(1000),
     supabase
       .from('opinion')
       .select('issue_id, issue:issue!inner(title)')

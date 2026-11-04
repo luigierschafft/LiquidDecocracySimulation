@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Liquid Democracy Auroville
 
-## Getting Started
+Participatory governance platform for the Auroville community. Members discuss
+topics, write and vote on proposals, delegate their vote (liquid democracy) and
+plan the implementation of accepted proposals.
 
-First, run the development server:
+Live: https://liquid-decocracy-simulation-495h.vercel.app
+
+## Stack
+
+Next.js 14 (App Router) · TypeScript · Tailwind CSS · Supabase (Postgres, Auth, RLS)
+· Groq (LLM) · Vercel (hosting + cron)
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in Supabase + Groq keys
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+| Script              | What it does                    |
+|---------------------|---------------------------------|
+| `npm run dev`       | Dev server                      |
+| `npm run build`     | Production build                |
+| `npm run typecheck` | TypeScript check                |
+| `npm run lint`      | ESLint                          |
+| `npm run check`     | Typecheck + lint (run before pushing) |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Two UIs, one backend
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Classic** (`/topics/...`): full-featured desktop UI.
+- **Playful** (`/playful/...`): simplified, mobile-first UI.
 
-## Learn More
+Both read and write the same tables and API routes.
 
-To learn more about Next.js, take a look at the following resources:
+## Project structure
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+app/                  Routes (pages + API)
+  api/                Route handlers, grouped by domain:
+    ai/               AI features (summaries, analysis, story mode, …)
+    vote/             All voting endpoints (use lib/voting/castVote)
+    admin/ cron/      Scheduled + admin-only jobs (Vercel Cron, see vercel.json)
+    play/             AI chat / data endpoints for the playful UI
+    platform/         Multi-tenant platform switching / joining
+  topics/             Classic topic pages (discussion → proposals → plan)
+  playful/            Playful topic pages
+  admin/              Admin console
+components/           React components, grouped by feature
+  ui/                 Generic, feature-independent building blocks
+lib/                  Shared logic ("tools") — no React here
+  api/handler.ts      apiRoute(), requireUser(), requireAdmin(), requireCronSecret(), HttpError
+  ai/                 generateText() (single AI entry point), JSON parsing, shared prompt context
+  voting/             castVote() with delegation, approval + Schulze counting
+  delegation/         Transitive proxy-vote resolution
+  platform/           Current-platform lookup (cookie based)
+  modules/            Feature-module flags (admin + per-user)
+  process/            Phase engine for the issue lifecycle
+  supabase/           Supabase clients: server (RLS), browser, admin (service role)
+  types/              Shared TypeScript types
+supabase/migrations/  Database schema history (apply in order)
+docs/                 Planning documents
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Conventions
 
-## Deploy on Vercel
+- **API routes** are thin: wrap them in `apiRoute`, authenticate with
+  `requireUser()`/`requireAdmin()`, throw `badRequest()`/`forbidden()` etc. for
+  errors, and return a plain object (sent as JSON).
+- **AI calls** always go through `generateText()` in `lib/ai/client.ts` — never
+  import the provider SDK directly. Use `parseJsonObject()` for JSON answers.
+- **Votes** always go through `castVote()` so delegated (proxy) votes stay in sync.
+- **Service-role client** (`lib/supabase/admin.ts`) only where there is no user
+  session (cron, webhooks) or after an explicit admin check.
+- Run `npm run check` before pushing.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Feature modules
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Most features can be switched on/off in **Admin → Modules** (table `module`).
+Some modules can additionally be toggled per user. Check flags server-side with
+`getEffectiveModules(userId)`.

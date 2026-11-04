@@ -61,7 +61,7 @@ export function TopicDiscussion({
   const supabase = createClient()
 
   // Module 87: detect @display_name mentions and send notifications
-  async function sendMentionNotifications(content: string, opinionId: string) {
+  async function sendMentionNotifications(content: string) {
     if (!mentionsEnabled) return
     const handles = content.match(/@([\w.-]+)/g) ?? []
     if (handles.length === 0) return
@@ -85,10 +85,6 @@ export function TopicDiscussion({
 
   // Show intent picker if either module is on
   const showIntentPicker = intentEnabled || questionsTaggingEnabled
-  // If only questionsTagging (not full intention display), only show 'question' option
-  const intentOptions: OpinionIntent[] = questionsTaggingEnabled && !intentEnabled
-    ? ['question']
-    : ['support', 'concern', 'question', 'info']
 
   const topLevel = opinions.filter((o) => !o.parent_id)
   const replies = (parentId: string) => opinions.filter((o) => o.parent_id === parentId)
@@ -123,7 +119,7 @@ export function TopicDiscussion({
 
     if (!error && data) {
       setOpinions((prev) => [...prev, { ...(data as unknown as Opinion), replies: [] }])
-      await sendMentionNotifications(text.trim(), (data as any).id)
+      await sendMentionNotifications(text.trim())
       setText('')
       setIntent(null)
       setIsAnonymous(false)
@@ -149,7 +145,7 @@ export function TopicDiscussion({
 
     if (!error && data) {
       setOpinions((prev) => [...prev, data as unknown as Opinion])
-      await sendMentionNotifications(replyText.trim(), (data as any).id)
+      await sendMentionNotifications(replyText.trim())
       setReplyText('')
       setReplyingTo(null)
       setQuotingOpinion(null)

@@ -15,10 +15,11 @@ export function ModeRanking({ pair, issueId, onNext }: Props) {
   const [saving, setSaving] = useState(false)
 
   // Reset when pair changes
+  const pairKey = `${pair[0].id}|${pair[1].id}`
   useEffect(() => {
     setChosen(null)
     setSaving(false)
-  }, [pair[0].id, pair[1].id])
+  }, [pairKey])
 
   async function choose(winnerId: string) {
     if (chosen || saving) return

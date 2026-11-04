@@ -1,18 +1,11 @@
-import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { apiRoute, badRequest, readJson, requireUser } from '@/lib/api/handler'
 
-export async function POST(request: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+const UNIQUE_VIOLATION = '23505' // already a member
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
-  const { platformId } = await request.json()
-  if (!platformId) {
-    return NextResponse.json({ error: 'platformId required' }, { status: 400 })
-  }
+export const POST = apiRoute(async (req) => {
+  const { supabase, user } = await requireUser()
+  const { platformId } = await readJson<{ platformId?: string }>(req)
+  if (!platformId) throw badRequest('platformId required')
 
   const { error } = await supabase.from('platform_member').insert({
     platform_id: platformId,
@@ -20,11 +13,6 @@ export async function POST(request: Request) {
     role: 'member',
     status: 'approved',
   })
-
-  if (error && error.code !== '23505') {
-    // 23505 = unique violation (already requested)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ ok: true })
-}
+  if (error && error.code !== UNIQUE_VIOLATION) throw error
+  return { ok: true }
+})

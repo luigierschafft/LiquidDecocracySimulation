@@ -321,10 +321,6 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
     setFocusStack((prev) => [...prev, node])
   }
 
-  function navigateBackTo(index: number) {
-    setFocusStack((prev) => prev.slice(0, index))
-  }
-
   function handleAdded() {
     setLoaded(false)
     load().then(() => {

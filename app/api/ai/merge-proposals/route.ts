@@ -1,28 +1,22 @@
-import { NextResponse } from 'next/server'
-import { groq, AI_MODEL } from '@/lib/ai/client'
-import { createClient } from '@/lib/supabase/server'
+import { generateText } from '@/lib/ai/client'
+import { parseJsonObject } from '@/lib/ai/json'
+import { apiRoute, badRequest, HttpError, notFound, readJson, requireUser } from '@/lib/api/handler'
 
 // Module 21: AI Proposal Merger — generate a merged proposal from two existing ones
-export async function POST(request: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { initiativeId1, initiativeId2 } = await request.json()
-  if (!initiativeId1 || !initiativeId2) {
-    return NextResponse.json({ error: 'Two initiative IDs required' }, { status: 400 })
-  }
+export const POST = apiRoute(async (req) => {
+  const { supabase } = await requireUser()
+  const { initiativeId1, initiativeId2 } = await readJson<{ initiativeId1?: string; initiativeId2?: string }>(req)
+  if (!initiativeId1 || !initiativeId2) throw badRequest('Two initiative IDs required')
 
   const [r1, r2] = await Promise.all([
     supabase.from('initiative').select('title, content').eq('id', initiativeId1).single(),
     supabase.from('initiative').select('title, content').eq('id', initiativeId2).single(),
   ])
+  if (!r1.data || !r2.data) throw notFound('Could not load proposals')
 
-  if (!r1.data || !r2.data) {
-    return NextResponse.json({ error: 'Could not load proposals' }, { status: 404 })
-  }
-
-  const prompt = `You are helping merge two community proposals into one coherent proposal. Combine the best elements of both, resolve contradictions, and create a unified proposition.
+  const raw = await generateText({
+    maxTokens: 1200,
+    prompt: `You are helping merge two community proposals into one coherent proposal. Combine the best elements of both, resolve contradictions, and create a unified proposition.
 
 Proposal A — "${r1.data.title}":
 ${r1.data.content}
@@ -37,20 +31,10 @@ Rules:
 - Title: concise, combining the core ideas of both
 - Content: well-structured Markdown, synthesise both proposals fairly
 - Keep concrete details (costs, timelines, affected areas) from both where possible
-- Do not add explanations outside the JSON`
-
-  const completion = await groq.chat.completions.create({
-    model: AI_MODEL,
-    max_tokens: 1200,
-    messages: [{ role: 'user', content: prompt }],
+- Do not add explanations outside the JSON`,
   })
 
-  const raw = completion.choices[0]?.message?.content ?? ''
-
-  try {
-    const json = JSON.parse(raw.match(/\{[\s\S]*\}/)?.[0] ?? '{}')
-    return NextResponse.json({ title: json.title ?? '', content: json.content ?? '' })
-  } catch {
-    return NextResponse.json({ error: 'AI returned unexpected format', raw }, { status: 500 })
-  }
-}
+  const json = parseJsonObject<{ title?: string; content?: string }>(raw)
+  if (!json) throw new HttpError(500, 'AI returned unexpected format')
+  return { title: json.title ?? '', content: json.content ?? '' }
+})

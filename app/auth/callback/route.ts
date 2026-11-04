@@ -1,12 +1,18 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { safeRedirectPath } from '@/lib/utils'
 
-const SUPERADMIN_EMAIL = 'lukasweick@gmail.com'
+/** Comma-separated emails that are auto-approved as admin on every platform. */
+function isSuperadmin(email: string | undefined): boolean {
+  if (!email) return false
+  const list = (process.env.SUPERADMIN_EMAILS ?? '').split(',').map((e) => e.trim().toLowerCase())
+  return list.includes(email.toLowerCase())
+}
 
 export async function GET(request: Request) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
-  const next = url.searchParams.get('next') ?? '/topics'
+  const next = safeRedirectPath(url.searchParams.get('next'))
 
   if (code) {
     const supabase = createClient()
@@ -17,7 +23,7 @@ export async function GET(request: Request) {
 
       if (user) {
         // Ensure superadmin is approved admin on all platforms
-        if (user.email === SUPERADMIN_EMAIL) {
+        if (isSuperadmin(user.email)) {
           const { data: platforms } = await supabase.from('platform').select('id')
           for (const platform of platforms ?? []) {
             await supabase.from('platform_member').upsert(

@@ -50,7 +50,6 @@ export function TaskCard({ task, userId }: Props) {
     router.refresh()
   }
 
-  const currentStatus = STATUS_OPTIONS.find((s) => s.value === task.status)!
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-3 space-y-2">
