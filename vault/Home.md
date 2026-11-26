@@ -26,6 +26,7 @@ Wissensbasis für die Liquid-Democracy- und Deliberationsplattform für Aurovill
 ## Plattform
 - [[Plattform-Überblick]]
 - [[Offene Fragen]]
+- [[Test-Personas Übersicht]] – fiktive Bewohner für KI-Test-Bots
 
 ## Entscheidungen
 - Noch keine. Neue mit der Vorlage [[Vorlage Entscheidung]] anlegen.
