@@ -1,5 +1,9 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Wissensbasis (Obsidian)
+
+Konzepte, Recherche und Designprinzipien liegen im Obsidian-Vault unter [`vault/`](vault/). In Obsidian einfach den Ordner `vault/` als Vault öffnen und bei `Home.md` starten.
+
 ## Getting Started
 
 First, run the development server:
