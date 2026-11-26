@@ -13,9 +13,10 @@ interface Props {
   statement: any
   userId: string | null
   topicId: string
+  botsEnabled?: boolean
 }
 
-export function StatementCard({ statement, userId }: Props) {
+export function StatementCard({ statement, userId, botsEnabled = false }: Props) {
   const [open, setOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('split')
   const [sunClickedNodeId, setSunClickedNodeId] = useState<string | null>(null)
@@ -84,6 +85,9 @@ export function StatementCard({ statement, userId }: Props) {
         className="cursor-pointer group"
         onClick={() => { setOpen((v) => !v); if (!open) setViewMode('split') }}
       >
+        {statement.author?.display_name?.startsWith('🤖') && (
+          <p className="text-[11px] font-semibold text-purple-500 mb-0.5">{statement.author.display_name}</p>
+        )}
         <p className="text-sm font-medium text-gray-900 leading-relaxed group-hover:text-purple-700 transition-colors">{statement.text}</p>
         <p className="text-xs text-gray-300 group-hover:text-purple-300 transition-colors mt-1">
           {open ? 'Click to close discussion' : 'Click to open discussion'}
@@ -165,7 +169,7 @@ export function StatementCard({ statement, userId }: Props) {
 
       {open && viewMode === 'split' && (
         <div onClick={(e) => e.stopPropagation()}>
-          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} />
+          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} botsEnabled={botsEnabled} />
         </div>
       )}
       {open && viewMode === 'sun' && (
@@ -178,7 +182,7 @@ export function StatementCard({ statement, userId }: Props) {
           />
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Argument Tree</p>
-            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} />
+            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} botsEnabled={botsEnabled} />
           </div>
         </div>
       )}

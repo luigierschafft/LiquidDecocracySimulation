@@ -6,9 +6,10 @@ interface Props {
   statements: any[]
   userId: string | null
   topicId: string
+  botsEnabled?: boolean
 }
 
-export function StatementList({ statements, userId, topicId }: Props) {
+export function StatementList({ statements, userId, topicId, botsEnabled = false }: Props) {
   if (statements.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400">
@@ -25,6 +26,7 @@ export function StatementList({ statements, userId, topicId }: Props) {
           statement={statement}
           userId={userId}
           topicId={topicId}
+          botsEnabled={botsEnabled}
         />
       ))}
     </div>

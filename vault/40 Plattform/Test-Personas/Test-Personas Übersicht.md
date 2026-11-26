@@ -48,6 +48,13 @@ Jede Notiz folgt der [[Vorlage Persona]]. Der Kopf (Frontmatter) ist so gebaut, 
 
 Der Text darunter ist das, was später als Rollenbeschreibung an das Sprachmodell geht.
 
+## Umsetzung (erster Bot)
+- Personas als Bot-Rollen: `lib/bots/personas.ts` (bei Änderungen an einer Persona-Notiz mitpflegen)
+- Bot-Mitglieder mit 🤖-Namen, nur Mitglied der Test-Plattform: Migration `supabase/migrations/20261126000001_test_bots.sql`
+- Antworten im Pro/Contra-Baum: `app/api/bots/respond`, neue Statements: `app/api/bots/statements`
+- Beide Routen verweigern jedes Thema, das nicht auf der Test-Plattform liegt
+- Modell: Groq/Llama wie die übrigen KI-Funktionen
+
 ## Noch offen
 - Sollen die Bots auch abstimmen und Stimmen delegieren, oder nur diskutieren?
 - Sollen sie sich an frühere eigene Beiträge erinnern (Gedächtnis pro Persona)?

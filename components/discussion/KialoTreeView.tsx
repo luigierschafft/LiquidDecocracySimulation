@@ -98,6 +98,9 @@ function KialoCard({ node, userId, onNavigate }: CardProps) {
         isPro ? 'border-l-4 border-l-green-400 border-gray-100' : 'border-l-4 border-l-red-400 border-gray-100'
       }`}
     >
+      {node.author?.display_name?.startsWith('🤖') && (
+        <p className="text-[11px] font-semibold text-purple-500 mb-0.5">{node.author.display_name}</p>
+      )}
       <p className="text-sm text-gray-800 leading-snug">{node.text}</p>
 
       <MiniScale nodeId={node.id} userId={userId} />
@@ -124,7 +127,7 @@ interface ColumnProps {
   userId: string | null
   parentId: string | null
   statementId: string
-  onAdded: () => void
+  onAdded: (newNodeId?: string) => void
   onNavigate: (node: DiscussionNode) => void
 }
 
@@ -146,18 +149,18 @@ function KialoColumn({ type, nodes, userId, parentId, statementId, onAdded, onNa
     if (!text.trim() || !userId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.from('ev_discussion_nodes').insert({
+    const { data: inserted } = await supabase.from('ev_discussion_nodes').insert({
       statement_id: statementId,
       parent_id: parentId,
       type,
       text: text.trim(),
       author_id: userId,
       source_links: [],
-    })
+    }).select('id').single()
     setText('')
     setAdding(false)
     setLoading(false)
-    onAdded()
+    onAdded(inserted?.id)
   }
 
   return (
@@ -234,7 +237,7 @@ interface SplitProps {
   userId: string | null
   parentId: string | null
   statementId: string
-  onAdded: () => void
+  onAdded: (newNodeId?: string) => void
   onNavigate: (node: DiscussionNode) => void
 }
 
@@ -257,6 +260,7 @@ interface Props {
   statementText: string
   userId: string | null
   autoFocusNodeId?: string | null
+  botsEnabled?: boolean
 }
 
 function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
@@ -283,8 +287,10 @@ function findPath(nodes: DiscussionNode[], targetId: string, path: DiscussionNod
   return null
 }
 
-export function KialoTreeView({ statementId, statementText, userId, autoFocusNodeId }: Props) {
+export function KialoTreeView({ statementId, statementText, userId, autoFocusNodeId, botsEnabled = false }: Props) {
   const [nodes, setNodes] = useState<DiscussionNode[] | null>(null)
+  const [botsThinking, setBotsThinking] = useState(false)
+  const [botNote, setBotNote] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [focusStack, setFocusStack] = useState<DiscussionNode[]>([])
 
@@ -325,12 +331,37 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
     setFocusStack((prev) => prev.slice(0, index))
   }
 
-  function handleAdded() {
+  function handleAdded(newNodeId?: string) {
     setLoaded(false)
     load().then(() => {
       // After reload, rebuild focusStack nodes from fresh tree
       setFocusStack([])
     })
+    // Test Platform: let personas answer the argument that was just added
+    if (botsEnabled && newNodeId) askBots(newNodeId)
+  }
+
+  async function askBots(parentId: string | null) {
+    if (botsThinking) return
+    setBotsThinking(true)
+    setBotNote(null)
+    try {
+      const res = await fetch('/api/bots/respond', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ statementId, parentId }),
+      })
+      const data = await res.json()
+      if (!res.ok) setBotNote(data.error ?? 'Bots could not answer.')
+      else if (!data.posted?.length) setBotNote('The bots had nothing new to add.')
+      else setBotNote(`${data.posted.map((p: { persona: string }) => p.persona).join(', ')} replied.`)
+      await load()
+      setFocusStack([])
+    } catch {
+      setBotNote('Bots could not answer.')
+    } finally {
+      setBotsThinking(false)
+    }
   }
 
   return (
@@ -399,6 +430,21 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
 
       {tree.length === 0 && !userId && (
         <p className="text-xs text-gray-400 text-center py-2">No arguments yet.</p>
+      )}
+
+      {botsEnabled && userId && (
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-purple-50 border border-purple-100 px-3 py-2">
+          <span className="text-xs text-purple-700">
+            {botsThinking ? '🤖 Bots are thinking…' : botNote ?? '🤖 Test bots answer your arguments here.'}
+          </span>
+          <button
+            onClick={() => askBots(currentParentId)}
+            disabled={botsThinking}
+            className="text-xs px-3 py-1 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 shrink-0"
+          >
+            Ask bots
+          </button>
+        </div>
       )}
     </div>
   )
