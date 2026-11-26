@@ -4,6 +4,8 @@ import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
 import { CouncilOfElders } from '@/components/discussion/CouncilOfElders'
 import { getEffectiveModules } from '@/lib/modules'
+import { botsEnabledForTopic } from '@/lib/bots/enabled'
+import { BotStatementsButton } from '@/components/bots/BotStatementsButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,6 +18,7 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
   const modules = await getEffectiveModules(user?.id)
   const duplicateDetectionEnabled = modules.ai_duplicate_detection ?? false
   const hateSpeechFilterEnabled = modules.hate_speech_filter ?? false
+  const botsEnabled = await botsEnabledForTopic(params.topicId)
 
   // Fetch council message: topic-specific first, then global fallback
   const { data: councilRows } = await supabase
@@ -55,7 +58,8 @@ export default async function DiscussionPage({ params }: { params: { topicId: st
   return (
     <div className="space-y-6">
       {user && <AddStatementForm topicId={params.topicId} duplicateDetectionEnabled={duplicateDetectionEnabled} hateSpeechFilterEnabled={hateSpeechFilterEnabled} />}
-      <StatementList statements={statementsWithAvg} userId={user?.id ?? null} topicId={params.topicId} />
+      {user && botsEnabled && <BotStatementsButton topicId={params.topicId} />}
+      <StatementList statements={statementsWithAvg} userId={user?.id ?? null} topicId={params.topicId} botsEnabled={botsEnabled} />
       <CouncilOfElders message={councilMessage} />
       <div className="pt-4 flex flex-col items-center gap-3">
         <Link href={`/topics/${params.topicId}/proposals`} className="btn-primary inline-flex items-center justify-center px-6 py-3 text-base">

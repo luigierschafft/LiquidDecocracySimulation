@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
 import { getEffectiveModules } from '@/lib/modules'
+import { botsEnabledForTopic } from '@/lib/bots/enabled'
+import { BotStatementsButton } from '@/components/bots/BotStatementsButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +35,7 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
     .single()
 
   if (!issue) notFound()
+  const botsEnabled = await botsEnabledForTopic(params.topicId)
 
   const { data: statements } = await supabase
     .from('ev_statements')
@@ -98,11 +101,13 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
       )}
 
       {/* Statement list */}
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm space-y-4">
+        {user && botsEnabled && <BotStatementsButton topicId={params.topicId} />}
         <StatementList
           statements={statementsWithAvg}
           userId={user?.id ?? null}
           topicId={params.topicId}
+          botsEnabled={botsEnabled}
         />
       </div>
 
