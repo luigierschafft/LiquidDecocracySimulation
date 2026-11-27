@@ -6,9 +6,11 @@ interface Props {
   statements: any[]
   userId: string | null
   topicId: string
+  /** 'playful' shows pro and contra stacked instead of the two-column split */
+  mode?: 'classic' | 'playful'
 }
 
-export function StatementList({ statements, userId, topicId }: Props) {
+export function StatementList({ statements, userId, topicId, mode = 'classic' }: Props) {
   if (statements.length === 0) {
     return (
       <div className="text-center py-12 text-gray-400">
@@ -25,6 +27,7 @@ export function StatementList({ statements, userId, topicId }: Props) {
           statement={statement}
           userId={userId}
           topicId={topicId}
+          mode={mode}
         />
       ))}
     </div>

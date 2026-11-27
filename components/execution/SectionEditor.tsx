@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/browser'
 import { useRouter } from 'next/navigation'
 import { Edit3, Check, X, Send, ChevronDown, ChevronRight, ImagePlus, Trash2, Lightbulb } from 'lucide-react'
-import type { ExecutionSection, SectionProposal } from '@/lib/types/ev'
+import type { ExecutionSection } from '@/lib/types/ev'
 import { ProposalDiff } from './ProposalDiff'
 
 interface Improvement {

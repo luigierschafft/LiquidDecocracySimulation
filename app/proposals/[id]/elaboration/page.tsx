@@ -1,10 +1,10 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import { notFound, redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import type { Elaboration, ElaborationSection, ElaborationComment, ElaborationEditor, Member } from '@/lib/types'
+import type { ElaborationSection, ElaborationComment, ElaborationEditor, Member } from '@/lib/types'
 import { SectionEditor } from '@/components/elaboration/SectionEditor'
 import { ManageEditors } from '@/components/elaboration/ManageEditors'
-import { getMemberDisplayName } from '@/lib/utils'
 import { ArrowLeft, Plus, FileEdit } from 'lucide-react'
 import Link from 'next/link'
 
@@ -78,7 +78,7 @@ export default async function ElaborationPage({ params }: Props) {
     const { data } = await supabase
       .from('member')
       .select('id, display_name, email')
-      .eq('is_approved', true)
+      .in('is_approved', ACTIVE_MEMBER_APPROVAL)
       .order('display_name')
     allMembers = data ?? []
   }

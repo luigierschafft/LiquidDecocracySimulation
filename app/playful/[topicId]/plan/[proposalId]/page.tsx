@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { ProjectHeader } from '@/components/execution/ProjectHeader'
 import { TaskBoard } from '@/components/execution/TaskBoard'
 import { TeamList } from '@/components/execution/TeamList'
@@ -11,6 +10,7 @@ import { GenerateDraftButton } from '@/components/execution/GenerateDraftButton'
 import { CreateWorkspaceButton } from '@/components/execution/CreateWorkspaceButton'
 import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 import { getEffectiveModules } from '@/lib/modules'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,9 +42,7 @@ export default async function PlayProposalPlanPage({ params }: { params: { topic
 
         {/* Header */}
         <div>
-          <Link href={`/playful/${params.topicId}/plan`} className="text-xs text-gray-400 underline">
-            ← Back to Plans
-          </Link>
+          <PlayBack href={`/playful/${params.topicId}/plan`} label="Plans" />
           <h1 className="text-xl font-black text-gray-900 leading-tight mt-2">{issue.title}</h1>
           <p className="text-sm text-amber-600 font-semibold mt-0.5">Project Plan</p>
         </div>

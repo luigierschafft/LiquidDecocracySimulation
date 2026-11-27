@@ -1,3 +1,4 @@
+import { REQUIRE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from '@/components/profile/ProfileForm'
@@ -7,10 +8,9 @@ import { Badge } from '@/components/ui/Badge'
 import { VerifiedBadge } from '@/components/profile/VerifiedBadge'
 import { MapPin, Shield, Star } from 'lucide-react'
 import Link from 'next/link'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
-
-const CUTOFF = '2026-04-30'
 
 export default async function ProfilePage() {
   const supabase = createClient()
@@ -29,7 +29,7 @@ export default async function ProfilePage() {
   const { data: newIssues } = await supabase
     .from('issue')
     .select('id')
-    .gte('created_at', CUTOFF)
+    .gte('created_at', NEW_TOPIC_CUTOFF)
     .neq('status', 'draft')
   const newIssueIds = (newIssues ?? []).map((i) => i.id)
 
@@ -230,11 +230,11 @@ export default async function ProfilePage() {
               </p>
             )}
             <div className="flex gap-2 mt-1 flex-wrap">
-              {member?.is_approved ? (
+              {REQUIRE_MEMBER_APPROVAL && (member?.is_approved ? (
                 <Badge variant="green">Approved</Badge>
               ) : (
                 <Badge variant="sand">Pending approval</Badge>
-              )}
+              ))}
               {member?.is_admin && <Badge>Admin</Badge>}
               {rolesEnabled && member?.is_moderator && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold">

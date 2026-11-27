@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { HelpSession } from '@/components/play/HelpSession'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -33,6 +34,8 @@ export default async function PlayHelpPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href="/playful" />
+
       <HelpSession topics={topics} userId={user.id} />
       <Link href="/playful" className="mt-10 text-xs text-gray-400 underline">
         ← Back

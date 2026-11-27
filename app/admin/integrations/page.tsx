@@ -1,4 +1,4 @@
-import { BookOpen, Webhook, Upload } from 'lucide-react'
+import { Webhook, Upload } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 

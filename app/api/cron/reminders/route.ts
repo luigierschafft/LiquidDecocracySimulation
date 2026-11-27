@@ -1,59 +1,57 @@
-import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
+import { apiRoute, requireCronSecret } from '@/lib/api/handler'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Module 88: Reminders — sends voting deadline notifications
-// Called by Vercel cron (see vercel.json)
-export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+// Called daily by Vercel Cron (see vercel.json)
+const REMINDER_WINDOW_MS = 48 * 60 * 60 * 1000
 
-  const supabase = createClient()
+export const GET = apiRoute(async (request) => {
+  requireCronSecret(request)
 
-  // Find voting issues ending in < 48 hours
-  const in48h = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+  // No user session in cron jobs — use the service-role client (bypasses RLS)
+  const supabase = createAdminClient()
+
+  const windowEnd = new Date(Date.now() + REMINDER_WINDOW_MS).toISOString()
   const { data: urgentIssues } = await supabase
     .from('issue')
     .select('id, title, voting_at')
     .eq('status', 'voting')
     .not('voting_at', 'is', null)
-    .lte('voting_at', in48h)
+    .lte('voting_at', windowEnd)
 
-  if (!urgentIssues || urgentIssues.length === 0) {
-    return NextResponse.json({ sent: 0 })
-  }
+  if (!urgentIssues?.length) return { sent: 0 }
 
-  // Get all approved members
-  const { data: members } = await supabase
-    .from('member')
-    .select('id')
-    .eq('is_approved', true)
+  const { data: members } = await supabase.from('member').select('id').in('is_approved', ACTIVE_MEMBER_APPROVAL)
 
   let sent = 0
   for (const issue of urgentIssues) {
-    for (const member of members ?? []) {
-      // Skip if already notified for this issue
-      const { data: existing } = await supabase
-        .from('notification')
-        .select('id')
-        .eq('member_id', member.id)
-        .eq('type', 'reminder')
-        .like('link', `%${issue.id}%`)
-        .single()
+    const link = `/proposals/${issue.id}`
 
-      if (existing) continue
+    // One query per issue for who was already reminded (instead of one per member)
+    const { data: existing } = await supabase
+      .from('notification')
+      .select('member_id')
+      .eq('type', 'reminder')
+      .eq('link', link)
+    const alreadyNotified = new Set((existing ?? []).map((n) => n.member_id))
 
-      await supabase.from('notification').insert({
-        member_id: member.id,
+    const rows = (members ?? [])
+      .filter((m) => !alreadyNotified.has(m.id))
+      .map((m) => ({
+        member_id: m.id,
         type: 'reminder',
         title: `Voting closes soon: ${issue.title}`,
         body: 'Cast your vote before time runs out.',
-        link: `/proposals/${issue.id}`,
-      })
-      sent++
+        link,
+      }))
+
+    if (rows.length) {
+      const { error } = await supabase.from('notification').insert(rows)
+      if (error) throw error
+      sent += rows.length
     }
   }
 
-  return NextResponse.json({ sent })
-}
+  return { sent }
+})

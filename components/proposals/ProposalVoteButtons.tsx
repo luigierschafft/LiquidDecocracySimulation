@@ -44,7 +44,6 @@ interface Props {
   proposalId: string
   userId: string
   votes: ProposalVote[]
-  onVoted?: (votes: ProposalVote[]) => void
   impactLevelEnabled?: boolean
 }
 
@@ -56,7 +55,7 @@ type ModalStep =
   | 'empathy'
   | null
 
-export function ProposalVoteButtons({ proposalId, userId, votes, onVoted, impactLevelEnabled }: Props) {
+export function ProposalVoteButtons({ proposalId, userId, votes, impactLevelEnabled }: Props) {
   const router = useRouter()
   const modules = useModules()
   // Prop takes priority over context (allows server-side-fresh value to override cached context)

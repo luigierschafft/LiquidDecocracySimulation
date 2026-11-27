@@ -141,7 +141,7 @@ interface Props {
   onNodeClick?: (nodeId: string) => void
 }
 
-export function SunView({ statementId, statementText, userId, onNodeClick }: Props) {
+export function SunView({ statementId, statementText, onNodeClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<any>(null)
   const [dataLoaded, setDataLoaded] = useState(false)

@@ -4,6 +4,9 @@ import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/browser'
 import { Button } from '@/components/ui/Button'
+import { safeRedirectPath } from '@/lib/utils'
+import { AUTH_NEXT_COOKIE } from '@/lib/auth/constants'
+import { REQUIRE_MEMBER_APPROVAL } from '@/lib/config/membership'
 
 function GoogleIcon() {
   return (
@@ -16,23 +19,35 @@ function GoogleIcon() {
   )
 }
 
+/** Turn the `?error=` set by /auth/callback into a message users can act on. */
+function describeAuthError(code: string | null): string | null {
+  if (!code) return null
+  if (code === 'auth_failed') {
+    return 'Sign-in could not be completed. Please try again — and open the link in the same browser you started in.'
+  }
+  if (/access[_ ]denied/i.test(code)) return 'Sign-in was cancelled. Please try again.'
+  // Never echo arbitrary query text back to the user (content spoofing)
+  return 'Sign-in failed. Please try again, or use the email link below.'
+}
+
 export default function LoginPage() {
   const searchParams = useSearchParams()
-  const next = searchParams.get('next') ?? '/topics'
+  const next = safeRedirectPath(searchParams.get('next'))
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(() => describeAuthError(searchParams.get('error')))
   const supabase = createClient()
 
   async function handleGoogle() {
     setGoogleLoading(true)
+    // Keep the redirect URL free of query params so it matches the Supabase
+    // allow-list exactly; the target page travels in a short-lived cookie instead.
+    document.cookie = `${AUTH_NEXT_COOKIE}=${encodeURIComponent(next)}; path=/; max-age=600; samesite=lax`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
-      },
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) setError(error.message)
     setGoogleLoading(false)
@@ -119,9 +134,11 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-xs text-center text-foreground/40">
-          New members need admin approval before voting.
-        </p>
+        {REQUIRE_MEMBER_APPROVAL && (
+          <p className="text-xs text-center text-foreground/40">
+            New members need admin approval before voting.
+          </p>
+        )}
       </div>
     </div>
   )

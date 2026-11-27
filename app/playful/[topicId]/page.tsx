@@ -2,10 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
 
-const CUTOFF = '2026-04-30'
 
 export default async function PlayTopicPage({ params }: { params: { topicId: string } }) {
   const supabase = createClient()
@@ -17,7 +17,7 @@ export default async function PlayTopicPage({ params }: { params: { topicId: str
 
   if (!issue) notFound()
 
-  const isNew = issue.created_at >= CUTOFF
+  const isNew = issue.created_at >= NEW_TOPIC_CUTOFF
 
   const btnClass = 'bg-gradient-to-r from-amber-400 to-orange-400 rounded-[2rem] px-6 py-5 text-center text-base font-bold text-gray-900 shadow-md active:scale-95 transition-transform'
   const btnGrayClass = 'bg-gradient-to-r from-gray-300 to-gray-400 rounded-[2rem] px-6 py-5 text-center text-base font-bold text-white/70 shadow-sm cursor-not-allowed'

@@ -2,76 +2,59 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { createClient } from '@/lib/supabase/browser'
 import { useEffect, useState } from 'react'
-import type { User } from '@supabase/supabase-js'
+import { Menu, X, LogIn } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { loginHref, useAuthUser } from '@/lib/hooks/useAuthUser'
 import { NotificationBell } from './NotificationBell'
-import { Menu, X } from 'lucide-react'
 
 interface NavbarProps {
   showDelegation?: boolean
-  showGovernance?: boolean
   showNotifications?: boolean
-  showVotingCycles?: boolean
   currentPlatformName?: string | null
 }
 
-export function Navbar({ showDelegation = true, showGovernance = false, showNotifications = false, showVotingCycles = false, currentPlatformName }: NavbarProps) {
+/** Classic-mode navigation (hidden in playful mode, which has its own menu). */
+export function Navbar({ showDelegation = true, showNotifications = false, currentPlatformName }: NavbarProps) {
   const pathname = usePathname()
-  const [user, setUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const { user, isAdmin, loading, signOut } = useAuthUser({ withAdmin: true })
   const [menuOpen, setMenuOpen] = useState(false)
-  const supabase = createClient()
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-      if (data.user) {
-        supabase.from('member').select('is_admin').eq('id', data.user.id).single()
-          .then(({ data: m }) => setIsAdmin(m?.is_admin ?? false))
-      }
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        supabase.from('member').select('is_admin').eq('id', session.user.id).single()
-          .then(({ data: m }) => setIsAdmin(m?.is_admin ?? false))
-      } else {
-        setIsAdmin(false)
-      }
-    })
-    return () => subscription.unsubscribe()
-  }, [])
 
   // Close menu on route change
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
 
-  async function signOut() {
-    await supabase.auth.signOut()
-    window.location.href = '/'
-  }
-
   const navLinks = [
     { href: '/topics', label: 'Topics', show: true },
     { href: '/analytics', label: '📊 Analytics', show: true },
     { href: '/delegation', label: 'Delegation', show: showDelegation },
-    { href: '/voting-cycles', label: 'Votes', show: false },
-    { href: '/governance', label: 'Governance', show: false },
     { href: '/playful', label: '🐾 Play', show: true },
   ].filter((l) => l.show)
 
   if (pathname.startsWith('/playful')) return null
 
+  const onLoginPage = pathname.startsWith('/auth')
+
   return (
-    <div className="fixed top-4 right-4 z-50">
+    <div className="fixed top-4 right-4 z-50 flex items-start gap-2">
+      {/* Always-visible sign-in button for visitors */}
+      {!loading && !user && !onLoginPage && (
+        <Link
+          href={loginHref(pathname)}
+          className="flex items-center gap-1.5 h-10 px-3.5 rounded-xl bg-accent text-white text-sm font-semibold shadow-md hover:bg-accent/90 transition-colors"
+        >
+          <LogIn className="w-4 h-4" />
+          Sign in
+        </Link>
+      )}
+
       <div className="relative">
         <button
           onClick={() => setMenuOpen((v) => !v)}
           className="p-2.5 rounded-xl bg-white/90 backdrop-blur-sm border border-sand shadow-md hover:bg-white transition-colors"
           aria-label="Toggle menu"
+          aria-expanded={menuOpen}
         >
           {menuOpen ? <X className="w-5 h-5 text-foreground/70" /> : <Menu className="w-5 h-5 text-foreground/70" />}
         </button>
@@ -134,7 +117,7 @@ export function Navbar({ showDelegation = true, showGovernance = false, showNoti
                 </button>
               </>
             ) : (
-              <Link href={`/auth/login?next=${encodeURIComponent(pathname)}`} className="block px-3 py-2 rounded-lg text-sm font-medium text-accent hover:bg-accent/10">
+              <Link href={loginHref(pathname)} className="block px-3 py-2 rounded-lg text-sm font-medium text-accent hover:bg-accent/10">
                 Sign in
               </Link>
             )}

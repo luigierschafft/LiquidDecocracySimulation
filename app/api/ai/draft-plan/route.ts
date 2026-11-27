@@ -1,15 +1,12 @@
-import { NextResponse } from 'next/server'
-import Groq from 'groq-sdk'
-import { createClient } from '@/lib/supabase/server'
+import { generateText } from '@/lib/ai/client'
+import { parseJsonObject } from '@/lib/ai/json'
+import { apiRoute, badRequest, forbidden, readJson, requireUser, HttpError } from '@/lib/api/handler'
 import { SECTION_TEMPLATE } from '@/lib/execution/sections'
 
-export async function POST(request: Request) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { issueId, planId } = await request.json()
-  if (!issueId || !planId) return NextResponse.json({ error: 'issueId and planId required' }, { status: 400 })
+export const POST = apiRoute(async (req) => {
+  const { supabase, user } = await requireUser()
+  const { issueId, planId } = await readJson<{ issueId?: string; planId?: string }>(req)
+  if (!issueId || !planId) throw badRequest('issueId and planId required')
 
   // Check user is team lead
   const { data: teamEntry } = await supabase
@@ -19,16 +16,14 @@ export async function POST(request: Request) {
     .eq('user_id', user.id)
     .single()
 
-  if (!teamEntry?.is_lead) {
-    return NextResponse.json({ error: 'Only the team lead can generate a draft' }, { status: 403 })
-  }
+  if (!teamEntry?.is_lead) throw forbidden('Only the team lead can generate a draft')
 
   // Gather context from discussion phase
   const [{ data: issue }, { data: statements }, { data: proposals }] = await Promise.all([
-    supabase.from('issue').select('title, body').eq('id', issueId).single(),
+    supabase.from('issue').select('title, description').eq('id', issueId).single(),
     supabase
       .from('ev_statements')
-      .select('text, ratings:ev_statement_ratings(rating, vote)')
+      .select('id, text, ratings:ev_statement_ratings(rating, vote)')
       .eq('issue_id', issueId)
       .order('created_at', { ascending: true }),
     supabase
@@ -69,19 +64,12 @@ export async function POST(request: Request) {
 
   const sectionKeys = SECTION_TEMPLATE.map((s) => `${s.key}: ${s.title}`).join('\n')
 
-  let sections: Record<string, string> = {}
-
-  try {
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-    const chat = await groq.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 4000,
-      messages: [{
-        role: 'user',
-        content: `You are drafting a project plan for a community initiative in Auroville, India.
+  const raw = await generateText({
+    maxTokens: 4000,
+    prompt: `You are drafting a project plan for a community initiative in Auroville, India.
 
 Topic: ${issue?.title ?? 'Unknown'}
-Description: ${issue?.body ?? 'N/A'}
+Description: ${issue?.description ?? 'N/A'}
 
 Community discussion statements (with votes and importance ratings):
 ${statementsText || 'No statements yet.'}
@@ -98,20 +86,15 @@ Sections to fill:
 ${sectionKeys}
 
 Respond ONLY with a JSON object where keys are the section keys and values are the markdown content strings. No other text, no markdown code fences.`,
-      }],
-    })
-
-    const responseText = chat.choices[0]?.message?.content ?? '{}'
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/)
-    sections = jsonMatch ? JSON.parse(jsonMatch[0]) : {}
-  } catch (e: any) {
-    console.error('AI draft-plan error:', e?.message ?? e)
-    return NextResponse.json({ error: e?.message ?? 'AI generation failed' }, { status: 500 })
-  }
+  })
+  const sections = parseJsonObject<Record<string, string>>(raw)
+  // Never overwrite existing plan content with blanks when the model reply is unusable
+  if (!sections) throw new HttpError(502, 'The AI reply could not be read. Nothing was changed — please try again.')
 
   // Upsert sections into DB
   for (const tmpl of SECTION_TEMPLATE) {
-    const content = sections[tmpl.key] ?? ''
+    const content = sections[tmpl.key]
+    if (typeof content !== 'string' || !content.trim()) continue // keep what is already there
     await supabase.from('ev_execution_sections').upsert(
       {
         plan_id: planId,
@@ -126,5 +109,6 @@ Respond ONLY with a JSON object where keys are the section keys and values are t
     )
   }
 
-  return NextResponse.json({ success: true, sectionCount: SECTION_TEMPLATE.length })
-}
+  const written = SECTION_TEMPLATE.filter((t) => typeof sections[t.key] === 'string' && sections[t.key].trim()).length
+  return { success: true, sectionCount: written }
+})

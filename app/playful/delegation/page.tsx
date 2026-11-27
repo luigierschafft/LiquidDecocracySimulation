@@ -1,8 +1,10 @@
+import { ACTIVE_MEMBER_APPROVAL } from '@/lib/config/membership'
 import { createClient } from '@/lib/supabase/server'
 import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PlayDelegationManager } from '@/components/play/PlayDelegationManager'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,7 +22,7 @@ export default async function PlayDelegationPage() {
       .from('member')
       .select('id, display_name, email')
       .neq('id', user.id)
-      .eq('is_approved', true)
+      .in('is_approved', ACTIVE_MEMBER_APPROVAL)
       .order('display_name'),
     supabase.from('area').select('id, name').order('name'),
     supabase.from('issue').select('id, title').neq('status', 'draft').order('title'),
@@ -28,6 +30,8 @@ export default async function PlayDelegationPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href="/playful" />
+
 
       {/* Header + handstand mongoose */}
       <div className="w-full max-w-xs relative mb-2">

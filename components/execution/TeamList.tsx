@@ -12,16 +12,6 @@ interface Props {
   userId: string | null
 }
 
-const STATUS_STYLES: Record<ExecutionTeamMember['status'], string> = {
-  active: 'bg-green-100 text-green-700',
-  interested: 'bg-yellow-100 text-yellow-700',
-}
-
-const STATUS_LABELS: Record<ExecutionTeamMember['status'], string> = {
-  active: 'Active',
-  interested: 'Interested',
-}
-
 export function TeamList({ team, planId, userId }: Props) {
   const router = useRouter()
   const [joining, setJoining] = useState(false)

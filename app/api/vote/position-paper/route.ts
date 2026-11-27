@@ -1,12 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRoute, badRequest, readJson, requireUser } from '@/lib/api/handler'
 
-export async function POST(req: NextRequest) {
-  const { proposal_id, vote_value, core_values, pro_arguments, contra_arguments } = await req.json()
-  const supabase = createClient()
+interface Body {
+  proposal_id?: string
+  vote_value?: string
+  core_values?: string
+  pro_arguments?: string
+  contra_arguments?: string
+}
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const POST = apiRoute(async (req) => {
+  const { supabase, user } = await requireUser()
+  const { proposal_id, vote_value, core_values, pro_arguments, contra_arguments } = await readJson<Body>(req)
+  if (!proposal_id) throw badRequest('proposal_id required')
 
   const { error } = await supabase.from('ev_position_papers').insert({
     proposal_id,
@@ -16,7 +21,6 @@ export async function POST(req: NextRequest) {
     pro_arguments: pro_arguments || null,
     contra_arguments: contra_arguments || null,
   })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ ok: true })
-}
+  if (error) throw error
+  return { ok: true }
+})

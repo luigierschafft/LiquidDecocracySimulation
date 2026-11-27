@@ -1,24 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server'
-import Groq from 'groq-sdk'
+import { generateText } from '@/lib/ai/client'
+import { apiRoute, badRequest, readJson } from '@/lib/api/handler'
 
-export async function POST(req: NextRequest) {
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-  const { context } = await req.json()
-  if (!context) return NextResponse.json({ error: 'Missing context' }, { status: 400 })
+export const POST = apiRoute(async (req) => {
+  const { context } = await readJson<{ context?: string }>(req)
+  if (!context) throw badRequest('Missing context')
 
-  const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-8b-instant',
-    max_tokens: 400,
-    messages: [
-      {
-        role: 'system',
-        content: `You are summarizing a community discussion for the Auroville community app.
+  const summary = await generateText({
+    model: 'fast',
+    maxTokens: 400,
+    system: `You are summarizing a community discussion for the Auroville community app.
 STRICT RULE: Only use information explicitly provided — never invent or add facts.
 Write in a warm, community-oriented tone. Format your response with clear sections using the exact headers below.`,
-      },
-      {
-        role: 'user',
-        content: `Here is the full discussion data:\n\n${context}\n\n
+    prompt: `Here is the full discussion data:\n\n${context}\n\n
 If no statements or proposals exist, write only this section:
 **What this topic is about**
 (1-2 sentences from the description, or say the topic is new and invite the reader to contribute)
@@ -43,10 +36,6 @@ Against:
 2. ...
 
 At the very end, one short friendly sentence inviting the reader to ask follow-up questions.`,
-      },
-    ],
   })
-
-  const summary = completion.choices[0]?.message?.content ?? ''
-  return NextResponse.json({ summary })
-}
+  return { summary }
+})

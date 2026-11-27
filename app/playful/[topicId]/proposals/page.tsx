@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { TopicProposalCard } from '@/components/proposals/TopicProposalCard'
 import { AddTopicProposalForm } from '@/components/proposals/AddTopicProposalForm'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,9 +35,7 @@ export default async function PlayProposalsPage({ params }: { params: { topicId:
 
         {/* Header */}
         <div>
-          <Link href={`/playful/${params.topicId}`} className="text-xs text-gray-400 underline">
-            ← Back
-          </Link>
+          <PlayBack href={`/playful/${params.topicId}`} label="Topic" />
           <h1 className="text-xl font-black text-gray-900 leading-tight mt-2">{issue.title}</h1>
           <p className="text-sm text-amber-600 font-semibold mt-0.5">Proposals</p>
         </div>

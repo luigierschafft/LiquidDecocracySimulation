@@ -1,20 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { apiRoute, badRequest, readJson, requireUser } from '@/lib/api/handler'
 
-export async function POST(req: NextRequest) {
-  const { proposal_id, vote_value, response } = await req.json()
-  const supabase = createClient()
+const MAX_LENGTH = 500
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+export const POST = apiRoute(async (req) => {
+  const { supabase, user } = await requireUser()
+  const { proposal_id, vote_value, response } =
+    await readJson<{ proposal_id?: string; vote_value?: string; response?: unknown }>(req)
 
-  if (!response || typeof response !== 'string' || response.trim().length === 0) {
-    return NextResponse.json({ error: 'Response cannot be empty' }, { status: 400 })
-  }
-
-  if (response.length > 500) {
-    return NextResponse.json({ error: 'Response must be 500 characters or fewer' }, { status: 400 })
-  }
+  if (typeof response !== 'string' || !response.trim()) throw badRequest('Response cannot be empty')
+  if (response.length > MAX_LENGTH) throw badRequest(`Response must be ${MAX_LENGTH} characters or fewer`)
 
   const { error } = await supabase.from('ev_empathy_responses').insert({
     proposal_id,
@@ -22,7 +16,6 @@ export async function POST(req: NextRequest) {
     vote_value,
     response: response.trim(),
   })
-
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ success: true })
-}
+  if (error) throw error
+  return { success: true }
+})

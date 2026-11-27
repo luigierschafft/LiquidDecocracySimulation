@@ -13,9 +13,12 @@ interface Props {
   statement: any
   userId: string | null
   topicId: string
+  mode?: 'classic' | 'playful'
 }
 
-export function StatementCard({ statement, userId }: Props) {
+export function StatementCard({ statement, userId, mode = 'classic' }: Props) {
+  // The two-column split is a classic-mode view; playful stacks pro and contra
+  const layout = mode === 'playful' ? 'stacked' : 'split'
   const [open, setOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('split')
   const [sunClickedNodeId, setSunClickedNodeId] = useState<string | null>(null)
@@ -84,8 +87,8 @@ export function StatementCard({ statement, userId }: Props) {
         className="cursor-pointer group"
         onClick={() => { setOpen((v) => !v); if (!open) setViewMode('split') }}
       >
-        <p className="text-sm font-medium text-gray-900 leading-relaxed group-hover:text-purple-700 transition-colors">{statement.text}</p>
-        <p className="text-xs text-gray-300 group-hover:text-purple-300 transition-colors mt-1">
+        <p className="text-base sm:text-lg font-medium text-gray-900 leading-relaxed group-hover:text-purple-700 transition-colors">{statement.text}</p>
+        <p className="text-sm text-gray-400 group-hover:text-purple-500 transition-colors mt-1">
           {open ? 'Click to close discussion' : 'Click to open discussion'}
         </p>
       </div>
@@ -149,7 +152,7 @@ export function StatementCard({ statement, userId }: Props) {
                 viewMode === 'split' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Split
+              {mode === 'playful' ? 'List' : 'Split'}
             </button>
             <button
               onClick={() => setViewMode('sun')}
@@ -165,7 +168,7 @@ export function StatementCard({ statement, userId }: Props) {
 
       {open && viewMode === 'split' && (
         <div onClick={(e) => e.stopPropagation()}>
-          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} />
+          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} layout={layout} />
         </div>
       )}
       {open && viewMode === 'sun' && (
@@ -178,7 +181,7 @@ export function StatementCard({ statement, userId }: Props) {
           />
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Argument Tree</p>
-            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} />
+            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} layout={layout} />
           </div>
         </div>
       )}

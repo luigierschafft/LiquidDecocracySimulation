@@ -1,20 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import { ProposalCard } from '@/components/proposals/ProposalCard'
 import Link from 'next/link'
-import type { Issue, IssueStatus } from '@/lib/types'
+import type { Issue } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { getEffectiveModules } from '@/lib/modules'
 import { getCurrentPlatformId } from '@/lib/platform'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
-
-const STATUS_FILTERS: { value: IssueStatus | 'all'; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'admission', label: 'Discussion' },
-  { value: 'discussion', label: 'Proposition' },
-  { value: 'voting', label: 'Voting' },
-  { value: 'closed', label: 'Closed' },
-]
 
 interface Props {
   searchParams: { status?: string }
@@ -54,8 +47,6 @@ export default async function TopicsPage({ searchParams }: Props) {
     query = query.eq('status', rawStatus)
   }
 
-  const status = rawStatus && validStatuses.includes(rawStatus) ? rawStatus : 'all'
-
   const { data: issues } = await query
 
   // Tags per issue — Module 62
@@ -74,12 +65,23 @@ export default async function TopicsPage({ searchParams }: Props) {
     }
   }
 
+  const all = (issues ?? []) as any[]
+  const current = all.filter((i) => i.created_at >= NEW_TOPIC_CUTOFF)
+  const earlier = all.filter((i) => i.created_at < NEW_TOPIC_CUTOFF)
+  const renderGrid = (list: any[]) => (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {list.map((issue) => (
+        <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[issue.id]} />
+      ))}
+    </div>
+  )
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-normal">Topics</h1>
-          <p className="text-foreground/60 mt-1">Select a topic you want to discuss, learn, vote or work on</p>
+          <h1 className="text-3xl font-bold">Topics</h1>
+          <p className="text-lg text-foreground/70 mt-1">Select a topic you want to discuss, learn, vote or work on</p>
         </div>
         {modules.proposal_creation && (
           <Link href="/proposals/new" className="btn-primary flex items-center gap-2">
@@ -89,12 +91,18 @@ export default async function TopicsPage({ searchParams }: Props) {
         )}
       </div>
 
-      {/* Grid */}
+      {/* Current topics first, earlier demo topics below */}
       {issues && issues.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {issues.map((issue) => (
-            <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[(issue as any).id]} />
-          ))}
+        <div className="space-y-10">
+          {current.length > 0 && renderGrid(current)}
+          {earlier.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground/50 mb-3">
+                Earlier demo topics
+              </h2>
+              <div className="opacity-70">{renderGrid(earlier)}</div>
+            </section>
+          )}
         </div>
       ) : (
         <div className="text-center py-20 text-foreground/40">

@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { PROTECTED_ROUTES, ADMIN_ROUTES } from '@/lib/config/routes'
+import { PLATFORM_COOKIE } from '@/lib/platform/constants'
 
 const PLATFORM_EXEMPT = ['/auth', '/platform-select', '/api', '/_next']
 
@@ -56,7 +57,7 @@ export async function middleware(request: NextRequest) {
 
   // 3. Platform guard: authenticated users without a platform cookie go to platform-select
   if (user && !isPlatformExempt) {
-    const platformCookie = request.cookies.get('x-platform')?.value
+    const platformCookie = request.cookies.get(PLATFORM_COOKIE)?.value
     if (!platformCookie) {
       return NextResponse.redirect(
         new URL(`/platform-select?next=${encodeURIComponent(path)}`, request.url)

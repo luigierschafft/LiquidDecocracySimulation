@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server'
-import Groq from 'groq-sdk'
+import { generateText } from '@/lib/ai/client'
+import { toChatMessages } from '@/lib/ai/chat'
+import { apiRoute, badRequest, readJson } from '@/lib/api/handler'
 
-export async function POST(req: NextRequest) {
-  const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
-  const { context, history, question } = await req.json()
-  if (!context || !question) return NextResponse.json({ error: 'Missing data' }, { status: 400 })
+export const POST = apiRoute(async (req) => {
+  const { context, history, question } = await readJson<{ context?: string; history?: unknown; question?: string }>(req)
+  if (!context || !question) throw badRequest('Missing data')
 
-  const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
-    {
-      role: 'system',
-      content: `You are a helpful assistant for the Auroville community app answering questions about a specific topic discussion.
+  const answer = await generateText({
+    model: 'fast',
+    maxTokens: 350,
+    system: `You are a helpful assistant for the Auroville community app answering questions about a specific topic discussion.
 
 RULES:
 - Answer ONLY based on the discussion data below — never invent or assume facts
@@ -20,20 +20,8 @@ RULES:
 
 DISCUSSION DATA:
 ${context}`,
-    },
-  ]
-
-  for (const msg of history ?? []) {
-    messages.push({ role: msg.role, content: msg.text })
-  }
-  messages.push({ role: 'user', content: question })
-
-  const completion = await groq.chat.completions.create({
-    model: 'llama-3.1-8b-instant',
-    max_tokens: 350,
-    messages,
+    messages: [...toChatMessages(history), { role: 'user', content: question }],
   })
 
-  const answer = completion.choices[0]?.message?.content ?? 'Sorry, I could not answer that.'
-  return NextResponse.json({ answer })
-}
+  return { answer: answer || 'Sorry, I could not answer that.' }
+})
