@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { StatementList } from '@/components/discussion/StatementList'
 import { AddStatementForm } from '@/components/discussion/AddStatementForm'
 import { getEffectiveModules } from '@/lib/modules'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,6 +56,8 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href={`/playful/${params.topicId}`} label="Topic" />
+
 
       {/* Header */}
       <div className="w-full max-w-sm mb-6">
@@ -103,6 +106,7 @@ export default async function PlayfulDiscussionPage({ params }: { params: { topi
           statements={statementsWithAvg}
           userId={user?.id ?? null}
           topicId={params.topicId}
+          mode="playful"
         />
       </div>
 

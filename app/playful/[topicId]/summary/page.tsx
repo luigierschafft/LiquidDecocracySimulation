@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { SummaryChat } from '@/components/play/SummaryChat'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -89,6 +90,8 @@ export default async function PlaySummaryPage({ params }: { params: { topicId: s
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href={`/playful/${issue.id}`} label="Topic" />
+
 
       {/* Header */}
       <div className="w-full max-w-xs mb-5 text-center">

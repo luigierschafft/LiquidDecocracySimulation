@@ -245,14 +245,15 @@ interface SplitProps {
   statementId: string
   onAdded: () => void
   onNavigate: (node: DiscussionNode) => void
+  layout: 'split' | 'stacked'
 }
 
-function KialoSplit({ nodes, userId, parentId, statementId, onAdded, onNavigate }: SplitProps) {
+function KialoSplit({ nodes, userId, parentId, statementId, onAdded, onNavigate, layout }: SplitProps) {
   const pros = nodes.filter((n) => n.type === 'pro')
   const contras = nodes.filter((n) => n.type === 'contra')
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className={layout === 'split' ? 'grid grid-cols-2 gap-3' : 'flex flex-col gap-3'}>
       <KialoColumn type="pro" nodes={pros} userId={userId} parentId={parentId} statementId={statementId} onAdded={onAdded} onNavigate={onNavigate} />
       <KialoColumn type="contra" nodes={contras} userId={userId} parentId={parentId} statementId={statementId} onAdded={onAdded} onNavigate={onNavigate} />
     </div>
@@ -266,6 +267,8 @@ interface Props {
   statementText: string
   userId: string | null
   autoFocusNodeId?: string | null
+  /** 'split' = pro and contra side by side (classic), 'stacked' = one column (playful) */
+  layout?: 'split' | 'stacked'
 }
 
 function buildTree(nodes: DiscussionNode[]): DiscussionNode[] {
@@ -305,7 +308,7 @@ function findPath(nodes: DiscussionNode[], targetId: string, path: DiscussionNod
   return null
 }
 
-export function KialoTreeView({ statementId, statementText, userId, autoFocusNodeId }: Props) {
+export function KialoTreeView({ statementId, statementText, userId, autoFocusNodeId, layout = 'split' }: Props) {
   const [nodes, setNodes] = useState<DiscussionNode[] | null>(null)
   const [loaded, setLoaded] = useState(false)
   // IDs (not node objects) so the current level survives a reload of the tree
@@ -394,7 +397,7 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
           <p className="text-lg font-semibold text-gray-900 mt-1 leading-snug">
             {focusedNode.text}
           </p>
-          <MiniScale nodeId={focusedNode.id} userId={userId} />
+          <MiniScale key={focusedNode.id} nodeId={focusedNode.id} userId={userId} />
           {currentNodes.length === 0 && (
             <p className="text-xs text-gray-400 mt-2">No sub-arguments yet.</p>
           )}
@@ -410,6 +413,7 @@ export function KialoTreeView({ statementId, statementText, userId, autoFocusNod
           statementId={statementId}
           onAdded={handleAdded}
           onNavigate={navigateTo}
+          layout={layout}
         />
       )}
 

@@ -5,6 +5,7 @@ import type { Issue } from '@/lib/types'
 import { Plus } from 'lucide-react'
 import { getEffectiveModules } from '@/lib/modules'
 import { getCurrentPlatformId } from '@/lib/platform'
+import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,6 +65,17 @@ export default async function TopicsPage({ searchParams }: Props) {
     }
   }
 
+  const all = (issues ?? []) as any[]
+  const current = all.filter((i) => i.created_at >= NEW_TOPIC_CUTOFF)
+  const earlier = all.filter((i) => i.created_at < NEW_TOPIC_CUTOFF)
+  const renderGrid = (list: any[]) => (
+    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      {list.map((issue) => (
+        <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[issue.id]} />
+      ))}
+    </div>
+  )
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
@@ -79,12 +91,18 @@ export default async function TopicsPage({ searchParams }: Props) {
         )}
       </div>
 
-      {/* Grid */}
+      {/* Current topics first, earlier demo topics below */}
       {issues && issues.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {issues.map((issue) => (
-            <ProposalCard key={issue.id} issue={issue as unknown as Issue} tags={tagMap[(issue as any).id]} />
-          ))}
+        <div className="space-y-10">
+          {current.length > 0 && renderGrid(current)}
+          {earlier.length > 0 && (
+            <section>
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-foreground/50 mb-3">
+                Earlier demo topics
+              </h2>
+              <div className="opacity-70">{renderGrid(earlier)}</div>
+            </section>
+          )}
         </div>
       ) : (
         <div className="text-center py-20 text-foreground/40">

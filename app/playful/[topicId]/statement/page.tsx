@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { StatementSwiper } from '@/components/play/StatementSwiper'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,6 +37,8 @@ export default async function PlayStatementPage({ params }: { params: { topicId:
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href={`/playful/${issue.id}`} label="Topic" />
+
 
       <div className="w-full max-w-xs relative mb-6">
         <h1 className="text-xl font-black text-gray-900 leading-tight">{issue.title}</h1>

@@ -4,6 +4,9 @@ import { cookies } from 'next/headers'
 import { safeRedirectPath } from '@/lib/utils'
 import { AUTH_NEXT_COOKIE } from '@/lib/auth/constants'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { DEFAULT_PLATFORM_SLUG } from '@/lib/platform/constants'
+
+const UNIQUE_VIOLATION = '23505' // already a member
 
 /** Comma-separated emails that are auto-approved as admin on every platform. */
 function isSuperadmin(email: string | undefined): boolean {
@@ -55,6 +58,27 @@ export async function GET(request: Request) {
           .eq('status', 'approved')
 
         const approved = memberships ?? []
+
+        // New members: join the public default platform automatically, so that
+        // one sign-in is enough and nobody lands on "Choose your platform" first.
+        if (approved.length === 0) {
+          const { data: defaultPlatform } = await supabase
+            .from('platform')
+            .select('id')
+            .eq('slug', DEFAULT_PLATFORM_SLUG)
+            .maybeSingle()
+          if (defaultPlatform) {
+            const { error: joinError } = await supabase
+              .from('platform_member')
+              .insert({ platform_id: defaultPlatform.id, user_id: user.id, role: 'member', status: 'approved' })
+            if (!joinError || joinError.code === UNIQUE_VIOLATION) {
+              return NextResponse.redirect(
+                new URL(`/api/platform/switch?slug=${DEFAULT_PLATFORM_SLUG}&next=${encodeURIComponent(next)}`, request.url)
+              )
+            }
+            console.error('[auth/callback] could not join default platform:', joinError.message)
+          }
+        }
 
         if (approved.length === 1) {
           const slug = (approved[0] as any).platform?.slug as string | undefined

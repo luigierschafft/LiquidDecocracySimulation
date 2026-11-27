@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { NEW_TOPIC_CUTOFF } from '@/lib/config/topics'
 import { redirect } from 'next/navigation'
 import { getCurrentPlatformId } from '@/lib/platform'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,6 +44,8 @@ export default async function PlayTopicsPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href="/playful" />
+
 
       {/* Header */}
       <div className="w-full max-w-xs relative mb-6">

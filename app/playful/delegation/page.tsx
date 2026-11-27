@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { PlayDelegationManager } from '@/components/play/PlayDelegationManager'
+import { PlayBack } from '@/components/play/PlayBack'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +30,8 @@ export default async function PlayDelegationPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 pt-6 pb-12">
+      <PlayBack href="/playful" />
+
 
       {/* Header + handstand mongoose */}
       <div className="w-full max-w-xs relative mb-2">

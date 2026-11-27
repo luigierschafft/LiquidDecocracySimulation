@@ -13,9 +13,12 @@ interface Props {
   statement: any
   userId: string | null
   topicId: string
+  mode?: 'classic' | 'playful'
 }
 
-export function StatementCard({ statement, userId }: Props) {
+export function StatementCard({ statement, userId, mode = 'classic' }: Props) {
+  // The two-column split is a classic-mode view; playful stacks pro and contra
+  const layout = mode === 'playful' ? 'stacked' : 'split'
   const [open, setOpen] = useState(false)
   const [viewMode, setViewMode] = useState<ViewMode>('split')
   const [sunClickedNodeId, setSunClickedNodeId] = useState<string | null>(null)
@@ -149,7 +152,7 @@ export function StatementCard({ statement, userId }: Props) {
                 viewMode === 'split' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              Split
+              {mode === 'playful' ? 'List' : 'Split'}
             </button>
             <button
               onClick={() => setViewMode('sun')}
@@ -165,7 +168,7 @@ export function StatementCard({ statement, userId }: Props) {
 
       {open && viewMode === 'split' && (
         <div onClick={(e) => e.stopPropagation()}>
-          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} />
+          <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} layout={layout} />
         </div>
       )}
       {open && viewMode === 'sun' && (
@@ -178,7 +181,7 @@ export function StatementCard({ statement, userId }: Props) {
           />
           <div className="border-t border-gray-100 pt-4">
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Argument Tree</p>
-            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} />
+            <KialoTreeView statementId={statement.id} statementText={statement.text} userId={userId} autoFocusNodeId={sunClickedNodeId} layout={layout} />
           </div>
         </div>
       )}
